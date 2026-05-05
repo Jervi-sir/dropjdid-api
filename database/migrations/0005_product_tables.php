@@ -15,18 +15,16 @@ return new class extends Migration
             $table->id();
             $table->foreignId('store_id')->constrained()->nullOnDelete();
             $table->foreignId('category_id')->constrained()->nullOnDelete();
+            $table->foreignId('gender_id')->constrained()->cascadeOnDelete();
             $table->foreignId('quality_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('payment_method_id')->constrained()->cascadeOnDelete();
 
             $table->string('name')->nullable();
             $table->text('description')->nullable();
 
-            $table->foreignId('payment_method_id')->constrained()->cascadeOnDelete();
-
             $table->decimal('original_price', 12, 2)->nullable();
             $table->decimal('show_price', 12, 2)->nullable();
             $table->decimal('store_price', 12, 2)->nullable();
-
-            $table->foreignId('gender_id')->constrained()->cascadeOnDelete();
 
             $table->enum('status', [
                 'draft',

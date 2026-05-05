@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MeController extends Controller
@@ -10,8 +11,10 @@ class MeController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): JsonResponse
     {
-        //
+        return response()->json([
+            'user' => $request->user(),
+        ]);
     }
 }

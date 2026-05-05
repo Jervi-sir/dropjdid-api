@@ -12,7 +12,7 @@ class Store extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['user_id', 'store_name', 'phone_number', 'logo', 'description', 'balance', 'status'];
+    protected $fillable = ['user_id', 'wilaya_id', 'store_name', 'phone_number', 'logo', 'description', 'balance', 'status'];
 
     protected function casts(): array
     {

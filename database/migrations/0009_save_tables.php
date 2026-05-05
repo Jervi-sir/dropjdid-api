@@ -11,18 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('saves', function (Blueprint $table) {
+        Schema::create('saved_products', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+        });
 
-            $table->morphs('saveable');
-            // saveable_type: Product, Drop, Prize
-            // saveable_id
+        Schema::create('saved_drops', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('drop_id')->constrained()->cascadeOnDelete();
 
             $table->timestamps();
-
-            $table->unique(['user_id', 'saveable_type', 'saveable_id'], 'unique_user_save');
         });
     }
 

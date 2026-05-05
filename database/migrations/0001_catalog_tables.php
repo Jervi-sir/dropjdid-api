@@ -14,6 +14,17 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('code');
+            $table->string('description')->nullable();
+            $table->string('en')->nullable();
+            $table->string('fr')->nullable();
+            $table->string('ar')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('wilayas', function (Blueprint $table) {
+            $table->id();
+            $table->string('code');
+            $table->string('number')->nullable();
             $table->string('en')->nullable();
             $table->string('fr')->nullable();
             $table->string('ar')->nullable();

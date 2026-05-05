@@ -11,7 +11,7 @@ class Role extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['code', 'en', 'fr', 'ar'];
+    protected $fillable = ['code', 'description', 'en', 'fr', 'ar'];
 
     public function users(): HasMany
     {

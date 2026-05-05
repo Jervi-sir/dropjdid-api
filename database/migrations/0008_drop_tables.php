@@ -19,11 +19,6 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
 
-            $table->string('image')->nullable();
-
-            $table->timestamp('starts_at')->nullable();
-            $table->timestamp('ends_at')->nullable();
-
             $table->enum('status', [
                 'draft',
                 'published',
@@ -31,6 +26,15 @@ return new class extends Migration
                 'cancelled',
             ])->default('draft');
 
+            $table->timestamps();
+        });
+
+        Schema::create('drop_images', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('drop_id')->constrained()->cascadeOnDelete();
+            $table->string('image');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->boolean('is_main')->default(false);
             $table->timestamps();
         });
 
@@ -45,6 +49,14 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['drop_id', 'product_id']);
+        });
+
+        Schema::create('liked_drops', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('drop_id')->constrained()->cascadeOnDelete();
+
+            $table->timestamps();
         });
     }
 

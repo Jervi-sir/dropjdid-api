@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Drop extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['creator_id', 'title', 'description', 'image', 'starts_at', 'ends_at', 'status'];
+    protected $fillable = ['creator_id', 'title', 'description', 'starts_at', 'ends_at', 'status'];
 
     protected function casts(): array
     {
@@ -35,13 +35,18 @@ class Drop extends Model
             ->withTimestamps();
     }
 
-    public function saves(): MorphMany
+    public function images(): HasMany
     {
-        return $this->morphMany(Save::class, 'saveable');
+        return $this->hasMany(DropImage::class)->orderBy('sort_order');
     }
 
-    protected function formatterRelations(): array
+    public function savedDrops(): HasMany
     {
-        return ['creator', 'products', 'saves'];
+        return $this->hasMany(SavedDrop::class);
+    }
+
+    public function likedDrops(): HasMany
+    {
+        return $this->hasMany(LikedDrop::class);
     }
 }

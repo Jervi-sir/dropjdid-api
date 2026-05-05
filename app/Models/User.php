@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\FormatsModel;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,11 +15,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use FormatsModel, HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+    use FormatsModel, HasApiTokens, HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     protected $fillable = [
         'role_id',
@@ -54,6 +56,13 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'deleted_at' => 'datetime',
         ];
+    }
+
+    protected function username(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $value): ?string => $value === null ? null : strtolower($value),
+        );
     }
 
     public function role(): BelongsTo

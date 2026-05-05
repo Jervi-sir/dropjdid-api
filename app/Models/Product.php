@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
@@ -84,13 +83,8 @@ class Product extends Model
             ->withTimestamps();
     }
 
-    public function saves(): MorphMany
+    public function savedProducts(): HasMany
     {
-        return $this->morphMany(Save::class, 'saveable');
-    }
-
-    protected function formatterRelations(): array
-    {
-        return ['store', 'category', 'quality', 'paymentMethod', 'gender', 'images', 'variants', 'productKeywords', 'orderItems', 'keywords', 'drops', 'saves'];
+        return $this->hasMany(SavedProduct::class);
     }
 }

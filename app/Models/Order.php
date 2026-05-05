@@ -12,7 +12,7 @@ class Order extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['user_id', 'store_id', 'order_number', 'payment_method_id', 'full_name', 'phone_number', 'wilaya', 'baladiya', 'home_address', 'delivery_method', 'delivery_fees', 'subtotal', 'total', 'status', 'has_claim_issue', 'claim_issue'];
+    protected $fillable = ['user_id', 'wilaya_id', 'store_id', 'order_number', 'payment_method_id', 'full_name', 'phone_number', 'wilaya', 'baladiya', 'home_address', 'delivery_method', 'delivery_fees', 'subtotal', 'total', 'status', 'has_claim_issue', 'claim_issue'];
 
     protected function casts(): array
     {
