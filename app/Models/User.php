@@ -151,6 +151,16 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'creator_followers', 'creator_id', 'user_id')->withTimestamps();
     }
 
+    public function creatorFollowers(): HasMany
+    {
+        return $this->hasMany(CreatorFollower::class, 'creator_id');
+    }
+
+    public function creatorRequests(): HasMany
+    {
+        return $this->hasMany(CreatorRequest::class);
+    }
+
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);

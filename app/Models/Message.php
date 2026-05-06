@@ -33,4 +33,41 @@ class Message extends Model
     {
         return ['conversation', 'sender', 'attachable'];
     }
+
+    public function formatForConversation(User $user): array
+    {
+        $type = $this->type;
+        $body = $this->body;
+
+        if ($type === 'text' && $body === null && $this->attachable instanceof Drop) {
+            $body = 'Shared drop';
+        }
+
+        return [
+            'id' => $this->id,
+            'type' => $type,
+            'message' => $body,
+            'isMine' => $this->sender_id === $user->id,
+            'created_at' => $this->created_at?->toISOString(),
+            'sender' => [
+                'id' => $this->sender?->id,
+                'name' => $this->sender?->username,
+                'username' => $this->sender?->username,
+                'image' => $this->sender?->image,
+            ],
+            'image' => $type === 'image' ? [
+                'url' => $this->body,
+            ] : null,
+            'product' => $type === 'product' && $this->attachable instanceof Product ? [
+                'id' => $this->attachable->id,
+                'name' => $this->attachable->name,
+            ] : null,
+            'profile' => $type === 'profile' && $this->attachable instanceof User ? [
+                'id' => $this->attachable->id,
+                'name' => $this->attachable->username,
+                'username' => '@'.$this->attachable->username,
+                'image' => $this->attachable->image,
+            ] : null,
+        ];
+    }
 }

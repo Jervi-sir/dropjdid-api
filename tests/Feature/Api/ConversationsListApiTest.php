@@ -37,17 +37,24 @@ function createConversationsListFixture(): array
         'password' => Hash::make('password123'),
     ]);
 
+    $secondFriend = User::query()->create([
+        'role_id' => $role->id,
+        'username' => 'secondfriend',
+        'phone_number' => '0559100004',
+        'password' => Hash::make('password123'),
+    ]);
+
     foreach (range(1, 2) as $index) {
         $conversation = Conversation::query()->create([
             'type' => 'private',
             'first_user_id' => $viewer->id,
-            'second_user_id' => $friend->id,
+            'second_user_id' => $index === 1 ? $friend->id : $secondFriend->id,
             'first_user_last_read_at' => $index === 1 ? now()->subMinute() : now()->subHour(),
         ]);
 
         Message::query()->create([
             'conversation_id' => $conversation->id,
-            'sender_id' => $friend->id,
+            'sender_id' => $index === 1 ? $friend->id : $secondFriend->id,
             'type' => 'text',
             'body' => 'Message '.$index,
             'created_at' => now()->subMinutes(3 - $index),

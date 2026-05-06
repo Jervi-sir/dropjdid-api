@@ -24,6 +24,7 @@ return new class extends Migration
             $table->timestamp('first_user_last_read_at')->nullable();
             $table->timestamp('second_user_last_read_at')->nullable();
 
+            $table->softDeletes();
             $table->timestamps();
 
             $table->unique(['first_user_id', 'second_user_id']);

@@ -13,6 +13,8 @@ class CreatorFollower extends Model
 
     protected $fillable = ['user_id', 'creator_id'];
 
+    protected $table = 'creator_followers';
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Conversation extends Model
 {
-    use FormatsModel, HasFactory;
+    use FormatsModel, HasFactory, SoftDeletes;
 
     protected $fillable = ['type', 'first_user_id', 'second_user_id', 'first_user_last_read_at', 'second_user_last_read_at'];
 
@@ -19,6 +20,7 @@ class Conversation extends Model
         return [
             'first_user_last_read_at' => 'datetime',
             'second_user_last_read_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 

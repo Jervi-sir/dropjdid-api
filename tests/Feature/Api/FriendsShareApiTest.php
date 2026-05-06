@@ -85,6 +85,20 @@ test('authenticated users can list accepted friends with pagination and search',
     $fixture = createFriendsShareFixture();
 
     $this->actingAs($fixture['user'], 'sanctum')
+        ->getJson('/api/friends?per_page=1')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $fixture['friendTwo']->id)
+        ->assertJsonPath('next_page', 2);
+
+    $this->actingAs($fixture['user'], 'sanctum')
+        ->getJson('/api/friends?search=alp')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $fixture['friendOne']->id)
+        ->assertJsonPath('next_page', null);
+
+    $this->actingAs($fixture['user'], 'sanctum')
         ->getJson('/api/friends/share?per_page=1')
         ->assertOk()
         ->assertJsonCount(1, 'data')

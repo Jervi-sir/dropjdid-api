@@ -21,6 +21,16 @@ return new class extends Migration
 
             $table->unique(['user_id', 'creator_id']);
         });
+
+        Schema::create('creator_requests', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('phone_number');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('note')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**

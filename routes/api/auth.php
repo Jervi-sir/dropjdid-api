@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UsernameAvailabilityController;
+use App\Http\Controllers\Api\Users\MyProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function (): void {
@@ -16,6 +17,7 @@ Route::prefix('auth')->group(function (): void {
 
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/me', MeController::class);
+        Route::get('/my-profile', MyProfileController::class);
         Route::post('/logout', LogoutController::class);
     });
 });

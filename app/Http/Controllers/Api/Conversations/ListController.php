@@ -34,7 +34,7 @@ class ListController extends Controller
                 'secondUser',
                 'messages' => fn ($query) => $query->latest(),
             ])
-            ->latest()
+            ->latest('updated_at')
             ->simplePaginate($perPage);
 
         return response()->json([

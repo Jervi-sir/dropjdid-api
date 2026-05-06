@@ -12,16 +12,26 @@ class Store extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['user_id', 'wilaya_id', 'store_name', 'phone_number', 'logo', 'description', 'balance', 'status'];
+    protected $fillable = ['user_id', 'wilaya_id', 'store_name', 'phone_number', 'password', 'logo', 'description', 'balance', 'status'];
+
+    protected $hidden = ['password'];
 
     protected function casts(): array
     {
-        return ['balance' => 'decimal:2'];
+        return [
+            'balance' => 'decimal:2',
+            'password' => 'hashed',
+        ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function wilaya(): BelongsTo
+    {
+        return $this->belongsTo(Wilaya::class);
     }
 
     public function products(): HasMany
@@ -36,6 +46,6 @@ class Store extends Model
 
     protected function formatterRelations(): array
     {
-        return ['user', 'products', 'orders'];
+        return ['user', 'wilaya', 'products', 'orders'];
     }
 }

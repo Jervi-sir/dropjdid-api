@@ -18,6 +18,7 @@ return new class extends Migration
 
             $table->string('store_name');
             $table->string('phone_number')->nullable();
+            $table->string('password')->nullable();
             $table->string('logo')->nullable();
             $table->text('description')->nullable();
 
