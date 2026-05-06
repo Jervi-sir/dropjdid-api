@@ -3,18 +3,19 @@
 namespace App\Http\Controllers\Api\Drops;
 
 use App\Http\Controllers\Controller;
-use App\Models\Advertisement;
 use App\Models\Drop;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class ListController extends Controller
+class SearchController extends Controller
 {
     public function __construct(private readonly DropFormatter $dropFormatter) {}
 
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'query' => ['required', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
@@ -22,9 +23,13 @@ class ListController extends Controller
         $perPage = $validated['per_page'] ?? 10;
         $user = $request->user();
         $userId = $user?->getAuthIdentifier();
+        $query = trim($validated['query']);
 
         $drops = Drop::query()
             ->where('status', 'published')
+            ->where(function (Builder $builder) use ($query): void {
+                $builder->where('title', 'like', '%'.$query.'%');
+            })
             ->withCount('likedDrops')
             ->with([
                 'creator',
@@ -53,21 +58,8 @@ class ListController extends Controller
             ->simplePaginate($perPage);
 
         return response()->json([
-            'data' => Advertisement::injectIntoFeed(
-                $drops->getCollection()->map(fn (Drop $drop): array => $this->dropFormatter->formatDrop($drop, $user)),
-            )->values(),
+            'data' => $drops->getCollection()->map(fn (Drop $drop): array => $this->dropFormatter->formatDrop($drop, $user))->values(),
             'next_page' => $drops->hasMorePages() ? $drops->currentPage() + 1 : null,
         ]);
-    }
-
-    private function formatAdvertisement(Advertisement $advertisement): array
-    {
-        return [
-            'type' => 'advertisement',
-            'id' => $advertisement->id,
-            'title' => $advertisement->title,
-            'image' => $advertisement->image,
-            'url' => $advertisement->url,
-        ];
     }
 }

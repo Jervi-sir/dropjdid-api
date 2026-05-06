@@ -12,3 +12,5 @@ require __DIR__.'/api/advertisements.php';
 require __DIR__.'/api/drops.php';
 require __DIR__.'/api/friends.php';
 require __DIR__.'/api/products.php';
+require __DIR__.'/api/search.php';
+require __DIR__.'/api/users.php';
