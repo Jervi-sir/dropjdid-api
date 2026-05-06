@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\FormatsModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Drop extends Model
 {
-    use FormatsModel, HasFactory;
+    use HasFactory;
 
     protected $fillable = ['creator_id', 'title', 'description', 'starts_at', 'ends_at', 'status'];
 
@@ -48,5 +47,45 @@ class Drop extends Model
     public function likedDrops(): HasMany
     {
         return $this->hasMany(LikedDrop::class);
+    }
+
+    /**
+     * --------------------------------------------------------------------------
+     * Formatters
+     * --------------------------------------------------------------------------
+     */
+    public function formatDrop(?User $user): array
+    {
+        return [
+            'type' => 'drop',
+            'id' => $this->id,
+            'title' => $this->title,
+            'images' => $this->images->pluck('image')->values()->all(),
+            'creator' => [
+                'id' => $this->creator?->id,
+                'name' => $this->creator?->username,
+            ],
+            'nb_likes' => $this->liked_drops_count,
+            'is_liked' => $user !== null && $this->likedDrops->isNotEmpty(),
+            'is_saved' => $user !== null && $this->savedDrops->isNotEmpty(),
+            'products' => $this->products
+                ->map(fn (Product $product): array => $this->formatProduct($product, $user))
+                ->values()
+                ->all(),
+        ];
+    }
+
+    public function formatProduct(Product $product, ?User $user): array
+    {
+        return [
+            'id' => $product->id,
+            'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
+            'image' => $product->images->sortBy('sort_order')->first()?->image,
+            'user' => [
+                'id' => $product->store?->user?->id,
+                'name' => $product->store?->user?->username,
+            ],
+            'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),
+        ];
     }
 }

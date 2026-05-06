@@ -10,8 +10,6 @@ use Illuminate\Http\Request;
 
 class SearchController extends Controller
 {
-    public function __construct(private readonly DropFormatter $dropFormatter) {}
-
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -58,7 +56,7 @@ class SearchController extends Controller
             ->simplePaginate($perPage);
 
         return response()->json([
-            'data' => $drops->getCollection()->map(fn (Drop $drop): array => $this->dropFormatter->formatDrop($drop, $user))->values(),
+            'data' => $drops->getCollection()->map(fn (Drop $drop): array => Drop::formatDrop($drop, $user))->values(),
             'next_page' => $drops->hasMorePages() ? $drops->currentPage() + 1 : null,
         ]);
     }

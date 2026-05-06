@@ -6,23 +6,30 @@ use App\Models\Concerns\FormatsModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Conversation extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['type', 'order_id'];
+    protected $fillable = ['type', 'first_user_id', 'second_user_id', 'first_user_last_read_at', 'second_user_last_read_at'];
 
-    public function order(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Order::class);
+        return [
+            'first_user_last_read_at' => 'datetime',
+            'second_user_last_read_at' => 'datetime',
+        ];
     }
 
-    public function participants(): HasMany
+    public function firstUser(): BelongsTo
     {
-        return $this->hasMany(ConversationParticipant::class);
+        return $this->belongsTo(User::class, 'first_user_id');
+    }
+
+    public function secondUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'second_user_id');
     }
 
     public function messages(): HasMany
@@ -30,15 +37,38 @@ class Conversation extends Model
         return $this->hasMany(Message::class);
     }
 
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'conversation_participants')
-            ->withPivot('last_read_at')
-            ->withTimestamps();
-    }
-
     protected function formatterRelations(): array
     {
-        return ['order', 'participants', 'messages', 'users'];
+        return ['firstUser', 'secondUser', 'messages'];
+    }
+
+    public function formatForList(User $user): array
+    {
+        $isFirstUser = $this->first_user_id === $user->id;
+        $otherUser = $isFirstUser ? $this->secondUser : $this->firstUser;
+        $latestMessage = $this->messages->sortByDesc('created_at')->first();
+        $lastReadAt = $isFirstUser ? $this->first_user_last_read_at : $this->second_user_last_read_at;
+
+        return [
+            'id' => $this->id,
+            'type' => $this->type,
+            'user' => [
+                'id' => $otherUser?->id,
+                'name' => $otherUser?->username,
+                'username' => $otherUser?->username,
+                'image' => $otherUser?->image,
+            ],
+            'latest_message' => [
+                'id' => $latestMessage?->id,
+                'type' => $latestMessage?->type,
+                'body' => $latestMessage?->body,
+                'created_at' => $latestMessage?->created_at?->toISOString(),
+            ],
+            'has_unread' => $latestMessage !== null
+                && $lastReadAt !== null
+                ? $latestMessage->created_at?->gt($lastReadAt) ?? false
+                : $latestMessage !== null,
+            'updated_at' => $this->updated_at?->toISOString(),
+        ];
     }
 }

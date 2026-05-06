@@ -4,15 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\Advertisement;
 use App\Models\Contact;
-use App\Models\Conversation;
-use App\Models\ConversationParticipant;
 use App\Models\CreatorFollower;
 use App\Models\Drop;
 use App\Models\DropImage;
 use App\Models\Friendship;
 use App\Models\Keyword;
 use App\Models\Label;
-use App\Models\Message;
 use App\Models\Notification;
 use App\Models\NotificationType;
 use App\Models\Order;
@@ -58,7 +55,6 @@ class DemoDataSeeder extends Seeder
             $this->seedPrizeJoinings($users, $prizes);
             $this->seedWalletTransactions($wallets, $orders, $drops, $prizes);
             $this->seedAdvertisements();
-            $this->seedConversations($users, $orders, $products, $drops);
             $this->seedSearchHistories($users);
             $this->seedNotifications($users, $orders, $drops, $prizes);
         });
@@ -400,47 +396,6 @@ class DemoDataSeeder extends Seeder
         }
     }
 
-    private function seedConversations(Collection $users, Collection $orders, Collection $products, Collection $drops): void
-    {
-        foreach (range(1, 8) as $index) {
-            $type = collect(['private', 'support', 'order'])->random();
-            $conversation = Conversation::query()->create([
-                'type' => $type,
-                'order_id' => $type === 'order' ? $orders->random()->id : null,
-            ]);
-
-            $participants = $users->shuffle()->take($type === 'support' ? 2 : random_int(2, 3));
-
-            foreach ($participants as $participant) {
-                ConversationParticipant::query()->create([
-                    'conversation_id' => $conversation->id,
-                    'user_id' => $participant->id,
-                    'last_read_at' => now()->subMinutes(random_int(1, 1440)),
-                ]);
-            }
-
-            foreach (range(1, random_int(2, 5)) as $messageIndex) {
-                $messageType = collect(['text', 'product', 'image'])->random();
-                $attachable = null;
-
-                if ($messageType === 'product') {
-                    $attachable = $products->random();
-                } elseif ($messageType === 'image') {
-                    $attachable = $drops->random();
-                }
-
-                Message::query()->create([
-                    'conversation_id' => $conversation->id,
-                    'sender_id' => $participants->random()->id,
-                    'type' => $messageType,
-                    'body' => $messageType === 'text' ? fake()->sentence() : null,
-                    'attachable_type' => $attachable?->getMorphClass(),
-                    'attachable_id' => $attachable?->id,
-                ]);
-            }
-        }
-    }
-
     private function seedSearchHistories(Collection $users): void
     {
         foreach ($users as $user) {
@@ -456,13 +411,20 @@ class DemoDataSeeder extends Seeder
 
     private function seedNotifications(Collection $users, Collection $orders, Collection $drops, Collection $prizes): void
     {
-        $notifiables = collect([...$users->all(), ...$orders->all(), ...$drops->all(), ...$prizes->all()]);
+        $targets = collect([...$orders->all(), ...$drops->all(), ...$prizes->all()]);
 
         foreach (range(1, 16) as $index) {
-            $notifiable = $notifiables->random();
+            $notificationType = NotificationType::query()->inRandomOrder()->first();
+            $user = $users->random();
+            $notifiable = $targets->random();
+
+            if ($notificationType === null) {
+                continue;
+            }
 
             Notification::query()->create([
-                'notification_type_id' => NotificationType::query()->inRandomOrder()->value('id'),
+                'notification_type_id' => $notificationType->id,
+                'user_id' => $user->id,
                 'notifiable_type' => $notifiable::class,
                 'notifiable_id' => $notifiable->id,
                 'data' => [

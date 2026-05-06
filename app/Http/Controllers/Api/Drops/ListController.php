@@ -10,13 +10,12 @@ use Illuminate\Http\Request;
 
 class ListController extends Controller
 {
-    public function __construct(private readonly DropFormatter $dropFormatter) {}
-
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'filter' => ['nullable', 'string', 'in:for_you,creators_i_follow,trending'],
         ]);
 
         $perPage = $validated['per_page'] ?? 10;
@@ -54,7 +53,7 @@ class ListController extends Controller
 
         return response()->json([
             'data' => Advertisement::injectIntoFeed(
-                $drops->getCollection()->map(fn (Drop $drop): array => $this->dropFormatter->formatDrop($drop, $user)),
+                $drops->getCollection()->map(fn (Drop $drop): array => $drop->formatDrop($user)),
             )->values(),
             'next_page' => $drops->hasMorePages() ? $drops->currentPage() + 1 : null,
         ]);

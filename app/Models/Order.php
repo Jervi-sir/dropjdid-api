@@ -53,4 +53,33 @@ class Order extends Model
     {
         return ['user', 'store', 'paymentMethod', 'items', 'conversations'];
     }
+
+    public function formatForList(): array
+    {
+        $firstItem = $this->items->first();
+        $firstProduct = $firstItem?->product;
+
+        return [
+            'id' => $this->id,
+            'order_number' => $this->order_number,
+            'type' => $this->paymentMethod?->code === 'online' ? 'online' : 'cod',
+            'status' => $this->formatStatusForMobile(),
+            'image' => $firstProduct?->images->sortBy('sort_order')->first()?->image,
+            'product_name' => $firstItem?->product_name,
+            'total' => (float) $this->total,
+            'created_at' => $this->created_at?->toISOString(),
+        ];
+    }
+
+    private function formatStatusForMobile(): string
+    {
+        return match ($this->status) {
+            'pending', 'confirmed' => 'waiting-confirmation',
+            'processing', 'shipped' => 'shipping-started',
+            'delivered' => 'puchased-successfully',
+            'cancelled' => 'canceled-waiting-refund',
+            'returned' => 'refunded-successfully',
+            default => 'cod',
+        };
+    }
 }

@@ -169,6 +169,17 @@ test('clients with bearer token get authenticated user on drops list', function 
         ->assertJsonPath('data.0.products.0.is_saved', true);
 });
 
+test('drops list accepts feed filter parameter', function () {
+    createDropsListFixture();
+
+    $this->getJson('/api/drops?filter=trending')
+        ->assertOk()
+        ->assertJsonStructure([
+            'data',
+            'next_page',
+        ]);
+});
+
 test('active advertisements are injected after every 10 drops', function () {
     $role = Role::query()->create([
         'code' => 'user',

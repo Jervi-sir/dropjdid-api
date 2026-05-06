@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Friends;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
-use App\Models\ConversationParticipant;
 use App\Models\Drop;
 use App\Models\Friendship;
 use App\Models\Message;
@@ -118,26 +117,21 @@ class ShareController extends Controller
         abort_unless($attachableType::query()->whereKey($validated['item_id'])->exists(), 422, 'The selected item is invalid.');
 
         $conversation = DB::transaction(function () use ($user, $validated, $type, $attachableType) {
+            $participantIds = collect([$user->id, $validated['friend_id']])->sort()->values();
+
             $conversation = Conversation::query()
                 ->where('type', 'private')
-                ->whereHas('participants', fn (Builder $query) => $query->where('user_id', $user->id))
-                ->whereHas('participants', fn (Builder $query) => $query->where('user_id', $validated['friend_id']))
-                ->whereRaw('(select count(*) from conversation_participants where conversation_participants.conversation_id = conversations.id) = 2')
+                ->where('first_user_id', $participantIds[0])
+                ->where('second_user_id', $participantIds[1])
                 ->first();
 
             if ($conversation === null) {
                 $conversation = Conversation::query()->create([
                     'type' => 'private',
-                ]);
-
-                ConversationParticipant::query()->create([
-                    'conversation_id' => $conversation->id,
-                    'user_id' => $user->id,
-                ]);
-
-                ConversationParticipant::query()->create([
-                    'conversation_id' => $conversation->id,
-                    'user_id' => $validated['friend_id'],
+                    'first_user_id' => $participantIds[0],
+                    'second_user_id' => $participantIds[1],
+                    'first_user_last_read_at' => $participantIds[0] === $user->id ? now() : null,
+                    'second_user_last_read_at' => $participantIds[1] === $user->id ? now() : null,
                 ]);
             }
 

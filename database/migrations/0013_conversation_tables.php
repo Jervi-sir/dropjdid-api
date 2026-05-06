@@ -17,25 +17,16 @@ return new class extends Migration
             $table->enum('type', [
                 'private',
                 'support',
-                'order',
             ])->default('private');
 
-            $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
-
-            $table->timestamps();
-        });
-
-        Schema::create('conversation_participants', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-
-            $table->timestamp('last_read_at')->nullable();
+            $table->foreignId('first_user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('second_user_id')->constrained('users')->cascadeOnDelete();
+            $table->timestamp('first_user_last_read_at')->nullable();
+            $table->timestamp('second_user_last_read_at')->nullable();
 
             $table->timestamps();
 
-            $table->unique(['conversation_id', 'user_id']);
+            $table->unique(['first_user_id', 'second_user_id']);
         });
 
         Schema::create('messages', function (Blueprint $table) {
