@@ -11,11 +11,16 @@ class ProductKeyword extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['keyword_id', 'product_id'];
+    protected $fillable = ['keyword_id', 'label_id', 'product_id'];
 
     public function keyword(): BelongsTo
     {
         return $this->belongsTo(Keyword::class);
+    }
+
+    public function label(): BelongsTo
+    {
+        return $this->belongsTo(Label::class);
     }
 
     public function product(): BelongsTo
@@ -25,6 +30,6 @@ class ProductKeyword extends Model
 
     protected function formatterRelations(): array
     {
-        return ['keyword', 'product'];
+        return ['keyword', 'label', 'product'];
     }
 }

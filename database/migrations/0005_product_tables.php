@@ -50,6 +50,7 @@ return new class extends Migration
         Schema::create('product_keywords', function (Blueprint $table) {
             $table->id();
             $table->foreignId('keyword_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('label_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
@@ -61,6 +62,14 @@ return new class extends Migration
 
             // $table->string('color')->nullable(); // Future incase
             $table->integer('quantity')->default(0);
+
+            $table->timestamps();
+        });
+
+        Schema::create('liked_products', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
 
             $table->timestamps();
         });

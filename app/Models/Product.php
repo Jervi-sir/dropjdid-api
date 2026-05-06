@@ -87,4 +87,9 @@ class Product extends Model
     {
         return $this->hasMany(SavedProduct::class);
     }
+
+    public function likedProducts(): HasMany
+    {
+        return $this->hasMany(LikedProduct::class);
+    }
 }

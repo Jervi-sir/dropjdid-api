@@ -24,7 +24,6 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductKeyword;
 use App\Models\ProductVariant;
-use App\Models\Save;
 use App\Models\SearchHistory;
 use App\Models\SocialPlatform;
 use App\Models\Store;
@@ -57,7 +56,6 @@ class DemoDataSeeder extends Seeder
             $orders = $this->seedOrders($users, $stores);
 
             $this->seedPrizeJoinings($users, $prizes);
-            $this->seedSaves($users, $products, $drops, $prizes);
             $this->seedWalletTransactions($wallets, $orders, $drops, $prizes);
             $this->seedAdvertisements();
             $this->seedConversations($users, $orders, $products, $drops);
@@ -239,6 +237,7 @@ class DemoDataSeeder extends Seeder
                 foreach (Keyword::query()->inRandomOrder()->limit(random_int(1, 3))->get() as $keyword) {
                     ProductKeyword::query()->create([
                         'keyword_id' => $keyword->id,
+                        'label_id' => $keyword->label->id,
                         'product_id' => $product->id,
                     ]);
                 }
@@ -360,22 +359,6 @@ class DemoDataSeeder extends Seeder
                     'user_id' => $user->id,
                     'amount_paid' => $prize->joining_price,
                     'status' => collect(['joined', 'winner', 'lost'])->random(),
-                ]);
-            }
-        }
-    }
-
-    private function seedSaves(Collection $users, Collection $products, Collection $drops, Collection $prizes): void
-    {
-        $saveables = $products->all();
-        $saveables = [...$saveables, ...$drops->all(), ...$prizes->all()];
-
-        foreach ($users as $user) {
-            foreach (collect($saveables)->shuffle()->take(random_int(3, 6)) as $saveable) {
-                Save::query()->firstOrCreate([
-                    'user_id' => $user->id,
-                    'saveable_type' => $saveable::class,
-                    'saveable_id' => $saveable->id,
                 ]);
             }
         }
