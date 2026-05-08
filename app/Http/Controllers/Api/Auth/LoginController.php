@@ -11,9 +11,6 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
     public function __invoke(Request $request): JsonResponse
     {
         $request->merge([
@@ -26,6 +23,7 @@ class LoginController extends Controller
         ]);
 
         $user = User::query()
+            ->with('roles')
             ->where('username', $credentials['username'])
             ->orWhere('email', $credentials['username'])
             ->first();

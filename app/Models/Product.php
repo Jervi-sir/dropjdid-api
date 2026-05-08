@@ -92,4 +92,23 @@ class Product extends Model
     {
         return $this->hasMany(LikedProduct::class);
     }
+
+    /**
+     * --------------------------------------------------------------------------
+     * Formatter
+     * --------------------------------------------------------------------------
+     */
+    public function formatProduct(Product $product, ?User $user): array
+    {
+        return [
+            'id' => $product->id,
+            'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
+            'image' => $product->images->sortBy('sort_order')->first()?->image,
+            'user' => [
+                'id' => $product->store?->user?->id,
+                'name' => $product->store?->user?->username,
+            ],
+            'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),
+        ];
+    }
 }

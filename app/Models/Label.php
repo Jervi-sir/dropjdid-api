@@ -6,6 +6,7 @@ use App\Models\Concerns\FormatsModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Label extends Model
 {
@@ -21,5 +22,30 @@ class Label extends Model
     protected function formatterRelations(): array
     {
         return ['keywords'];
+    }
+
+    public function feedName(): string
+    {
+        return $this->en ?? $this->code;
+    }
+
+    /**
+     * @param  array{data: Collection<int, array>, next_page: ?int}  $productsPayload
+     */
+    public function formatFeedSection(array $productsPayload, int $likedProductsCount): array
+    {
+        return [
+            'type' => 'label',
+            'label' => [
+                'id' => $this->id,
+                'code' => $this->code,
+                'en' => $this->en,
+                'fr' => $this->fr,
+                'ar' => $this->ar,
+            ],
+            'products' => $productsPayload['data']->values()->all(),
+            'nb_likes' => $likedProductsCount,
+            'next_page' => $productsPayload['next_page'],
+        ];
     }
 }

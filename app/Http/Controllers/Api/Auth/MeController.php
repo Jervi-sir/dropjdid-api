@@ -8,13 +8,10 @@ use Illuminate\Http\Request;
 
 class MeController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
     public function __invoke(Request $request): JsonResponse
     {
         return response()->json([
-            'user' => $request->user(),
+            'user' => $request->user()->load('roles'),
         ]);
     }
 }

@@ -13,6 +13,52 @@ use Illuminate\Http\Request;
 
 class HistoryController extends Controller
 {
+    public function store(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_if($user === null, 401);
+
+        $validated = $request->validate([
+            'query' => ['required', 'string', 'max:255'],
+            'type' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $query = trim($validated['query']);
+
+        if ($query === '') {
+            return response()->json([
+                'message' => 'Search query saved successfully.',
+            ]);
+        }
+
+        $history = SearchHistory::query()
+            ->where('user_id', $user->id)
+            ->where('query', $query)
+            ->first();
+
+        if ($history !== null) {
+            $history->type = $validated['type'] ?? $history->type ?? 'general';
+            $history->save();
+            $history->touch();
+        } else {
+            $history = SearchHistory::query()->create([
+                'user_id' => $user->id,
+                'query' => $query,
+                'type' => $validated['type'] ?? 'general',
+            ]);
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => $history->id,
+                'query' => $history->query,
+                'type' => $history->type,
+            ],
+            'message' => 'Search query saved successfully.',
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -99,6 +145,35 @@ class HistoryController extends Controller
                 ->concat($labels)
                 ->concat($profiles)
                 ->values(),
+        ]);
+    }
+
+    public function destroy(Request $request, SearchHistory $history): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_if($user === null, 401);
+        abort_if($history->user_id !== $user->id, 404);
+
+        $history->delete();
+
+        return response()->json([
+            'message' => 'Search history entry deleted successfully.',
+        ]);
+    }
+
+    public function clear(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_if($user === null, 401);
+
+        SearchHistory::query()
+            ->where('user_id', $user->id)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Search history cleared successfully.',
         ]);
     }
 }

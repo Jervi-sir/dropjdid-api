@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Api\Learning;
+namespace App\Http\Controllers\Api\Settings;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
-class ListVideosController extends Controller
+class LearningUpdatesController extends Controller
 {
     public function __invoke(): JsonResponse
     {
         return response()->json([
+            'success' => true,
             'data' => [
                 [
                     'id' => 1,

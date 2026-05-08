@@ -13,10 +13,11 @@ class Advertisement extends Model
 {
     use FormatsModel, HasFactory;
 
-    private const FEED_INSERT_INTERVAL = 10;
+    private const FEED_INSERT_INTERVAL = 4;
 
     protected $fillable = [
         'title',
+        'description',
         'image',
         'url',
         'status',
@@ -54,7 +55,7 @@ class Advertisement extends Model
             ->orderByDesc('id');
     }
 
-    public static function injectIntoFeed(Collection $items, int $interval = self::FEED_INSERT_INTERVAL): Collection
+    public static function injectIntoFeed(Collection $items, int $interval = self::FEED_INSERT_INTERVAL, int $adsCount = 1): Collection
     {
         $advertisements = self::query()
             ->activeForFeed()
@@ -62,7 +63,7 @@ class Advertisement extends Model
             ->map(fn (Advertisement $advertisement): array => $advertisement->toFeedArray())
             ->values();
 
-        if ($items->isEmpty() || $advertisements->isEmpty()) {
+        if ($items->isEmpty() || $advertisements->isEmpty() || $adsCount < 1) {
             return $items;
         }
 
@@ -76,8 +77,15 @@ class Advertisement extends Model
                 continue;
             }
 
-            $feed->push($advertisements[$advertisementIndex % $advertisements->count()]);
-            $advertisementIndex++;
+            $feed->push([
+                'type' => 'advertisements',
+                'data' => collect(range(0, $adsCount - 1))
+                    ->map(fn (int $offset): array => $advertisements[($advertisementIndex + $offset) % $advertisements->count()])
+                    ->values()
+                    ->all(),
+            ]);
+
+            $advertisementIndex = ($advertisementIndex + $adsCount) % $advertisements->count();
         }
 
         return $feed;
@@ -86,9 +94,19 @@ class Advertisement extends Model
     public function toFeedArray(): array
     {
         return [
-            'type' => 'advertisement',
             'id' => $this->id,
             'title' => $this->title,
+            'image' => $this->image,
+            'url' => $this->url,
+        ];
+    }
+
+    public function toDetailArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
             'image' => $this->image,
             'url' => $this->url,
         ];

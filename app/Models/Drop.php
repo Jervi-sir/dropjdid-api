@@ -64,6 +64,7 @@ class Drop extends Model
             'creator' => [
                 'id' => $this->creator?->id,
                 'name' => $this->creator?->username,
+                'username' => $this->creator?->username,
             ],
             'nb_likes' => $this->liked_drops_count,
             'is_liked' => $user !== null && $this->likedDrops->isNotEmpty(),
@@ -84,6 +85,7 @@ class Drop extends Model
             'user' => [
                 'id' => $product->store?->user?->id,
                 'name' => $product->store?->user?->username,
+                'username' => $product->store?->user?->username,
             ],
             'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),
         ];

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Advertisement;
 use App\Models\Category;
 use App\Models\Gender;
 use App\Models\Keyword;
@@ -170,23 +171,37 @@ test('clients can fetch a product by id', function () {
 test('clients can fetch random product suggestions with next page', function () {
     $fixture = createProductDetailsFixture();
 
-    $response = $this->getJson('/api/products/'.$fixture['product']->id.'/suggestions?per_page=1');
+    $response = $this->getJson('/api/products/'.$fixture['product']->id.'/suggestions?per_page=1&products_per_page=1');
 
     $response
         ->assertOk()
         ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.type', 'label')
+        ->assertJsonPath('data.0.label.id', $fixture['labelOne']->id)
+        ->assertJsonCount(1, 'data.0.products')
         ->assertJsonPath('next_page', 2);
 });
 
 test('clients can fetch same label product suggestions', function () {
     $fixture = createProductDetailsFixture();
 
-    $response = $this->getJson('/api/products/'.$fixture['product']->id.'/suggestions?label_id='.$fixture['labelOne']->id);
+    Advertisement::query()->create([
+        'title' => 'Suggestion ad',
+        'description' => 'Ad in product suggestions',
+        'image' => 'ads/suggestion.jpg',
+        'url' => 'https://example.com/suggestion-ad',
+        'status' => 'active',
+        'sort_order' => 1,
+    ]);
+
+    $response = $this->getJson('/api/products/'.$fixture['product']->id.'/suggestions?per_page=4&products_per_page=10');
 
     $response
         ->assertOk()
-        ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.id', $fixture['sameLabelProduct']->id)
+        ->assertJsonPath('data.0.label.id', $fixture['labelOne']->id)
+        ->assertJsonPath('data.0.products.0.id', $fixture['sameLabelProduct']->id)
+        ->assertJsonPath('data.2.type', 'advertisements')
+        ->assertJsonPath('data.2.data.0.title', 'Suggestion ad')
         ->assertJsonPath('next_page', null);
 });
 

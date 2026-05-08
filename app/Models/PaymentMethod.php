@@ -11,6 +11,10 @@ class PaymentMethod extends Model
 {
     use FormatsModel, HasFactory;
 
+    public const COD = 'cod';
+
+    public const ONLINE = 'online';
+
     protected $fillable = ['code', 'en', 'fr', 'ar'];
 
     public function products(): HasMany

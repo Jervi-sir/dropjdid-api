@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->string('image');
             $table->string('url')->nullable();
+            $table->string('description')->nullable();
 
             $table->enum('status', [
                 'draft',

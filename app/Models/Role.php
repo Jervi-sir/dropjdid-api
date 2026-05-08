@@ -11,6 +11,12 @@ class Role extends Model
 {
     use FormatsModel, HasFactory;
 
+    public const USER = 'user';
+
+    public const CREATOR = 'creator';
+
+    public const SGM = 'sgm';
+
     protected $fillable = ['code', 'description', 'en', 'fr', 'ar'];
 
     public function users(): HasMany

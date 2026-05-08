@@ -15,10 +15,9 @@ class LookupTableSeeder extends Seeder
         DB::table('roles')->insert(array_map(
             fn (array $role): array => [...$role, 'created_at' => $timestamp, 'updated_at' => $timestamp],
             [
-                ['code' => 'user-mini', 'description' => 'user', 'en' => 'User Mini', 'fr' => 'Utilisateur Mini', 'ar' => null],
-                ['code' => 'user-pro', 'description' => 'user+creator', 'en' => 'User Pro', 'fr' => 'Utilisateur Pro', 'ar' => null],
-                ['code' => 'user-pro-max', 'description' => 'user+creator+sgm', 'en' => 'User Pro Max', 'fr' => 'Utilisateur Pro Max', 'ar' => null],
-                ['code' => 'user-air', 'description' => 'user+sgm', 'en' => 'User Air', 'fr' => 'Utilisateur Air', 'ar' => null],
+                ['code' => 'user', 'description' => 'user', 'en' => 'User', 'fr' => 'Utilisateur', 'ar' => null],
+                ['code' => 'creator', 'description' => 'creator', 'en' => 'Creator', 'fr' => 'Créateur', 'ar' => null],
+                ['code' => 'sgm', 'description' => 'sgm', 'en' => 'SGM', 'fr' => 'SGM', 'ar' => null],
             ],
         ));
 

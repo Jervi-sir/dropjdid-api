@@ -56,7 +56,7 @@ class SearchController extends Controller
             ->simplePaginate($perPage);
 
         return response()->json([
-            'data' => $drops->getCollection()->map(fn (Drop $drop): array => Drop::formatDrop($drop, $user))->values(),
+            'data' => $drops->getCollection()->map(fn (Drop $drop): array => $drop->formatDrop($user))->values(),
             'next_page' => $drops->hasMorePages() ? $drops->currentPage() + 1 : null,
         ]);
     }

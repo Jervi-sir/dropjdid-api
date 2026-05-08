@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('role_id')->constrained()->cascadeOnDelete();
             $table->foreignId('wilaya_id')->nullable()->constrained()->cascadeOnDelete();
 
+            $table->string('full_name')->nullable();
             $table->string('username')->unique()->nullable();
             $table->string('phone_number')->unique()->nullable();
             $table->timestamp('phone_verified_at')->nullable();
@@ -35,6 +35,13 @@ return new class extends Migration
 
             $table->rememberToken();
             $table->softDeletes();
+            $table->timestamps();
+        });
+
+        Schema::create('user_roles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('role_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
 

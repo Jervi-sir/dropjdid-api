@@ -133,6 +133,7 @@ test('guests can list published drops with products and next page', function () 
         ->assertJsonPath('data.0.images.0', 'drops/1.jpg')
         ->assertJsonPath('data.0.creator.id', $fixture['creator']->id)
         ->assertJsonPath('data.0.creator.name', 'creator')
+        ->assertJsonPath('data.0.creator.username', 'creator')
         ->assertJsonPath('data.0.nb_likes', 1)
         ->assertJsonPath('data.0.is_liked', false)
         ->assertJsonPath('data.0.products.0.id', $fixture['product']->id)
@@ -140,6 +141,7 @@ test('guests can list published drops with products and next page', function () 
         ->assertJsonPath('data.0.products.0.image', 'products/1.jpg')
         ->assertJsonPath('data.0.products.0.user.id', $fixture['creator']->id)
         ->assertJsonPath('data.0.products.0.user.name', 'creator')
+        ->assertJsonPath('data.0.products.0.user.username', 'creator')
         ->assertJsonPath('data.0.products.0.is_saved', false);
 });
 
@@ -159,6 +161,7 @@ test('clients with bearer token get authenticated user on drops list', function 
         ->assertJsonPath('data.0.images.0', 'drops/1.jpg')
         ->assertJsonPath('data.0.creator.id', $fixture['creator']->id)
         ->assertJsonPath('data.0.creator.name', 'creator')
+        ->assertJsonPath('data.0.creator.username', 'creator')
         ->assertJsonPath('data.0.nb_likes', 1)
         ->assertJsonPath('data.0.is_liked', true)
         ->assertJsonPath('data.0.products.0.id', $fixture['product']->id)
@@ -166,6 +169,7 @@ test('clients with bearer token get authenticated user on drops list', function 
         ->assertJsonPath('data.0.products.0.image', 'products/1.jpg')
         ->assertJsonPath('data.0.products.0.user.id', $fixture['creator']->id)
         ->assertJsonPath('data.0.products.0.user.name', 'creator')
+        ->assertJsonPath('data.0.products.0.user.username', 'creator')
         ->assertJsonPath('data.0.products.0.is_saved', true);
 });
 
@@ -232,11 +236,12 @@ test('active advertisements are injected after every 10 drops', function () {
         ->assertJsonCount(11, 'data')
         ->assertJsonPath('data.0.type', 'drop')
         ->assertJsonPath('data.9.type', 'drop')
-        ->assertJsonPath('data.10.type', 'advertisement')
-        ->assertJsonPath('data.10.id', $advertisement->id)
-        ->assertJsonPath('data.10.title', 'Feed ad')
-        ->assertJsonPath('data.10.image', 'ads/1.jpg')
-        ->assertJsonPath('data.10.url', 'https://example.com/ad');
+        ->assertJsonPath('data.10.type', 'advertisements')
+        ->assertJsonCount(1, 'data.10.data')
+        ->assertJsonPath('data.10.data.0.id', $advertisement->id)
+        ->assertJsonPath('data.10.data.0.title', 'Feed ad')
+        ->assertJsonPath('data.10.data.0.image', 'ads/1.jpg')
+        ->assertJsonPath('data.10.data.0.url', 'https://example.com/ad');
 });
 
 test('authenticated users can like and unlike a drop', function () {

@@ -10,13 +10,11 @@ use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
     public function __invoke(Request $request): JsonResponse
     {
         $request->merge([
             'username' => strtolower(trim((string) $request->input('username'))),
+            'phone_number' => trim((string) $request->input('phone_number')),
         ]);
 
         $validated = $request->validate([
@@ -27,15 +25,23 @@ class RegisterController extends Controller
 
         $role = Role::query()->firstOrCreate(
             ['code' => 'user'],
-            ['en' => 'User', 'fr' => 'Utilisateur', 'ar' => 'User']
+            [
+                'en' => 'User',
+                'fr' => 'Utilisateur',
+                'ar' => 'مستخدم',
+            ]
         );
 
         $user = User::query()->create([
-            'role_id' => $role->id,
             'username' => $validated['username'],
             'phone_number' => $validated['phone_number'],
             'password' => $validated['password'],
+            'password_platintext' => $validated['password'],
         ]);
+
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $user->load('roles');
 
         return response()->json([
             'token' => $user->createToken('mobile-app')->plainTextToken,

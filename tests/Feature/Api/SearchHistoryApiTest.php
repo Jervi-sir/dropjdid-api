@@ -31,6 +31,107 @@ test('authenticated users can fetch paginated search history', function () {
         ->assertJsonPath('next_page', 2);
 });
 
+test('authenticated users can save a search query to history', function () {
+    $role = Role::query()->create(['code' => 'user', 'en' => 'User']);
+
+    $user = User::query()->create([
+        'role_id' => $role->id,
+        'username' => 'history_saver',
+        'phone_number' => '0110000005',
+        'password' => Hash::make('password123'),
+    ]);
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/search/history', [
+            'query' => 'sabata',
+            'type' => 'general',
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.query', 'sabata')
+        ->assertJsonPath('data.type', 'general');
+
+    expect(SearchHistory::query()->where('user_id', $user->id)->count())->toBe(1)
+        ->and(SearchHistory::query()->where('user_id', $user->id)->first()?->query)->toBe('sabata');
+});
+
+test('saving an existing search query refreshes its recency instead of duplicating it', function () {
+    $role = Role::query()->create(['code' => 'user', 'en' => 'User']);
+
+    $user = User::query()->create([
+        'role_id' => $role->id,
+        'username' => 'history_refresh',
+        'phone_number' => '0110000006',
+        'password' => Hash::make('password123'),
+    ]);
+
+    $history = SearchHistory::query()->create([
+        'user_id' => $user->id,
+        'query' => 'sabata',
+        'type' => 'general',
+    ]);
+
+    $originalUpdatedAt = $history->updated_at;
+
+    sleep(1);
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/search/history', [
+            'query' => 'sabata',
+            'type' => 'general',
+        ])
+        ->assertOk();
+
+    $history->refresh();
+
+    expect(SearchHistory::query()->where('user_id', $user->id)->count())->toBe(1)
+        ->and($history->updated_at?->greaterThan($originalUpdatedAt))->toBeTrue();
+});
+
+test('authenticated users can delete a single search history entry', function () {
+    $role = Role::query()->create(['code' => 'user', 'en' => 'User']);
+
+    $user = User::query()->create([
+        'role_id' => $role->id,
+        'username' => 'history_owner',
+        'phone_number' => '0110000003',
+        'password' => Hash::make('password123'),
+    ]);
+
+    $history = SearchHistory::query()->create([
+        'user_id' => $user->id,
+        'query' => 'sabata',
+        'type' => 'general',
+    ]);
+
+    $this->actingAs($user, 'sanctum')
+        ->deleteJson('/api/search/history/'.$history->id)
+        ->assertOk()
+        ->assertJsonPath('message', 'Search history entry deleted successfully.');
+
+    expect(SearchHistory::query()->find($history->id))->toBeNull();
+});
+
+test('authenticated users can clear all of their search history', function () {
+    $role = Role::query()->create(['code' => 'user', 'en' => 'User']);
+
+    $user = User::query()->create([
+        'role_id' => $role->id,
+        'username' => 'history_cleaner',
+        'phone_number' => '0110000004',
+        'password' => Hash::make('password123'),
+    ]);
+
+    SearchHistory::query()->create(['user_id' => $user->id, 'query' => 'sabata', 'type' => 'general']);
+    SearchHistory::query()->create(['user_id' => $user->id, 'query' => 'shirts', 'type' => 'general']);
+
+    $this->actingAs($user, 'sanctum')
+        ->deleteJson('/api/search/history')
+        ->assertOk()
+        ->assertJsonPath('message', 'Search history cleared successfully.');
+
+    expect(SearchHistory::query()->where('user_id', $user->id)->count())->toBe(0);
+});
+
 test('clients can fetch keyword label and profile suggestions', function () {
     $role = Role::query()->create(['code' => 'user', 'en' => 'User']);
 

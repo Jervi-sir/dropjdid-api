@@ -11,17 +11,14 @@ class MyDropsController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $user = $request->user();
-
-        abort_if($user === null, 401);
-
         $validated = $request->validate([
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
 
         $perPage = $validated['per_page'] ?? 10;
-        $userId = $user->getAuthIdentifier();
+        $user = $request->user();
+        $userId = $user->id;
 
         $drops = Drop::query()
             ->where('creator_id', $userId)
@@ -29,23 +26,31 @@ class MyDropsController extends Controller
             ->with([
                 'creator',
                 'images',
-                'likedDrops' => fn ($query) => $query->where('user_id', $userId),
-                'savedDrops' => fn ($query) => $query->where('user_id', $userId),
                 'products.store.user',
                 'products.images',
                 'products' => function ($query) use ($userId): void {
                     $query->with([
-                        'savedProducts' => fn ($savedProductsQuery) => $savedProductsQuery->where('user_id', $userId),
+                        'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
                     ]);
+                },
+                'likedDrops' => function ($query) use ($userId) {
+                    return $query->where('user_id', $userId);
+                },
+                'savedDrops' => function ($query) use ($userId) {
+                    return $query->where('user_id', $userId);
                 },
             ])
             ->latest()
-            ->simplePaginate($perPage);
+            ->paginate($perPage);
+
+        $formattedDrops = collect($drops->items())
+            ->map(fn (Drop $drop): array => array_merge($drop->formatDrop($user), [
+                'status' => $drop->status,
+            ]));
 
         return response()->json([
-            'data' => $drops->getCollection()->map(fn (Drop $drop): array => $drop->formatDrop($user) + [
-                'status' => $drop->status,
-            ])->values(),
+            'data' => $formattedDrops,
+            'total' => $drops->total(),
             'next_page' => $drops->hasMorePages() ? $drops->currentPage() + 1 : null,
         ]);
     }

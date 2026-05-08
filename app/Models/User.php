@@ -7,7 +7,6 @@ use App\Models\Concerns\FormatsModel;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,7 +21,8 @@ class User extends Authenticatable
     use FormatsModel, HasApiTokens, HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     protected $fillable = [
-        'role_id',
+        'wilaya_id',
+        'full_name',
         'username',
         'phone_number',
         'phone_verified_at',
@@ -64,9 +64,21 @@ class User extends Authenticatable
         );
     }
 
-    public function role(): BelongsTo
+    public function userRoles(): HasMany
     {
-        return $this->belongsTo(Role::class);
+        return $this->hasMany(UserRole::class);
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles')
+            ->using(UserRole::class)
+            ->withTimestamps();
+    }
+
+    public function hasRole(string $code): bool
+    {
+        return $this->roles()->where('code', $code)->exists();
     }
 
     public function contacts(): HasMany
@@ -99,11 +111,6 @@ class User extends Authenticatable
         return $this->hasMany(PrizeJoining::class);
     }
 
-    public function saves(): HasMany
-    {
-        return $this->hasMany(Save::class);
-    }
-
     public function drops(): HasMany
     {
         return $this->hasMany(Drop::class, 'creator_id');
@@ -127,11 +134,6 @@ class User extends Authenticatable
     public function sentMessages(): HasMany
     {
         return $this->hasMany(Message::class, 'sender_id');
-    }
-
-    public function conversationParticipants(): HasMany
-    {
-        return $this->hasMany(ConversationParticipant::class);
     }
 
     public function conversations(): BelongsToMany
