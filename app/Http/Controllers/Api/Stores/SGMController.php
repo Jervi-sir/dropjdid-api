@@ -9,9 +9,38 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
-class UpsertStoreController extends Controller
+class SGMController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
+    {
+        $perPage = $request->integer('per_page', 10);
+
+        $stores = Store::where('user_id', $request->user()->id)
+            ->latest()
+            ->simplePaginate($perPage);
+
+        return response()->json([
+            'data' => $stores->items(),
+            'next_page' => $stores->hasMorePages() ? $stores->currentPage() + 1 : null,
+        ]);
+    }
+
+    public function preview(Request $request, $id)
+    {
+        $store = Store::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        return response()->json([
+            'data' => [
+                'store_name' => $store->store_name,
+                'phone_number' => $store->phone_number,
+            ],
+        ]);
+
+    }
+
+    public function upsert(Request $request): JsonResponse
     {
         $id = $request->input('id');
         $isUpdate = $id !== null;
