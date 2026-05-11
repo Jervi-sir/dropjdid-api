@@ -6,45 +6,85 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
+use App\Models\UserSupportRequest;
 use Illuminate\Validation\ValidationException;
 
 class ForgotPasswordController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
-    public function __invoke(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
+    {
+        $userRequest = UserSupportRequest::where('user_id', $request->user()->id)
+            ->where('target', 'forgot-password')
+            ->latest()
+            ->first();
+
+        return response()->json([
+            'data' => $userRequest,
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'username' => ['nullable', 'string'],
+            'phone_number' => ['nullable', 'string'],
             'email' => ['nullable', 'email'],
         ]);
 
-        $email = $validated['email'] ?? null;
+        $user = null;
+        $type = null;
+        $contact = null;
 
-        if (! $email && ! empty($validated['username'])) {
-            $email = User::query()
-                ->where('username', $validated['username'])
-                ->value('email');
+        if (! empty($validated['email'])) {
+            $contact = $validated['email'];
+            $type = 'email';
+            $user = User::where('email', $contact)->first();
+        } elseif (! empty($validated['phone_number'])) {
+            $contact = $validated['phone_number'];
+            $user = User::where('phone_number', $contact)->first();
+            if ($user) {
+                $type = 'phone_number';
+            } else {
+                $user = User::where('username', $contact)->first();
+                if ($user) {
+                    $type = 'username';
+                }
+            }
+        } elseif (! empty($validated['username'])) {
+            $contact = $validated['username'];
+            $type = 'username';
+            $user = User::where('username', $contact)->first();
         }
 
-        if (! $email) {
+        if (! $user) {
             throw ValidationException::withMessages([
-                'email' => ['An email address is required to send a reset link.'],
+                'email' => ['We could not find a user with the provided information.'],
             ]);
         }
 
-        $status = Password::sendResetLink(['email' => $email]);
+        $existingRequest = UserSupportRequest::where('user_id', $user->id)
+            ->where('target', 'forgot-password')
+            ->where('status', 'pending')
+            ->first();
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
-            ]);
+        if ($existingRequest) {
+            return response()->json([
+                'message' => 'You already have a pending password reset request.',
+                'data' => $existingRequest,
+            ], 422);
         }
+
+        $userRequest = UserSupportRequest::create([
+            'user_id' => $user->id,
+            'contact' => $contact,
+            'type' => $type,
+            'target' => 'forgot-password',
+            'status' => 'pending',
+        ]);
 
         return response()->json([
-            'message' => __($status),
+            'message' => 'Your password reset request has been sent to our support team for review.',
+            'data' => $userRequest,
         ]);
     }
 }

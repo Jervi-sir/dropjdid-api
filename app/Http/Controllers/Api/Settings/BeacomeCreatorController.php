@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\CreatorRequest;
+use App\Models\UserSupportRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,8 +15,9 @@ class BeacomeCreatorController extends Controller
 
         abort_if($user === null, 401);
 
-        $creatorRequest = CreatorRequest::query()
+        $creatorRequest = UserSupportRequest::query()
             ->where('user_id', $user->id)
+            ->where('target', 'become-creator')
             ->latest('id')
             ->first();
 
@@ -35,8 +36,9 @@ class BeacomeCreatorController extends Controller
             'phone_number' => ['required', 'string', 'max:255'],
         ]);
 
-        $latestRequest = CreatorRequest::query()
+        $latestRequest = UserSupportRequest::query()
             ->where('user_id', $user->id)
+            ->where('target', 'become-creator')
             ->latest('id')
             ->first();
 
@@ -47,9 +49,11 @@ class BeacomeCreatorController extends Controller
             ], 422);
         }
 
-        $creatorRequest = CreatorRequest::query()->create([
+        $creatorRequest = UserSupportRequest::query()->create([
             'user_id' => $user->id,
-            'phone_number' => $validated['phone_number'],
+            'contact' => $validated['phone_number'],
+            'type' => 'phone_number',
+            'target' => 'become-creator',
             'status' => 'pending',
         ]);
 
@@ -59,11 +63,11 @@ class BeacomeCreatorController extends Controller
         ], 201);
     }
 
-    private function formatRequest(CreatorRequest $creatorRequest): array
+    private function formatRequest(UserSupportRequest $creatorRequest): array
     {
         return [
             'id' => $creatorRequest->id,
-            'phone_number' => $creatorRequest->phone_number,
+            'phone_number' => $creatorRequest->contact,
             'status' => $creatorRequest->status,
             'note' => $creatorRequest->note,
             'reviewed_at' => $creatorRequest->reviewed_at?->toISOString(),
