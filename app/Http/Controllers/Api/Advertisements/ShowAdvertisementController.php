@@ -8,13 +8,9 @@ use Illuminate\Http\JsonResponse;
 
 class ShowAdvertisementController extends Controller
 {
-    public function __invoke(int $id): JsonResponse
+    public function __invoke(int $advertisement_id): JsonResponse
     {
-        $advertisement = Advertisement::find($id);
-        abort_unless(
-            $advertisement !== null,
-            404,
-        );
+        $advertisement = Advertisement::findOrFail($advertisement_id);
 
         return response()->json([
             'data' => $advertisement->toDetailArray(),

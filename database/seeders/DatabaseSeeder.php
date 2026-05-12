@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,8 +12,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(LookupTableSeeder::class);
-        $this->call(DemoDataSeeder::class);
+        // $this->call(LookupTableSeeder::class);
+        // $this->call(DemoDataSeeder::class);
+
+        foreach ([
+            CatalogSeeder::class,
+            UserSeeder::class,
+            StoreSeeder::class,
+            LabelSeeder::class,
+            ProductSeeder::class,
+            CreatorSeeder::class,
+            WalletSeeder::class,
+            DropSeeder::class,
+            SaveSeeder::class,
+            PrizeSeeder::class,
+            OrderSeeder::class,
+            AdvertisementSeeder::class,
+            ConversationSeeder::class,
+            SearchSeeder::class,
+            NotificationSeeder::class,
+            SupportRequestSeeder::class,
+        ] as $seeder) {
+            DB::transaction(fn () => $this->call($seeder));
+        }
 
         // User::factory()->create([
         //     'name' => 'Test User',

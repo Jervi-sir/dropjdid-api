@@ -51,6 +51,7 @@ return new class extends Migration
             $table->boolean('has_claim_issue')->default(false);
             $table->text('claim_issue')->nullable();
 
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -59,6 +60,7 @@ return new class extends Migration
 
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('size_id')->constrained()->cascadeOnDelete();
             // $table->foreignId('product_variant_id')->nullable()->constrained()->nullOnDelete();
 
             $table->string('product_name');

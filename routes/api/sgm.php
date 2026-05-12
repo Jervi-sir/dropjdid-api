@@ -26,5 +26,4 @@ Route::prefix('sgm')->middleware('auth:sanctum')->group(function () {
         Route::delete('{store_id}/products/{product_id}/delete', DeleteProductController::class);
         Route::post('{store_id}/products/upsert', UpsertProductController::class);
     });
-
 });

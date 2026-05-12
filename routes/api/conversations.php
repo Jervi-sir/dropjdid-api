@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('conversations')->middleware('auth:sanctum')->group(function () {
     Route::get('/', ListConversationsController::class);
     Route::get('{conversation_id}/messages', ShowConversationController::class);
-    Route::delete('{conversation_id}', DeleteConversationController::class);
-
     Route::post('{conversation_id}/messages', SendMessageController::class);
+    Route::delete('{conversation_id}', DeleteConversationController::class);
     Route::delete('{conversation_id}/messages/{message_id}', DeleteMessageController::class);
 });

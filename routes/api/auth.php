@@ -15,6 +15,6 @@ Route::prefix('auth')->group(function () {
     Route::get('username-availability', UsernameAvailabilityController::class);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', LogoutController::class);
-        Route::post('me', MeController::class);
+        Route::get('me', MeController::class);
     });
 });

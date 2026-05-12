@@ -6,5 +6,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('advertisements')->middleware('optional-sanctum')->group(function () {
     Route::get('suggest', SuggestAdvertisementsController::class);
-    Route::get('{id}', ShowAdvertisementController::class);
+    Route::get('{advertisement_id}', ShowAdvertisementController::class);
 });
