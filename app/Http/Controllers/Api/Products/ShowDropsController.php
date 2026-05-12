@@ -7,5 +7,5 @@ use Illuminate\Http\Request;
 
 class ShowDropsController extends Controller
 {
-    public function index(Request $request, int $drop_id) {}
+    public function __invoke(Request $request, int $drop_id) {}
 }

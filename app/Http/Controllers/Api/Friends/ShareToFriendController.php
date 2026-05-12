@@ -81,7 +81,7 @@ class ShareToFriendController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function send(Request $request): JsonResponse
     {
         $user = $request->user();
 

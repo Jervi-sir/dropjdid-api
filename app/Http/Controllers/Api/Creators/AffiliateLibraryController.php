@@ -17,19 +17,17 @@ class AffiliateLibraryController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'saved_page' => ['nullable', 'integer', 'min:1'],
-            'saved_per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
+
+        $page = $validated['page'] ?? 1;
+        $perPage = $validated['per_page'] ?? 10;
 
         $user = $request->user();
         $userId = $user?->getAuthIdentifier();
 
-        $savedPayload = $this->savedProductsPayload(
-            $validated['saved_page'] ?? 1,
-            $validated['saved_per_page'] ?? 10,
-            $userId,
-            $user,
-        );
+        $sections = [];
 
         $savedProductIds = $userId === null
             ? []
@@ -38,30 +36,17 @@ class AffiliateLibraryController extends Controller
                 ->pluck('product_id')
                 ->all();
 
-        $sections = [
-            [
-                'type' => 'saved_products',
-                'label' => 'Saved products',
-                'products' => $savedPayload['data']->values()->all(),
-                'next_page' => $savedPayload['next_page'],
-            ],
-        ];
+        $labelsPaginator = Label::with('keywords')
+            ->simplePaginate($perPage, ['*'], 'page', $page);
 
-        $labels = Label::with('keywords')->get();
+        foreach ($labelsPaginator as $label) {
+            $payload = $this->labelProductsPayload($label, 1, 10, $userId, $user, $savedProductIds);
 
-        foreach ($labels as $label) {
-            $pageKey = "label_{$label->id}_page";
-            $perPageKey = "label_{$label->id}_per_page";
-
-            $labelPage = (int) $request->input($pageKey, 1);
-            $labelPerPage = (int) $request->input($perPageKey, 10);
-
-            $payload = $this->labelProductsPayload($label, $labelPage, $labelPerPage, $userId, $user, $savedProductIds);
-
-            if ($payload['data']->isNotEmpty() || $labelPage > 1) {
+            if ($payload['data']->isNotEmpty()) {
                 $sections[] = [
-                    'type' => "label_{$label->id}",
-                    'label' => $label->feedName(),
+                    'type' => 'label',
+                    'label_id' => $label->id,
+                    'label_name' => $label->feedName(),
                     'products' => $payload['data']->values()->all(),
                     'next_page' => $payload['next_page'],
                 ];
@@ -73,6 +58,7 @@ class AffiliateLibraryController extends Controller
 
         return response()->json([
             'data' => $sections->values()->all(),
+            'next_page' => $labelsPaginator->hasMorePages() ? $labelsPaginator->currentPage() + 1 : null,
         ]);
     }
 
@@ -96,38 +82,6 @@ class AffiliateLibraryController extends Controller
         ];
     }
 
-    /**
-     * @return array{data: Collection<int, array>, next_page: ?int}
-     */
-    private function savedProductsPayload(int $page, int $perPage, ?int $userId, $user): array
-    {
-        if ($userId === null) {
-            return [
-                'data' => collect(),
-                'next_page' => null,
-            ];
-        }
-
-        $paginator = SavedProduct::query()
-            ->where('user_id', $userId)
-            ->whereHas('product', fn ($query) => $this->applyOnlinePublishedConstraints($query))
-            ->with([
-                'product.images',
-                'product.store.user',
-                'product.savedProducts' => fn ($query) => $query->where('user_id', $userId),
-            ])
-            ->latest('id')
-            ->simplePaginate($perPage, ['*'], 'saved_page', $page);
-
-        return [
-            'data' => collect($paginator->items())
-                ->map(fn (SavedProduct $savedProduct): ?array => $savedProduct->product?->formatProduct($savedProduct->product, $user))
-                ->filter()
-                ->values(),
-            'next_page' => $paginator->hasMorePages() ? $paginator->currentPage() + 1 : null,
-        ];
-    }
-
     private function baseProductsQuery(?int $userId)
     {
         return Product::query()
@@ -142,12 +96,5 @@ class AffiliateLibraryController extends Controller
                         : $query->where('user_id', $userId);
                 },
             ]);
-    }
-
-    private function applyOnlinePublishedConstraints($query): void
-    {
-        $query
-            ->where('status', 'published')
-            ->whereHas('paymentMethod', fn ($paymentMethodQuery) => $paymentMethodQuery->where('code', PaymentMethod::ONLINE));
     }
 }

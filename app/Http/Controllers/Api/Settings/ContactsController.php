@@ -61,9 +61,10 @@ class ContactsController extends Controller
         ]);
     }
 
-    public function deleteContact(Request $request, Contact $contact): JsonResponse
+    public function deleteContact(Request $request, int $contact_id): JsonResponse
     {
         $user = $request->user();
+        $contact = Contact::find($contact_id);
 
         abort_if($user === null, 401);
         abort_if($contact->user_id !== $user->id, 404);

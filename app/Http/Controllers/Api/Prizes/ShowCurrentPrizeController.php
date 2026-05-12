@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class ShowCurrentPrizeController extends Controller
 {
-    public function preview(Request $request): JsonResponse
+    public function current(Request $request): JsonResponse
     {
         $prize = $this->resolveCurrentPrize($request);
 

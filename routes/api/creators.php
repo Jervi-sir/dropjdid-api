@@ -1,19 +1,19 @@
 <?php
 
-use App\Http\Controllers\Api\CREATOR\AffiliateLibraryController;
+use App\Http\Controllers\Api\Creators\AffiliateLibraryController;
 use App\Http\Controllers\Api\Creators\BecomeCreator\BecomeCreatorController;
 use App\Http\Controllers\Api\Creators\Drops\MyDropsController;
-use App\Http\Controllers\Api\Creators\ListMyFollowersController;
+use App\Http\Controllers\Api\Creators\Drops\UpsertDropController;
+use App\Http\Controllers\Api\Creators\Drops\ListLikesController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('creators')->group(function () {
+Route::prefix('creators')->middleware('auth:sanctum')->group(function () {
     Route::prefix('become-creator')->group(function () {
         Route::get('show', [BecomeCreatorController::class, 'show']);
         Route::get('submit', [BecomeCreatorController::class, 'submit']);
     });
+    Route::post('drops/upsert/{drop?}', UpsertDropController::class);
     Route::get('my-drops', MyDropsController::class);
+    Route::get('drops/{drop_id}/likes', ListLikesController::class);
     Route::get('affiliate-library', AffiliateLibraryController::class);
-
-    Route::get('list-my-followers', ListMyFollowersController::class);
-
 });

@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\Notifications\ListNotificationsController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Telescope\Http\Controllers\NotificationsController;
 
-Route::prefix('notifications')->group(function () {
-    Route::get('/', NotificationsController::class);
+Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', ListNotificationsController::class);
 });

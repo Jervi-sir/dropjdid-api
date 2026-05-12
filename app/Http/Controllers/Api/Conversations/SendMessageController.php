@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 
 class SendMessageController extends Controller
 {
-    public function __invoke(Request $request, Conversation $conversation): JsonResponse
+    public function __invoke(Request $request, int $conversation_id): JsonResponse
     {
         $user = $request->user();
+
+        $conversation = Conversation::find($conversation_id);
 
         abort_if($user === null, 401);
         abort_unless($conversation->first_user_id === $user->id || $conversation->second_user_id === $user->id, 404);

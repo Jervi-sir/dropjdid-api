@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Api\Feeds;
 use App\Http\Controllers\Controller;
 use App\Models\Advertisement;
 use App\Models\Drop;
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DropsFeedController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'page' => ['nullable', 'integer', 'min:1'],
@@ -27,7 +28,7 @@ class DropsFeedController extends Controller
         $drops = Drop::query()
             ->where('status', 'published')
             ->whereHas('creator')
-            ->withCount('likedDrops')
+            ->withCount(['likedDrops', 'products'])
             ->with([
                 'creator',
                 'images',
@@ -62,6 +63,38 @@ class DropsFeedController extends Controller
         return response()->json([
             'data' => $data,
             'next_page' => $drops->hasMorePages() ? $drops->currentPage() + 1 : null,
+        ]);
+    }
+
+    public function products(Request $request, Drop $drop): JsonResponse
+    {
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $perPage = $validated['per_page'] ?? 10;
+        $user = $request->user();
+        $userId = $user?->getAuthIdentifier();
+
+        $products = $drop->products()
+            ->with([
+                'store.user',
+                'images',
+            ])
+            ->when($userId, function ($query) use ($userId) {
+                $query->with([
+                    'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
+                ]);
+            })
+            ->simplePaginate($perPage);
+
+        $formattedProducts = collect($products->items())
+            ->map(fn (Product $product): array => $drop->formatProduct($product, $user));
+
+        return response()->json([
+            'data' => $formattedProducts,
+            'next_page' => $products->hasMorePages() ? $products->currentPage() + 1 : null,
         ]);
     }
 }

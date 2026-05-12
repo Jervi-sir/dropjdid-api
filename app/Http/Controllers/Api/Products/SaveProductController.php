@@ -10,11 +10,15 @@ use Illuminate\Http\Request;
 
 class SaveProductController extends Controller
 {
-    public function __invoke(Request $request, Product $product): JsonResponse
+    public function __invoke(Request $request, int $product_id): JsonResponse
     {
         $user = $request->user();
 
         abort_if($user === null, 401);
+
+        $product = Product::find($product_id);
+
+        abort_if($product === null, 404);
 
         $save = SavedProduct::query()->where([
             'user_id' => $user->id,

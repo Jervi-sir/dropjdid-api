@@ -69,7 +69,9 @@ class Drop extends Model
             'nb_likes' => $this->liked_drops_count,
             'is_liked' => $user !== null && $this->likedDrops->isNotEmpty(),
             'is_saved' => $user !== null && $this->savedDrops->isNotEmpty(),
+            'products_count' => $this->products_count ?? $this->products->count(),
             'products' => $this->products
+                ->take(10)
                 ->map(fn (Product $product): array => $this->formatProduct($product, $user))
                 ->values()
                 ->all(),

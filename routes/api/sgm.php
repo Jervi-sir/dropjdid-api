@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\Sgm\Stores\Products\UpsertProductController;
 use App\Http\Controllers\Api\SGM\Stores\UpsertStoreController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('sgm')->group(function () {
+Route::prefix('sgm')->middleware('auth:sanctum')->group(function () {
     Route::prefix('become-sgm')->group(function () {
         Route::get('show', [BecomeSGMController::class, 'show']);
         Route::post('store', [BecomeSGMController::class, 'store']);

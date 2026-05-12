@@ -9,10 +9,12 @@ use App\Http\Controllers\Api\Auth\UsernameAvailabilityController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('forgot-password', ForgotPasswordController::class);
+    Route::post('forgot-password', [ForgotPasswordController::class, 'store']);
     Route::post('login', LoginController::class);
     Route::post('register', RegisterController::class);
-    Route::post('logout', LogoutController::class);
-    Route::post('me', MeController::class);
     Route::get('username-availability', UsernameAvailabilityController::class);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', LogoutController::class);
+        Route::post('me', MeController::class);
+    });
 });

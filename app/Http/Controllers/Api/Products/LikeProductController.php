@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 
 class LikeProductController extends Controller
 {
-    public function __invoke(Request $request, Product $product): JsonResponse
+    public function __invoke(Request $request, int $product_id): JsonResponse
     {
         $user = $request->user();
+
+        $product = Product::find($product_id);
 
         abort_if($user === null, 401);
 

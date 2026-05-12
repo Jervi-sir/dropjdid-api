@@ -19,9 +19,10 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('note')->nullable();
             $table->timestamp('reviewed_at')->nullable();
-            $table->enum('target', ['forgot-password', 'become-creator', 'become-sgm']);
+            $table->enum('target', ['forgot-password', 'become-creator', 'become-sgm', 'contact-support']);
             $table->timestamps();
         });
+
     }
 
     /**

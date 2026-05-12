@@ -24,6 +24,21 @@ class RequestFriendController extends Controller
         return $this->buildFriendshipResponse($authUser, $user);
     }
 
+    public function cancel(Request $request, User $user): JsonResponse
+    {
+        $authUser = $request->user();
+
+        $this->validateFriendshipTarget($authUser, $user);
+
+        $friendship = $this->findFriendship($authUser->id, $user->id);
+
+        abort_if($friendship === null || $friendship->status !== 'pending' || $friendship->sender_id !== $authUser->id, 422, 'No outgoing request to cancel.');
+
+        $friendship->delete();
+
+        return $this->buildFriendshipResponse($authUser, $user);
+    }
+
     public function accept(Request $request, User $user): JsonResponse
     {
         $authUser = $request->user();
@@ -60,7 +75,7 @@ class RequestFriendController extends Controller
 
         $friendship = $this->findFriendship($authUser->id, $user->id);
 
-        abort_if($friendship === null || ! in_array($friendship->status, ['accepted', 'pending'], true), 422, 'No friendship to remove.');
+        abort_if($friendship === null || $friendship->status !== 'accepted', 422, 'No friendship to remove.');
         $friendship->delete();
 
         return $this->buildFriendshipResponse($authUser, $user);

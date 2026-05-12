@@ -26,6 +26,9 @@ class SavedDropsProductsController extends Controller
 
         $savedProducts = SavedProduct::query()
             ->where('user_id', $user->id)
+            ->when($request->boolean('is_online'), function ($query) {
+                $query->whereHas('product.paymentMethod', fn ($q) => $q->where('code', \App\Models\PaymentMethod::ONLINE));
+            })
             ->with([
                 'product.images',
                 'product.store.user',

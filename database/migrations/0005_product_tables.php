@@ -34,6 +34,7 @@ return new class extends Migration
             ])->default('draft');
             $table->text('rejection_reason')->nullable();
 
+            $table->timestamp('refreshed_at')->nullable()->after('status');
             $table->softDeletes();
             $table->timestamps();
         });

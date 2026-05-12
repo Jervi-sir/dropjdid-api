@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class SeekSupportTeamController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function listHistory(Request $request): JsonResponse
     {
         $requests = UserSupportRequest::where('user_id', $request->user()->id)
             ->where('target', 'contact-support')
