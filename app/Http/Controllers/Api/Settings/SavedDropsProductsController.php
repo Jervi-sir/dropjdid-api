@@ -35,7 +35,7 @@ class SavedDropsProductsController extends Controller
             ->simplePaginate($perPage);
 
         return response()->json([
-            'data' => $savedProducts->getCollection()
+            'data' => collect($savedProducts->items())
                 ->map(fn (SavedProduct $savedProduct): ?array => $savedProduct->product?->formatProduct($savedProduct->product, $user))
                 ->filter()
                 ->values()
@@ -79,7 +79,7 @@ class SavedDropsProductsController extends Controller
             ->latest('id')
             ->simplePaginate($perPage);
 
-        $drops = $savedDrops->getCollection()->pluck('drop')->filter();
+        $drops = collect($savedDrops->items())->pluck('drop')->filter();
 
         return response()->json([
             'data' => $drops

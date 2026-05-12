@@ -1,15 +1,19 @@
 <?php
 
-use App\Http\Controllers\Api\Creators\BeacomeController;
-use App\Http\Controllers\Api\Creators\ListFollowingController;
+use App\Http\Controllers\Api\CREATOR\AffiliateLibraryController;
+use App\Http\Controllers\Api\Creators\BecomeCreator\BecomeCreatorController;
+use App\Http\Controllers\Api\Creators\Drops\MyDropsController;
 use App\Http\Controllers\Api\Creators\ListMyFollowersController;
-use App\Http\Controllers\Api\Creators\SendFollowController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('creators')->middleware('auth:sanctum')->group(function () {
-    Route::get('/become', BeacomeController::class);
-    Route::post('/become', BeacomeController::class);
-    Route::post('/follow/{user}', SendFollowController::class);
-    Route::get('/my-followers', ListMyFollowersController::class);
-    Route::get('/my-following', ListFollowingController::class);
+Route::prefix('creators')->group(function () {
+    Route::prefix('become-creator')->group(function () {
+        Route::get('show', [BecomeCreatorController::class, 'show']);
+        Route::get('submit', [BecomeCreatorController::class, 'submit']);
+    });
+    Route::get('my-drops', MyDropsController::class);
+    Route::get('affiliate-library', AffiliateLibraryController::class);
+
+    Route::get('list-my-followers', ListMyFollowersController::class);
+
 });

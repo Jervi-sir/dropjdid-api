@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Catalog;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Gender;
+use App\Models\Keyword;
+use App\Models\Label;
 use App\Models\NotificationType;
 use App\Models\PaymentMethod;
 use App\Models\Quality;
@@ -26,15 +28,14 @@ class CatalogController extends Controller
             'categories' => Category::class,
             'genders' => Gender::class,
             'notification_types' => NotificationType::class,
-            'payment_methods' => NotificationType::class, // Wait, notification_types was mapped to PaymentMethod above? No, line 29: 'payment_methods' => PaymentMethod::class.
             'payment_methods' => PaymentMethod::class,
             'qualities' => Quality::class,
             'roles' => Role::class,
             'sizes' => Size::class,
             'social_platforms' => SocialPlatform::class,
             'wilayas' => Wilaya::class,
-            'labels' => \App\Models\Label::class,
-            'keywords' => \App\Models\Keyword::class,
+            'labels' => Label::class,
+            'keywords' => Keyword::class,
         ];
 
         $requestedTypes = $request->query('types');
@@ -72,16 +73,17 @@ class CatalogController extends Controller
                     $query->where('label_id', $request->query('label_id'));
                 }
                 if ($request->filled('search')) {
-                    $query->where('code', 'like', '%' . $request->query('search') . '%');
+                    $query->where('code', 'like', '%'.$request->query('search').'%');
                 }
 
                 $perPage = $request->integer('per_page', 50);
                 $paginated = $query->paginate($perPage);
 
                 $response[$key] = [
-                    'data' => collect($paginated->items())->map(fn($item) => method_exists($item, 'format') ? $item->format() : $item->toArray()),
+                    'data' => collect($paginated->items())->map(fn ($item) => method_exists($item, 'format') ? $item->format() : $item->toArray()),
                     'next_page' => $paginated->currentPage() < $paginated->lastPage() ? $paginated->currentPage() + 1 : null,
                 ];
+
                 continue;
             }
 

@@ -60,7 +60,7 @@ class FriendsController extends Controller
             ->simplePaginate($perPage);
 
         return response()->json([
-            'data' => $friendships->getCollection()->map(function (Friendship $friendship) use ($user): array {
+            'data' => collect($friendships->items())->map(function (Friendship $friendship) use ($user): array {
                 $friend = $friendship->sender_id === $user->id ? $friendship->receiver : $friendship->sender;
 
                 return [

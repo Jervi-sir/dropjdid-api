@@ -14,7 +14,7 @@ class Product extends Model
 {
     use FormatsModel, HasFactory, SoftDeletes;
 
-    protected $fillable = ['store_id', 'category_id', 'quality_id', 'name', 'description', 'payment_method_id', 'original_price', 'show_price', 'store_price', 'gender_id', 'status', 'refreshed_at'];
+    protected $fillable = ['store_id', 'category_id', 'quality_id', 'name', 'description', 'payment_method_id', 'original_price', 'show_price', 'store_price', 'gender_id', 'status', 'refreshed_at', 'rejection_reason'];
 
     protected function casts(): array
     {

@@ -39,7 +39,7 @@ class ListMyFollowersController extends Controller
             ->simplePaginate($perPage);
 
         return response()->json([
-            'data' => $followers->getCollection()->map(function (CreatorFollower $follower): array {
+            'data' => collect($followers->items())->map(function (CreatorFollower $follower): array {
                 return [
                     'id' => $follower->id,
                     'user_id' => $follower->user?->id,

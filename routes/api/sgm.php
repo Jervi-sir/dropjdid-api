@@ -1,0 +1,30 @@
+<?php
+
+use App\Http\Controllers\Api\Sgm\BecomeSgm\BecomeSGMController;
+use App\Http\Controllers\Api\SGM\Stores\ListMyStoresController;
+use App\Http\Controllers\Api\SGM\Stores\ListProductsController;
+use App\Http\Controllers\Api\SGM\Stores\PreviewStoreController;
+use App\Http\Controllers\Api\Sgm\Stores\Products\DeleteProductController;
+use App\Http\Controllers\Api\Sgm\Stores\Products\ShowProductController;
+use App\Http\Controllers\Api\Sgm\Stores\Products\UpsertProductController;
+use App\Http\Controllers\Api\SGM\Stores\UpsertStoreController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('sgm')->group(function () {
+    Route::prefix('become-sgm')->group(function () {
+        Route::get('show', [BecomeSGMController::class, 'show']);
+        Route::post('store', [BecomeSGMController::class, 'store']);
+    });
+
+    Route::prefix('stores')->group(function () {
+        Route::get('/', ListMyStoresController::class);
+        Route::get('upsert', UpsertStoreController::class);
+        Route::get('{store_id}/preview', PreviewStoreController::class);
+
+        Route::get('{store_id}/products', ListProductsController::class);
+        Route::get('{store_id}/products/{product_id}', ShowProductController::class);
+        Route::delete('{store_id}/products/{product_id}/delete', DeleteProductController::class);
+        Route::post('{store_id}/products/upsert', UpsertProductController::class);
+    });
+
+});

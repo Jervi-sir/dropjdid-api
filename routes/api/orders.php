@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\Orders\ListController;
+use App\Http\Controllers\Api\Orders\ListOrdersController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('orders')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', ListController::class);
+Route::prefix('orders')->group(function () {
+    Route::get('/', ListOrdersController::class);
 });

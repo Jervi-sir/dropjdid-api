@@ -1,14 +1,13 @@
 <?php
 
-use App\Http\Controllers\Api\Drops\LikeController;
-use App\Http\Controllers\Api\Drops\MyDropsController;
-use App\Http\Controllers\Api\Drops\SaveController;
-use App\Http\Controllers\Api\Drops\SearchController;
+use App\Http\Controllers\Api\Drops\LikeDropController;
+use App\Http\Controllers\Api\Drops\SaveDropController;
+use App\Http\Controllers\Api\Products\ShowDropsController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('drops')->middleware('optional-sanctum')->group(function () {
-    Route::get('/my-drops', MyDropsController::class)->middleware('auth:sanctum');
-    Route::get('/search', SearchController::class);
-    Route::post('/{drop}/like', LikeController::class)->middleware('auth:sanctum');
-    Route::post('/{drop}/save', SaveController::class)->middleware('auth:sanctum');
+Route::prefix('drops')->group(function () {
+    Route::get('{drop_id}', ShowDropsController::class);
+    Route::post('{drop_id}/like', LikeDropController::class);
+    Route::post('{drop_id}/save', SaveDropController::class);
+
 });

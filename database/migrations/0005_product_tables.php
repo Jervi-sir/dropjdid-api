@@ -30,7 +30,9 @@ return new class extends Migration
                 'draft',
                 'published',
                 'archived',
+                'rejected',
             ])->default('draft');
+            $table->text('rejection_reason')->nullable();
 
             $table->softDeletes();
             $table->timestamps();

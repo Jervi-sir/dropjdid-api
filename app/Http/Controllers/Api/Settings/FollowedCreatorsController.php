@@ -39,7 +39,7 @@ class FollowedCreatorsController extends Controller
             ->simplePaginate($perPage);
 
         return response()->json([
-            'data' => $following->getCollection()->map(function (CreatorFollower $following): array {
+            'data' => collect($following->items())->map(function (CreatorFollower $following): array {
                 return [
                     'id' => $following->id,
                     'creator_id' => $following->creator?->id,

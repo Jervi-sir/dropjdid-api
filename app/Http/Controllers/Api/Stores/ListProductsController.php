@@ -46,7 +46,7 @@ class ListProductsController extends Controller
         $products = $productsQuery->simplePaginate($perPage);
 
         return response()->json([
-            'data' => $products->getCollection()->map(fn (Product $item): array => [
+            'data' => collect($products->items())->map(fn (Product $item): array => [
                 'id' => $item->id,
                 'price' => (float) ($item->show_price ?? $item->store_price ?? $item->original_price ?? 0),
                 'image' => $item->images->sortBy('sort_order')->first()?->image,

@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\Api\Advertisements\ShowController;
-use App\Http\Controllers\Api\Advertisements\SuggestController;
+use App\Http\Controllers\Api\Advertisements\ShowAdvertisementController;
+use App\Http\Controllers\Api\Advertisements\SuggestAdvertisementsController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('advertisements')->middleware('optional-sanctum')->group(function () {
-    Route::get('/suggestions', SuggestController::class);
-    Route::get('/{advertisement}', ShowController::class);
+Route::prefix('advertisements')->group(function () {
+    Route::get('{id}', ShowAdvertisementController::class);
+    Route::get('suggest', SuggestAdvertisementsController::class);
 });
