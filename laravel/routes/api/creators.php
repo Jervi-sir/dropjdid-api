@@ -12,7 +12,9 @@ Route::prefix('creators')->middleware('auth:sanctum')->group(function () {
     Route::get('become-creator/show', [BecomeCreatorController::class, 'show']);
     Route::post('become-creator/submit', [BecomeCreatorController::class, 'submit']);
 
-    Route::post('drops/upsert/{drop?}', UpsertDropController::class);
+    Route::post('drops/upsert/{drop?}', [UpsertDropController::class, 'upsertDrop']);
+    Route::get('drops/{drop_id}', [MyDropsController::class, 'show']);
+    Route::delete('drops/{drop_id}', [MyDropsController::class, 'delete']);
     Route::get('my-drops', [MyDropsController::class, 'listDrops']);
     Route::get('drops/{drop_id}/likes', ListLikesController::class);
     Route::get('drops/{drop_id}/saves', ListSavesController::class);

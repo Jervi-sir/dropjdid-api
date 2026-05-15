@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -9,54 +12,106 @@ class WalletSeeder extends Seeder
 {
     public function run(): void
     {
-        $userIds = DB::table('users')->pluck('id')->toArray();
+        DB::transaction(function () {
+            User::query()->chunk(100, function ($users) {
+                foreach ($users as $user) {
+                    $balanceWallet = Wallet::firstOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'type' => 'balance',
+                        ],
+                        [
+                            'balance' => 0,
+                            'pending_balance' => 0,
+                            'currency' => 'DZD',
+                        ]
+                    );
 
-        foreach ($userIds as $userId) {
-            $walletId = DB::table('wallets')->insertGetId([
-                'user_id' => $userId,
-                'balance' => fake()->randomFloat(2, 0, 200000),
-                'currency' => 'DZD',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                    $refundWallet = Wallet::firstOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'type' => 'refund',
+                        ],
+                        [
+                            'balance' => 0,
+                            'pending_balance' => 0,
+                            'currency' => 'DZD',
+                        ]
+                    );
 
-            $transactionsCount = fake()->numberBetween(0, 20);
+                    if ($balanceWallet->transactions()->doesntExist()) {
+                        $this->createTransaction(
+                            wallet: $balanceWallet,
+                            user: $user,
+                            direction: 'in',
+                            type: 'drops',
+                            amount: 1200,
+                            title: 'Drop earning',
+                            reference: '#Colden_men_visiting_forest'
+                        );
 
-            for ($i = 1; $i <= $transactionsCount; $i++) {
-                $type = fake()->randomElement([
-                    'deposit',
-                    'withdraw',
-                    'purchase',
-                    'refund',
-                    'drop_sale',
-                    'prize_joining',
-                ]);
+                        $this->createTransaction(
+                            wallet: $balanceWallet,
+                            user: $user,
+                            direction: 'in',
+                            type: 'bonus',
+                            amount: 500,
+                            title: 'Welcome bonus',
+                            reference: '#WELCOME_BONUS'
+                        );
+                    }
 
-                DB::table('wallet_transactions')->insert([
-                    'wallet_id' => $walletId,
-                    'type' => $type,
-                    'amount' => fake()->randomFloat(2, 100, 50000),
+                    if ($refundWallet->transactions()->doesntExist()) {
+                        $this->createTransaction(
+                            wallet: $refundWallet,
+                            user: $user,
+                            direction: 'in',
+                            type: 'refund',
+                            amount: 2000,
+                            title: 'Order refund',
+                            reference: '#ORDER_REFUND_001'
+                        );
+                    }
+                }
+            });
+        });
 
-                    'related_type' => null,
-                    'related_id' => null,
+    }
 
-                    'description' => fake()->boolean(70)
-                        ? ucfirst(str_replace('_', ' ', $type)).' transaction'
-                        : null,
+    private function createTransaction(
+        Wallet $wallet,
+        User $user,
+        string $direction,
+        string $type,
+        float|int $amount,
+        string $title,
+        string $reference,
+        string $status = 'completed',
+    ): void {
+        $balanceBefore = (float) $wallet->balance;
 
-                    'status' => fake()->randomElement([
-                        'pending',
-                        'completed',
-                        'completed',
-                        'completed',
-                        'failed',
-                        'cancelled',
-                    ]),
+        $balanceAfter = $direction === 'in'
+            ? $balanceBefore + $amount
+            : $balanceBefore - $amount;
 
-                    'created_at' => now()->subDays(fake()->numberBetween(0, 90)),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
+        WalletTransaction::create([
+            'wallet_id' => $wallet->id,
+            'user_id' => $user->id,
+            'direction' => $direction,
+            'type' => $type,
+            'status' => $status,
+            'amount' => $amount,
+            'balance_before' => $balanceBefore,
+            'balance_after' => $balanceAfter,
+            'title' => $title,
+            'reference' => $reference,
+            'metadata' => [
+                'seeded' => true,
+            ],
+        ]);
+
+        $wallet->update([
+            'balance' => $balanceAfter,
+        ]);
     }
 }

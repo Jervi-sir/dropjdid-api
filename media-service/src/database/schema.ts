@@ -1,14 +1,14 @@
 import {
-  pgTable,
-  serial,
-  varchar,
   bigint,
-  timestamp,
+  bigserial,
   integer,
+  pgTable,
+  timestamp,
+  varchar,
 } from 'drizzle-orm/pg-core';
 
 export const mediaBackups = pgTable('media_backups', {
-  id: serial('id').primaryKey(),
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
 
   disk: varchar('disk', { length: 255 }).default('public').notNull(),
   directory: varchar('directory', { length: 255 }),
@@ -26,8 +26,8 @@ export const mediaBackups = pgTable('media_backups', {
     .notNull(),
 
   mediableType: varchar('mediable_type', { length: 255 }),
-  mediableId: integer('mediable_id'),
+  mediableId: bigint('mediable_id', { mode: 'number' }),
 
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
 });

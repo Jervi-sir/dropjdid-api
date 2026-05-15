@@ -84,6 +84,7 @@ class Drop extends Model
     {
         return [
             'id' => $product->id,
+            'title' => $product->name,
             'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
             'image' => $product->images->sortBy('sort_order')->first()?->image,
             'user' => [

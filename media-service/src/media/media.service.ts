@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
 import { randomUUID } from 'crypto';
 import { createWriteStream } from 'fs';
-import { mkdir } from 'fs/promises';
+import { mkdir, stat } from 'fs/promises';
 import { extname, join } from 'path';
 import { pipeline } from 'stream/promises';
 import { db } from '../database/database';
@@ -65,6 +65,9 @@ export class MediaService {
 
     const url = `${publicBaseUrl}/${relativePath}`;
 
+    const fileStat = await stat(fullPath);
+    const size = fileStat.size;
+
     const [media] = await db
       .insert(mediaBackups)
       .values({
@@ -73,7 +76,7 @@ export class MediaService {
         name,
         originalName: file.filename,
         mimeType: file.mimetype,
-        size: file.file.bytesRead,
+        size,
         path: relativePath,
         url,
         collection: 'default',

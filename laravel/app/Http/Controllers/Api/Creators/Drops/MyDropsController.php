@@ -77,4 +77,51 @@ class MyDropsController extends Controller
             'next_page' => $products->hasMorePages() ? $products->currentPage() + 1 : null,
         ]);
     }
+
+    public function show(Request $request, int $drop_id): JsonResponse
+    {
+        $user = $request->user();
+        $userId = $user->id;
+
+        $drop = Drop::query()
+            ->where('creator_id', $userId)
+            ->withCount('likedDrops')
+            ->withCount('savedDrops')
+            ->with([
+                'creator',
+                'images',
+                'products.store.user',
+                'products.images',
+                'products' => function ($query) use ($userId): void {
+                    $query->withSum('orderItems', 'quantity')->with([
+                        'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
+                    ]);
+                },
+                'likedDrops' => function ($query) use ($userId) {
+                    return $query->where('user_id', $userId);
+                },
+                'savedDrops' => function ($query) use ($userId) {
+                    return $query->where('user_id', $userId);
+                },
+            ])
+            ->findOrFail($drop_id);
+
+        return response()->json(array_merge($drop->formatDrop($user), [
+            'status' => $drop->status,
+        ]));
+    }
+
+    public function delete(Request $request, int $drop_id): JsonResponse
+    {
+        $user = $request->user();
+        $drop = Drop::where('creator_id', $user->id)->findOrFail($drop_id);
+
+        $drop->images()->delete();
+        $drop->products()->detach();
+        $drop->delete();
+
+        return response()->json([
+            'message' => 'Drop deleted successfully.',
+        ]);
+    }
 }

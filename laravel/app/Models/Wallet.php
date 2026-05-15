@@ -2,22 +2,41 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\FormatsModel;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Wallet extends Model
 {
-    use FormatsModel, HasFactory;
+    public const TYPE_BALANCE = 'balance';
 
-    protected $fillable = ['user_id', 'balance', 'currency'];
+    public const TYPE_REFUND = 'refund';
 
-    protected function casts(): array
-    {
-        return ['balance' => 'decimal:2'];
-    }
+    public const STATUS_NEW = 'new';
+
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_VERIFIED = 'verified';
+
+    public const STATUS_BLOCKED = 'blocked';
+
+    public const STATUS_REJECTED = 'rejected';
+
+    protected $fillable = [
+        'user_id',
+        'type',
+        'balance',
+        'pending_balance',
+        'is_identity_verified',
+        'status',
+        'currency',
+    ];
+
+    protected $casts = [
+        'balance' => 'decimal:2',
+        'pending_balance' => 'decimal:2',
+        'is_identity_verified' => 'boolean',
+    ];
 
     public function user(): BelongsTo
     {
@@ -27,10 +46,5 @@ class Wallet extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(WalletTransaction::class);
-    }
-
-    protected function formatterRelations(): array
-    {
-        return ['user', 'transactions'];
     }
 }

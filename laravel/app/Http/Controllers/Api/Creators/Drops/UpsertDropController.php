@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class UpsertDropController extends Controller
 {
-    public function __invoke(Request $request, ?Drop $drop = null)
+    public function upsertDrop(Request $request, ?Drop $drop = null)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
