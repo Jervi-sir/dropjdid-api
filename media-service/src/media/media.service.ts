@@ -10,7 +10,7 @@ import { mediaBackups } from '../database/schema';
 
 @Injectable()
 export class MediaService {
-  async upload(request: FastifyRequest) {
+  async upload(request: FastifyRequest, destination: string) {
     const file = await request.file();
 
     if (!file) {
@@ -32,7 +32,19 @@ export class MediaService {
       throw new BadRequestException('Invalid file type');
     }
 
-    const directory = 'products';
+    const allowedDestinations = [
+      'conversations',
+      'drops',
+      'products',
+      'profiles',
+      'stores',
+    ];
+
+    if (!allowedDestinations.includes(destination)) {
+      throw new BadRequestException('Invalid upload destination');
+    }
+
+    const directory = destination;
     const disk = 'public';
 
     const extension = extname(file.filename);

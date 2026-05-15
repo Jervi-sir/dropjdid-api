@@ -1,4 +1,4 @@
-import { Controller, Post, Req } from '@nestjs/common';
+import { Controller, Param, Post, Req } from '@nestjs/common';
 import { MediaService } from './media.service';
 import type { FastifyRequest } from 'fastify';
 
@@ -6,8 +6,11 @@ import type { FastifyRequest } from 'fastify';
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
-  @Post('upload')
-  async upload(@Req() request: FastifyRequest) {
-    return this.mediaService.upload(request);
+  @Post('upload/:destination')
+  async upload(
+    @Param('destination') destination: string,
+    @Req() request: FastifyRequest,
+  ) {
+    return this.mediaService.upload(request, destination);
   }
 }
