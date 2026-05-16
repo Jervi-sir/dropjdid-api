@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Order;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -40,14 +41,13 @@ class OrderSeeder extends Seeder
             $total = $subtotal + $deliveryFees;
 
             $status = fake()->randomElement([
-                'pending',
-                'confirmed',
-                'processing',
-                'shipped',
-                'delivered',
-                'delivered',
-                'cancelled',
-                'returned',
+                Order::STATUS_PENDING,
+                Order::STATUS_CONFIRMED,
+                Order::STATUS_PROCESSING,
+                Order::STATUS_SHIPPED,
+                Order::STATUS_DELIVERED,
+                Order::STATUS_CANCELLED,
+                Order::STATUS_RETURNED,
             ]);
 
             $hasClaimIssue = fake()->boolean(10);
@@ -68,7 +68,10 @@ class OrderSeeder extends Seeder
                 'baladiya' => fake()->city(),
                 'home_address' => fake()->address(),
 
-                'delivery_method' => fake()->randomElement(['home', 'desk']),
+                'delivery_method' => fake()->randomElement([
+                    Order::DELIVERY_METHOD_HOME,
+                    Order::DELIVERY_METHOD_DESK,
+                ]),
 
                 'delivery_fees' => $deliveryFees,
                 'subtotal' => $subtotal,

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\SearchHistory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -44,10 +45,10 @@ class SearchSeeder extends Seeder
                     'user_id' => $userId,
                     'query' => fake()->randomElement($queries),
                     'type' => fake()->randomElement([
-                        'product',
-                        'store',
-                        'creator',
-                        'general',
+                        SearchHistory::TYPE_GENERAL,
+                        SearchHistory::TYPE_PRODUCT,
+                        SearchHistory::TYPE_STORE,
+                        SearchHistory::TYPE_CREATOR,
                         null,
                     ]),
                     'created_at' => now()->subDays(fake()->numberBetween(0, 90)),

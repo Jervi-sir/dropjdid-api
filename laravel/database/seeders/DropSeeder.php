@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Drop;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -17,14 +18,21 @@ class DropSeeder extends Seeder
                 'creator_id' => fake()->randomElement($userIds),
                 'title' => fake()->sentence(3),
                 'description' => fake()->boolean(80) ? fake()->paragraph() : null,
-                'status' => fake()->randomElement([
-                    'draft',
-                    'published',
-                    'published',
-                    'published',
-                    'ended',
-                    'cancelled',
+                'status' => $status = fake()->randomElement([
+                    Drop::STATUS_DRAFT,
+                    Drop::STATUS_PUBLISHED,
+                    Drop::STATUS_ENDED,
+                    Drop::STATUS_CANCELLED,
+                    Drop::STATUS_REJECTED,
                 ]),
+                'rejection_reason' => $status === Drop::STATUS_REJECTED ? json_encode([
+                    [
+                        'id' => fake()->numberBetween(1, 10),
+                        'en' => fake()->sentence(),
+                        'fr' => fake()->sentence(),
+                        'ar' => fake()->sentence(),
+                    ]
+                ]) : null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

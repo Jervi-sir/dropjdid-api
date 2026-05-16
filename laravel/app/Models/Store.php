@@ -12,6 +12,18 @@ class Store extends Model
 {
     use FormatsModel, HasFactory;
 
+    public const STATUS_PENDING = 0;
+
+    public const STATUS_ACTIVE = 1;
+
+    public const STATUS_SUSPENED = 2;
+
+    public const STATUSES = [
+        self::STATUS_PENDING => 'pending',
+        self::STATUS_ACTIVE => 'active',
+        self::STATUS_SUSPENED => 'suspended',
+    ];
+
     protected $fillable = ['user_id', 'wilaya_id', 'store_name', 'phone_number', 'password', 'logo', 'description', 'balance', 'status'];
 
     protected $hidden = ['password'];

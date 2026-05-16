@@ -17,8 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
 
             $table->string('query');
-            $table->string('type')->nullable();
-            // product, store, creator, general
+            $table->smallInteger('type')->nullable();   // general, product, store, creator
 
             $table->timestamps();
         });

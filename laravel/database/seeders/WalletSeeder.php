@@ -18,7 +18,7 @@ class WalletSeeder extends Seeder
                     $balanceWallet = Wallet::firstOrCreate(
                         [
                             'user_id' => $user->id,
-                            'type' => 'balance',
+                            'type' => Wallet::TYPE_BALANCE,
                         ],
                         [
                             'balance' => 0,
@@ -30,7 +30,7 @@ class WalletSeeder extends Seeder
                     $refundWallet = Wallet::firstOrCreate(
                         [
                             'user_id' => $user->id,
-                            'type' => 'refund',
+                            'type' => Wallet::TYPE_REFUND,
                         ],
                         [
                             'balance' => 0,
@@ -43,8 +43,8 @@ class WalletSeeder extends Seeder
                         $this->createTransaction(
                             wallet: $balanceWallet,
                             user: $user,
-                            direction: 'in',
-                            type: 'drops',
+                            direction: WalletTransaction::DIRECTION_IN,
+                            type: WalletTransaction::TYPE_DROPS,
                             amount: 1200,
                             title: 'Drop earning',
                             reference: '#Colden_men_visiting_forest'
@@ -53,8 +53,8 @@ class WalletSeeder extends Seeder
                         $this->createTransaction(
                             wallet: $balanceWallet,
                             user: $user,
-                            direction: 'in',
-                            type: 'bonus',
+                            direction: WalletTransaction::DIRECTION_IN,
+                            type: WalletTransaction::TYPE_BONUS,
                             amount: 500,
                             title: 'Welcome bonus',
                             reference: '#WELCOME_BONUS'
@@ -65,8 +65,8 @@ class WalletSeeder extends Seeder
                         $this->createTransaction(
                             wallet: $refundWallet,
                             user: $user,
-                            direction: 'in',
-                            type: 'refund',
+                            direction: WalletTransaction::DIRECTION_IN,
+                            type: WalletTransaction::TYPE_REFUND,
                             amount: 2000,
                             title: 'Order refund',
                             reference: '#ORDER_REFUND_001'
@@ -86,11 +86,11 @@ class WalletSeeder extends Seeder
         float|int $amount,
         string $title,
         string $reference,
-        string $status = 'completed',
+        int $status = WalletTransaction::STATUS_COMPLETED,
     ): void {
         $balanceBefore = (float) $wallet->balance;
 
-        $balanceAfter = $direction === 'in'
+        $balanceAfter = $direction === WalletTransaction::DIRECTION_IN
             ? $balanceBefore + $amount
             : $balanceBefore - $amount;
 

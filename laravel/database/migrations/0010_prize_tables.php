@@ -23,12 +23,7 @@ return new class extends Migration
             $table->timestamp('starts_at')->nullable();
             $table->timestamp('ends_at')->nullable();
 
-            $table->enum('status', [
-                'draft',
-                'active',
-                'ended',
-                'cancelled',
-            ])->default('draft');
+            $table->smallInteger('status')->default(0); // draft, active, ended, cancelled
 
             $table->timestamps();
         });
@@ -39,13 +34,7 @@ return new class extends Migration
             $table->foreignId('prize_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
-            $table->enum('status', [
-                'joined',
-                'cancelled',
-                'refunded',
-                'winner',
-                'lost',
-            ])->default('joined');
+            $table->smallInteger('status')->default(0); // joined, cancelled, refunded, winner, lost
 
             $table->timestamps();
 

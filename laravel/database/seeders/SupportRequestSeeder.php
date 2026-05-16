@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\UserSupportRequest;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -13,16 +14,15 @@ class SupportRequestSeeder extends Seeder
 
         for ($i = 1; $i <= 200; $i++) {
             $type = fake()->randomElement([
-                'phone_number',
-                'username',
-                'email',
+                UserSupportRequest::TYPE_PHONE_NUMBER,
+                UserSupportRequest::TYPE_USERNAME,
+                UserSupportRequest::TYPE_EMAIL,
             ]);
 
             $status = fake()->randomElement([
-                'pending',
-                'approved',
-                'approved',
-                'rejected',
+                UserSupportRequest::STATUS_PENDING,
+                UserSupportRequest::STATUS_APPROVED,
+                UserSupportRequest::STATUS_REJECTED,
             ]);
 
             DB::table('user_support_requests')->insert([
@@ -31,14 +31,14 @@ class SupportRequestSeeder extends Seeder
                 'type' => $type,
                 'status' => $status,
                 'note' => fake()->boolean(60) ? fake()->sentence() : null,
-                'reviewed_at' => $status !== 'pending'
+                'reviewed_at' => $status !== UserSupportRequest::STATUS_PENDING
                     ? now()->subDays(fake()->numberBetween(1, 30))
                     : null,
                 'target' => fake()->randomElement([
-                    'forgot-password',
-                    'become-creator',
-                    'become-sgm',
-                    'contact-support',
+                    UserSupportRequest::TARGET_FORGOT_PASSWORD,
+                    UserSupportRequest::TARGET_BECOME_CREATOR,
+                    UserSupportRequest::TARGET_BECOME_SGM,
+                    UserSupportRequest::TARGET_CONTACT_SUPPORT,
                 ]),
                 'created_at' => now()->subDays(fake()->numberBetween(0, 90)),
                 'updated_at' => now(),
@@ -46,12 +46,13 @@ class SupportRequestSeeder extends Seeder
         }
     }
 
-    private function makeContact(string $type): string
+    private function makeContact(int $type): string
     {
         return match ($type) {
-            'phone_number' => '05'.fake()->unique()->numerify('########'),
-            'username' => fake()->userName(),
-            'email' => fake()->unique()->safeEmail(),
+            UserSupportRequest::TYPE_PHONE_NUMBER => '05'.fake()->unique()->numerify('########'),
+            UserSupportRequest::TYPE_USERNAME => fake()->userName(),
+            UserSupportRequest::TYPE_EMAIL => fake()->unique()->safeEmail(),
+            default => throw new \InvalidArgumentException("Invalid support request type: $type"),
         };
     }
 }

@@ -24,11 +24,7 @@ return new class extends Migration
 
             $table->decimal('balance', 12, 2)->default(0);
 
-            $table->enum('status', [
-                'pending',
-                'active',
-                'suspended',
-            ])->default('pending');
+            $table->smallInteger('status')->default(0); // pending, active, suspended,
 
             $table->timestamps();
         });

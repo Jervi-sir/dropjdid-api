@@ -14,10 +14,7 @@ return new class extends Migration
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
 
-            $table->enum('type', [
-                'private',
-                'support',
-            ])->default('private');
+            $table->smallInteger('type')->default(0); // private, support
 
             $table->foreignId('first_user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('second_user_id')->constrained('users')->cascadeOnDelete();
@@ -36,12 +33,7 @@ return new class extends Migration
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
 
-            $table->enum('type', [
-                'text',
-                'product',
-                'profile',
-                'image',
-            ])->default('text');
+            $table->smallInteger('type')->default(0); // text, product, profile, image
 
             $table->text('body')->nullable();
 

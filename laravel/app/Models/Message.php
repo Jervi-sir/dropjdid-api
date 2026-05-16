@@ -12,6 +12,21 @@ class Message extends Model
 {
     use FormatsModel, HasFactory;
 
+    public const TYPE_TEXT = 0;
+
+    public const TYPE_PRODUCT = 1;
+
+    public const TYPE_PROFILE = 2;
+
+    public const TYPE_IMAGE = 3;
+
+    public const TYPE = [
+        self::TYPE_TEXT => 'text',
+        self::TYPE_PRODUCT => 'product',
+        self::TYPE_PROFILE => 'profile',
+        self::TYPE_IMAGE => 'image',
+    ];
+
     protected $fillable = ['conversation_id', 'sender_id', 'type', 'body', 'attachable_type', 'attachable_id'];
 
     public function conversation(): BelongsTo

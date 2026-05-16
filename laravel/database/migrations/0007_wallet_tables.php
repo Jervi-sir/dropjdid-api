@@ -14,20 +14,14 @@ return new class extends Migration
         Schema::create('wallets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('type', ['balance', 'refund']);
+            $table->smallInteger('type')->default(0); // balance, refund,
 
             $table->decimal('balance', 12, 2)->default(0);
             $table->decimal('pending_balance', 12, 2)->default(0);
 
             $table->boolean('is_identity_verified')->default(false);
 
-            $table->enum('status', [
-                'new',
-                'pending',
-                'verified',
-                'blocked',
-                'rejected',
-            ])->default('new');
+            $table->smallInteger('status')->default(0); // new, pending, verified, blocked, rejected,
             $table->string('currency', 3)->default('DZD');
             $table->timestamps();
 
@@ -41,15 +35,10 @@ return new class extends Migration
             $table->foreignId('wallet_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
-            $table->enum('direction', ['in', 'out']);
-            $table->enum('type', ['drops', 'refund', 'bonus', 'request-withdrawal']);
+            $table->smallInteger('direction')->default(0); // in, out
+            $table->smallInteger('type')->default(0); // drops, refund, bonus, request-withdrawal
 
-            $table->enum('status', [
-                'pending',
-                'completed',
-                'failed',
-                'cancelled',
-            ])->default('pending');
+            $table->smallInteger('status')->default(0); // pending, completed, failed, cancelled,
 
             $table->decimal('amount', 12, 2);
 
@@ -83,22 +72,8 @@ return new class extends Migration
 
             $table->decimal('amount', 12, 2);
 
-            $table->enum('method', [
-                'baridimob',
-                'ccp',
-                'bank_transfer',
-                'cash',
-            ]);
-
-            $table->enum('status', [
-                'pending_identity_check',
-                'pending',
-                'approved',
-                'rejected',
-                'paid',
-                'cancelled',
-                'failed',
-            ])->default('pending_identity_check');
+            $table->smallInteger('method')->default(0); // baridimob, ccp, bank_transfer, cash
+            $table->smallInteger('status')->default(0); // pending_identity_check, pending, approved, rejected, paid, cancelled, failed
 
             $table->foreignId('transaction_id')
                 ->nullable()

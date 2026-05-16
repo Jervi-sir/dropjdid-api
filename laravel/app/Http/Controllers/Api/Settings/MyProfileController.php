@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\Friendship;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\SavedDrop;
 use App\Models\SavedProduct;
 use Illuminate\Http\JsonResponse;
@@ -17,15 +19,15 @@ class MyProfileController extends Controller
     {
         $user = $request->user()->load('roles');
 
-        $isUser = $user->roles->contains('code', 'user');
-        $isCreator = $user->roles->contains('code', 'creator');
-        $isSgm = $user->roles->contains('code', 'sgm');
+        $isUser = $user->roles->contains('code', Role::USER);
+        $isCreator = $user->roles->contains('code', Role::CREATOR);
+        $isSgm = $user->roles->contains('code', Role::SGM);
 
         $friendsCount = $user->sentFriendships()
-            ->where('status', 'accepted')
+            ->where('status', Friendship::STATUS_ACCEPTED)
             ->count()
             + $user->receivedFriendships()
-                ->where('status', 'accepted')
+                ->where('status', Friendship::STATUS_ACCEPTED)
                 ->count();
 
         $followedCreatorsCount = $user->followedCreators()->count();
@@ -41,7 +43,7 @@ class MyProfileController extends Controller
         $storesCount = $user->stores()->count();
 
         $affiliateLibraryCount = Product::query()
-            ->where('status', 'published')
+            ->where('status', Product::STATUS_PUBLISHED)
             ->whereHas('paymentMethod', function ($query): void {
                 $query->where('code', PaymentMethod::ONLINE);
             })

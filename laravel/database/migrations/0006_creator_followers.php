@@ -26,7 +26,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('phone_number');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->smallInteger('status')->default(0); // pending, approved, rejected,
             $table->text('note')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();

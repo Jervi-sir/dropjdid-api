@@ -12,14 +12,48 @@ class Drop extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['creator_id', 'title', 'description', 'starts_at', 'ends_at', 'status'];
+    public const STATUS_DRAFT = 0;
+
+    public const STATUS_PUBLISHED = 1;
+
+    public const STATUS_ENDED = 2;
+
+    public const STATUS_CANCELLED = 3;
+
+    public const STATUS_REJECTED = 4;
+
+    public const STATUSES = [
+        self::STATUS_DRAFT => 'draft',
+        self::STATUS_PUBLISHED => 'published',
+        self::STATUS_ENDED => 'ended',
+        self::STATUS_CANCELLED => 'cancelled',
+        self::STATUS_REJECTED => 'rejected',
+    ];
+
+    protected $fillable = ['creator_id', 'title', 'description', 'starts_at', 'ends_at', 'status', 'rejection_reason'];
 
     protected function casts(): array
     {
         return [
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
+            'rejection_reason' => 'array',
         ];
+    }
+
+    public function addRejectionReason(string $en, string $fr, string $ar): void
+    {
+        $reasons = $this->rejection_reason ?? [];
+
+        array_unshift($reasons, [
+            'id' => count($reasons) + 1,
+            'en' => $en,
+            'fr' => $fr,
+            'ar' => $ar,
+        ]);
+
+        $this->rejection_reason = $reasons;
+        $this->save();
     }
 
     public function creator(): BelongsTo
@@ -76,6 +110,8 @@ class Drop extends Model
                 ->map(fn (Product $product): array => $this->formatProduct($product, $user))
                 ->values()
                 ->all(),
+            'rejection_reason' => collect($this->rejection_reason)->first(),
+            'status' => self::STATUSES[$this->status] ?? 'unknown',
             'next_page' => ($this->products_count ?? $this->products->count()) > 10 ? 2 : null,
         ];
     }

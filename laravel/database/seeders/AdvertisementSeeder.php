@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Advertisement;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -11,10 +12,10 @@ class AdvertisementSeeder extends Seeder
     {
         for ($i = 1; $i <= 30; $i++) {
             $status = fake()->randomElement([
-                'draft',
-                'active',
-                'active',
-                'inactive',
+                Advertisement::STATUS_DRAFT,
+                Advertisement::STATUS_ACTIVE,
+                Advertisement::STATUS_ACTIVE,
+                Advertisement::STATUS_INACTIVE,
             ]);
 
             DB::table('advertisements')->insert([
@@ -25,11 +26,11 @@ class AdvertisementSeeder extends Seeder
                 'status' => $status,
                 'sort_order' => $i,
 
-                'starts_at' => $status === 'active'
+                'starts_at' => $status === Advertisement::STATUS_ACTIVE
                     ? now()->subDays(fake()->numberBetween(1, 10))
                     : fake()->optional()->dateTimeBetween('-30 days', '+10 days'),
 
-                'ends_at' => $status === 'active'
+                'ends_at' => $status === Advertisement::STATUS_ACTIVE
                     ? now()->addDays(fake()->numberBetween(5, 30))
                     : fake()->optional()->dateTimeBetween('+1 days', '+60 days'),
 

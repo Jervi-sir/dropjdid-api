@@ -71,10 +71,10 @@ class UserSeeder extends Seeder
             }
 
             $status = fake()->randomElement([
-                'pending',
-                'accepted',
-                'rejected',
-                'blocked',
+                User::STATUS_PENDING,
+                User::STATUS_ACCEPTED,
+                User::STATUS_REJECTED,
+                User::STATUS_BLOCKED,
             ]);
 
             DB::table('friendships')->updateOrInsert([
@@ -82,9 +82,9 @@ class UserSeeder extends Seeder
                 'receiver_id' => $receiverId,
             ], [
                 'status' => $status,
-                'accepted_at' => $status === 'accepted' ? now() : null,
-                'rejected_at' => $status === 'rejected' ? now() : null,
-                'blocked_at' => $status === 'blocked' ? now() : null,
+                'accepted_at' => $status === User::STATUS_ACCEPTED ? now() : null,
+                'rejected_at' => $status === User::STATUS_REJECTED ? now() : null,
+                'blocked_at' => $status === User::STATUS_BLOCKED ? now() : null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

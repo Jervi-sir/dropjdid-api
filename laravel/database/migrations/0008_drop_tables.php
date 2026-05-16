@@ -19,12 +19,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
 
-            $table->enum('status', [
-                'draft',
-                'published',
-                'ended',
-                'cancelled',
-            ])->default('draft');
+            $table->smallInteger('status')->default(0); // draft, published, ended, cancelled, rejected
+            $table->json('rejection_reason')->nullable();
 
             $table->timestamps();
         });

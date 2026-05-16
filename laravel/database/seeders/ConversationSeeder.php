@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Conversation;
+use App\Models\Message;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +40,10 @@ class ConversationSeeder extends Seeder
             }
 
             $conversationId = DB::table('conversations')->insertGetId([
-                'type' => fake()->randomElement(['private', 'private', 'support']),
+                'type' => fake()->randomElement([
+                    Conversation::TYPE_PRIVATE,
+                    Conversation::TYPE_SUPPORT,
+                ]),
                 'first_user_id' => $firstUserId,
                 'second_user_id' => $secondUserId,
                 'first_user_last_read_at' => fake()->boolean(70) ? now()->subMinutes(fake()->numberBetween(1, 5000)) : null,
@@ -51,12 +56,10 @@ class ConversationSeeder extends Seeder
 
             for ($i = 1; $i <= $messagesCount; $i++) {
                 $type = fake()->randomElement([
-                    'text',
-                    'text',
-                    'text',
-                    'image',
-                    'product',
-                    'profile',
+                    Message::TYPE_TEXT,
+                    Message::TYPE_IMAGE,
+                    Message::TYPE_PRODUCT,
+                    Message::TYPE_PROFILE,
                 ]);
 
                 $attachableType = null;

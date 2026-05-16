@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\CreatorRequest;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -42,10 +43,9 @@ class CreatorSeeder extends Seeder
         // Creator requests
         foreach (fake()->randomElements($userIds, min(80, count($userIds))) as $userId) {
             $status = fake()->randomElement([
-                'pending',
-                'approved',
-                'approved',
-                'rejected',
+                CreatorRequest::STATUS_PENDING,
+                CreatorRequest::STATUS_APPROVED,
+                CreatorRequest::STATUS_REJECTED,
             ]);
 
             DB::table('creator_requests')->insert([

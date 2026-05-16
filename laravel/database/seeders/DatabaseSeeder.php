@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             // LabelSeeder::class,
             // ProductSeeder::class,
             // CreatorSeeder::class,
-            // WalletSeeder::class,
             // DropSeeder::class,
             // SaveSeeder::class,
             // PrizeSeeder::class,

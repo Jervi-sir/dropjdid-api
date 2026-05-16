@@ -13,6 +13,15 @@ class Conversation extends Model
 {
     use FormatsModel, HasFactory, SoftDeletes;
 
+    public const TYPE_PRIVATE = 0;
+
+    public const TYPE_SUPPORT = 1;
+
+    public const TYPE = [
+        self::TYPE_PRIVATE => 'private',
+        self::TYPE_SUPPORT => 'support',
+    ];
+
     protected $fillable = ['type', 'first_user_id', 'second_user_id', 'first_user_last_read_at', 'second_user_last_read_at'];
 
     protected function casts(): array

@@ -87,12 +87,7 @@ return new class extends Migration
             $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('receiver_id')->constrained('users')->cascadeOnDelete();
 
-            $table->enum('status', [
-                'pending',
-                'accepted',
-                'rejected',
-                'blocked',
-            ])->default('pending');
+            $table->smallInteger('status')->default(0); // pending, accepted, rejected, blocked,
 
             $table->timestamp('accepted_at')->nullable();
             $table->timestamp('rejected_at')->nullable();

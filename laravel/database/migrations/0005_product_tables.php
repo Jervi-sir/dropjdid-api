@@ -26,12 +26,8 @@ return new class extends Migration
             $table->decimal('show_price', 12, 2)->nullable();
             $table->decimal('store_price', 12, 2)->nullable();
 
-            $table->enum('status', [
-                'draft',
-                'published',
-                'archived',
-                'rejected',
-            ])->default('draft');
+            $table->smallInteger('status')->default(0); // draft, published, archived, rejected,
+
             $table->text('rejection_reason')->nullable();
 
             $table->timestamp('refreshed_at')->nullable()->after('status');

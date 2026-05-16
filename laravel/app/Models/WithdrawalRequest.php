@@ -7,27 +7,44 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WithdrawalRequest extends Model
 {
-    public const METHOD_BARIDIMOB = 'baridimob';
+    public const METHOD_BARIDIMOB = 0;
 
-    public const METHOD_CCP = 'ccp';
+    public const METHOD_CCP = 1;
 
-    public const METHOD_BANK_TRANSFER = 'bank_transfer';
+    public const METHOD_BANK_TRANSFER = 2;
 
-    public const METHOD_CASH = 'cash';
+    public const METHOD_CASH = 3;
 
-    public const STATUS_PENDING_IDENTITY_CHECK = 'pending_identity_check';
+    public const METHOD = [
+        self::METHOD_BARIDIMOB => 'baridimob',
+        self::METHOD_CCP => 'ccp',
+        self::METHOD_BANK_TRANSFER => 'bank_transfer',
+        self::METHOD_CASH => 'cash',
+    ];
 
-    public const STATUS_PENDING = 'pending';
+    public const STATUS_PENDING_IDENTITY_CHECK = 0;
 
-    public const STATUS_APPROVED = 'approved';
+    public const STATUS_PENDING = 1;
 
-    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_APPROVED = 2;
 
-    public const STATUS_PAID = 'paid';
+    public const STATUS_REJECTED = 3;
 
-    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_PAID = 4;
 
-    public const STATUS_FAILED = 'failed';
+    public const STATUS_CANCELLED = 5;
+
+    public const STATUS_FAILED = 6;
+
+    public const STATUS = [
+        self::STATUS_PENDING_IDENTITY_CHECK => 'pending_identity_check',
+        self::STATUS_PENDING => 'pending',
+        self::STATUS_APPROVED => 'approved',
+        self::STATUS_REJECTED => 'rejected',
+        self::STATUS_PAID => 'paid',
+        self::STATUS_CANCELLED => 'cancelled',
+        self::STATUS_FAILED => 'failed',
+    ];
 
     protected $fillable = [
         'wallet_id',

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Store;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -35,11 +36,9 @@ class StoreSeeder extends Seeder
                     'balance' => fake()->randomFloat(2, 0, 500000),
 
                     'status' => fake()->randomElement([
-                        'pending',
-                        'active',
-                        'active',
-                        'active',
-                        'suspended',
+                        Store::STATUS_PENDING,
+                        Store::STATUS_ACTIVE,
+                        Store::STATUS_SUSPENED,
                     ]),
 
                     'created_at' => now(),

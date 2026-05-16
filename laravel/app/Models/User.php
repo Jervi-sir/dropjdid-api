@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Concerns\FormatsModel;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Console\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,30 +18,28 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
+#[Fillable(['wilaya_id', 'full_name', 'username', 'phone_number', 'phone_verified_at', 'email', 'email_verified_at', 'password', 'password_plaintext', 'image', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at', 'is_active', 'remember_token'])]
+#[Hidden(['password', 'password_plaintext', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use FormatsModel, HasApiTokens, HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
-    protected $fillable = [
-        'wilaya_id',
-        'full_name',
-        'username',
-        'phone_number',
-        'phone_verified_at',
-        'email',
-        'email_verified_at',
-        'password',
-        'password_plaintext',
-        'image',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-        'two_factor_confirmed_at',
-        'is_active',
-        'remember_token',
-    ];
+    public const STATUS_PENDING = 0;
 
-    protected $hidden = ['password', 'password_plaintext', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'];
+    public const STATUS_ACCEPTED = 1;
+
+    public const STATUS_REJECTED = 2;
+
+    public const STATUS_BLOCKED = 3;
+
+    public const STATUS = [
+        self::STATUS_PENDING => 'pending',
+        self::STATUS_ACCEPTED => 'accepted',
+        self::STATUS_REJECTED => 'rejected',
+        self::STATUS_BLOCKED => 'blocked',
+    ];
 
     /**
      * Get the attributes that should be cast.

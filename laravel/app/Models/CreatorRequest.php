@@ -10,6 +10,18 @@ class CreatorRequest extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING = 0;
+
+    public const STATUS_APPROVED = 1;
+
+    public const STATUS_REJECTED = 2;
+
+    public const STATUSES = [
+        self::STATUS_PENDING => 'pending',
+        self::STATUS_APPROVED => 'approved',
+        self::STATUS_REJECTED => 'rejected',
+    ];
+
     protected $fillable = ['user_id', 'phone_number', 'status', 'note', 'reviewed_at'];
 
     protected function casts(): array

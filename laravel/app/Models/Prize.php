@@ -12,6 +12,21 @@ class Prize extends Model
 {
     use FormatsModel, HasFactory;
 
+    public const STATUS_DRAFT = 0;
+
+    public const STATUS_ACTIVE = 1;
+
+    public const STATUS_ENDED = 2;
+
+    public const STATUS_CANCELLED = 3;
+
+    public const STATUS = [
+        self::STATUS_DRAFT => 'draft',
+        self::STATUS_ACTIVE => 'active',
+        self::STATUS_ENDED => 'ended',
+        self::STATUS_CANCELLED => 'cancelled',
+    ];
+
     protected $fillable = ['creator_id', 'title', 'image', 'description', 'starts_at', 'ends_at', 'status'];
 
     protected function casts(): array
@@ -53,7 +68,6 @@ class Prize extends Model
             'starts_at' => $this->starts_at?->toISOString(),
             'ends_at' => $this->ends_at?->toISOString(),
             'date_range' => $this->formatDateRange(),
-            'joining_price' => (float) $this->joining_price,
             'status' => $this->status,
             'joinings_count' => $this->joinings_count ?? $this->joinings->count(),
 

@@ -15,6 +15,18 @@ class Advertisement extends Model
 
     private const FEED_INSERT_INTERVAL = 4;
 
+    public const STATUS_DRAFT = 0;
+
+    public const STATUS_ACTIVE = 1;
+
+    public const STATUS_INACTIVE = 2;
+
+    public const STATUS = [
+        self::STATUS_DRAFT => 'draft',
+        self::STATUS_ACTIVE => 'active',
+        self::STATUS_INACTIVE => 'inactive',
+    ];
+
     protected $fillable = [
         'title',
         'description',
@@ -40,7 +52,7 @@ class Advertisement extends Model
         $now ??= now();
 
         return $query
-            ->where('status', 'active')
+            ->where('status', self::STATUS_ACTIVE)
             ->where(function (Builder $query) use ($now): void {
                 $query
                     ->whereNull('starts_at')

@@ -29,24 +29,13 @@ return new class extends Migration
             $table->string('baladiya');
             $table->text('home_address');
 
-            $table->enum('delivery_method', [
-                'home',
-                'desk',
-            ])->default('home');
+            $table->smallInteger('delivery_method')->default(0); // home, desk
 
             $table->decimal('delivery_fees', 12, 2)->default(0);
             $table->decimal('subtotal', 12, 2)->default(0);
             $table->decimal('total', 12, 2)->default(0);
 
-            $table->enum('status', [
-                'pending',
-                'confirmed',
-                'processing',
-                'shipped',
-                'delivered',
-                'cancelled',
-                'returned',
-            ])->default('pending');
+            $table->smallInteger('status')->default(0); // pending, confirmed, processing, shipped, delivered, cancelled, returned
 
             $table->boolean('has_claim_issue')->default(false);
             $table->text('claim_issue')->nullable();

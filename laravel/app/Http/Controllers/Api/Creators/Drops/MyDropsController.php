@@ -46,14 +46,32 @@ class MyDropsController extends Controller
             ->paginate($perPage);
 
         $formattedDrops = collect($drops->items())
-            ->map(fn (Drop $drop): array => array_merge($drop->formatDrop($user), [
-                'status' => $drop->status,
-            ]));
+            ->map(fn (Drop $drop): array => $drop->formatDrop($user));
+
+        $pendingBanner = Drop::query()
+            ->where('creator_id', $userId)
+            ->where('status', Drop::STATUS_DRAFT)
+            ->get(['id', 'title'])
+            ->map(fn (Drop $drop): array => [
+                'drop_id' => $drop->id,
+                'title' => $drop->title,
+            ]);
+
+        $rejectionBanner = Drop::query()
+            ->where('creator_id', $userId)
+            ->where('status', Drop::STATUS_REJECTED)
+            ->get(['id', 'title'])
+            ->map(fn (Drop $drop): array => [
+                'drop_id' => $drop->id,
+                'title' => $drop->title,
+            ]);
 
         return response()->json([
             'data' => $formattedDrops,
             'total' => $drops->total(),
             'next_page' => $drops->hasMorePages() ? $drops->currentPage() + 1 : null,
+            'pending_banner' => $pendingBanner,
+            'rejection_banner' => $rejectionBanner,
         ]);
     }
 
@@ -106,9 +124,7 @@ class MyDropsController extends Controller
             ])
             ->findOrFail($drop_id);
 
-        return response()->json(array_merge($drop->formatDrop($user), [
-            'status' => $drop->status,
-        ]));
+        return response()->json($drop->formatDrop($user));
     }
 
     public function delete(Request $request, int $drop_id): JsonResponse

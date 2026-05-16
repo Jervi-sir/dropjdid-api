@@ -26,7 +26,7 @@ class DropsFeedController extends Controller
         $userId = $user?->getAuthIdentifier();
 
         $drops = Drop::query()
-            ->where('status', 'published')
+            ->where('status', Drop::STATUS_PUBLISHED)
             ->whereHas('creator')
             ->withCount(['likedDrops', 'products', 'savedDrops'])
             ->with([

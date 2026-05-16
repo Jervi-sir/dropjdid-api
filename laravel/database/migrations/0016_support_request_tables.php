@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('contact');
-            $table->enum('type', ['phone_number', 'username', 'email']);
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->smallInteger('type')->default(0); // phone_number, username, email
+            $table->smallInteger('status')->default(0); // pending, approved, rejected
             $table->text('note')->nullable();
             $table->timestamp('reviewed_at')->nullable();
-            $table->enum('target', ['forgot-password', 'become-creator', 'become-sgm', 'contact-support']);
+            $table->smallInteger('target')->default(0); // forgot-password, become-creator, become-sgm, contact-support
             $table->timestamps();
         });
 

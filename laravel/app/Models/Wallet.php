@@ -8,19 +8,32 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Wallet extends Model
 {
-    public const TYPE_BALANCE = 'balance';
+    public const TYPE_BALANCE = 0;
 
-    public const TYPE_REFUND = 'refund';
+    public const TYPE_REFUND = 1;
 
-    public const STATUS_NEW = 'new';
+    public const TYPES = [
+        self::TYPE_BALANCE => 'balance',
+        self::TYPE_REFUND => 'refund',
+    ];
 
-    public const STATUS_PENDING = 'pending';
+    public const STATUS_NEW = 0;
 
-    public const STATUS_VERIFIED = 'verified';
+    public const STATUS_PENDING = 1;
 
-    public const STATUS_BLOCKED = 'blocked';
+    public const STATUS_VERIFIED = 2;
 
-    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_BLOCKED = 3;
+
+    public const STATUS_REJECTED = 4;
+
+    public const STATUSES = [
+        self::STATUS_NEW => 'new',
+        self::STATUS_PENDING => 'pending',
+        self::STATUS_VERIFIED => 'verified',
+        self::STATUS_BLOCKED => 'blocked',
+        self::STATUS_REJECTED => 'rejected',
+    ];
 
     protected $fillable = [
         'user_id',

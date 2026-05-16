@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Prize;
+use App\Models\PrizeJoining;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,25 +16,25 @@ class PrizeSeeder extends Seeder
         $prizes = [
             [
                 'title' => 'Current Mega Prize',
-                'status' => 'active',
+                'status' => Prize::STATUS_ACTIVE,
                 'starts_at' => now()->subDays(3),
                 'ends_at' => now()->addDays(10),
             ],
             [
                 'title' => 'Previous Fashion Prize',
-                'status' => 'ended',
+                'status' => Prize::STATUS_ENDED,
                 'starts_at' => now()->subDays(40),
                 'ends_at' => now()->subDays(10),
             ],
             [
                 'title' => 'Upcoming Creator Prize',
-                'status' => 'draft',
+                'status' => Prize::STATUS_DRAFT,
                 'starts_at' => now()->addDays(7),
                 'ends_at' => now()->addDays(21),
             ],
             [
                 'title' => 'Cancelled Prize',
-                'status' => 'cancelled',
+                'status' => Prize::STATUS_CANCELLED,
                 'starts_at' => now()->subDays(20),
                 'ends_at' => now()->subDays(5),
             ],
@@ -46,17 +48,16 @@ class PrizeSeeder extends Seeder
                 'description' => fake()->paragraph(),
                 'starts_at' => $prize['starts_at'],
                 'ends_at' => $prize['ends_at'],
-                'joining_price' => fake()->randomElement([500, 1000, 1500, 2000]),
                 'status' => $prize['status'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
             $joinedCount = match ($prize['status']) {
-                'active' => 220,
-                'ended' => 180,
-                'draft' => 0,
-                'cancelled' => 60,
+                Prize::STATUS_ACTIVE => 220,
+                Prize::STATUS_ENDED => 180,
+                Prize::STATUS_DRAFT => 0,
+                Prize::STATUS_CANCELLED => 60,
                 default => 0,
             };
 
@@ -76,22 +77,18 @@ class PrizeSeeder extends Seeder
             foreach ($joinedUserIds as $userId) {
                 $status = match ($prize['status']) {
                     'active' => fake()->randomElement([
-                        'joined',
-                        'joined',
-                        'joined',
-                        'cancelled',
+                        PrizeJoining::STATUS_JOINED,
+                        PrizeJoining::STATUS_CANCELLED,
                     ]),
-                    'ended' => $userId === $winnerUserId ? 'winner' : fake()->randomElement([
-                        'lost',
-                        'lost',
-                        'lost',
-                        'refunded',
+                    'ended' => $userId === $winnerUserId ? PrizeJoining::STATUS_WINNER : fake()->randomElement([
+                        PrizeJoining::STATUS_LOST,
+                        PrizeJoining::STATUS_REFUNDED,
                     ]),
                     'cancelled' => fake()->randomElement([
-                        'cancelled',
-                        'refunded',
+                        PrizeJoining::STATUS_CANCELLED,
+                        PrizeJoining::STATUS_REFUNDED,
                     ]),
-                    default => 'joined',
+                    default => PrizeJoining::STATUS_JOINED,
                 };
 
                 DB::table('prize_joinings')->updateOrInsert(
@@ -100,10 +97,6 @@ class PrizeSeeder extends Seeder
                         'user_id' => $userId,
                     ],
                     [
-                        'amount_paid' => in_array($status, ['cancelled', 'refunded'])
-                            ? 0
-                            : DB::table('prizes')->where('id', $prizeId)->value('joining_price'),
-
                         'status' => $status,
                         'created_at' => now()->subDays(fake()->numberBetween(0, 30)),
                         'updated_at' => now(),

@@ -9,25 +9,44 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class WalletTransaction extends Model
 {
-    public const DIRECTION_IN = 'in';
+    public const DIRECTION_IN = 0;
 
-    public const DIRECTION_OUT = 'out';
+    public const DIRECTION_OUT = 1;
 
-    public const STATUS_PENDING = 'pending';
+    public const DIRECTION = [
+        self::DIRECTION_IN => 'in',
+        self::DIRECTION_OUT => 'out',
+    ];
 
-    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_PENDING = 0;
 
-    public const STATUS_FAILED = 'failed';
+    public const STATUS_COMPLETED = 1;
 
-    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_FAILED = 2;
 
-    public const TYPE_DROPS = 'drops';
+    public const STATUS_CANCELLED = 3;
 
-    public const TYPE_REFUND = 'refund';
+    public const STATUS = [
+        self::STATUS_PENDING => 'pending',
+        self::STATUS_COMPLETED => 'completed',
+        self::STATUS_FAILED => 'failed',
+        self::STATUS_CANCELLED => 'cancelled',
+    ];
 
-    public const TYPE_BONUS = 'bonus';
+    public const TYPE_DROPS = 0;
 
-    public const TYPE_REQUEST_WITHDRAWAL = 'request-withdrawal';
+    public const TYPE_REFUND = 1;
+
+    public const TYPE_BONUS = 2;
+
+    public const TYPE_REQUEST_WITHDRAWAL = 3;
+
+    public const TYPES = [
+        self::TYPE_DROPS => 'drops',
+        self::TYPE_REFUND => 'refund',
+        self::TYPE_BONUS => 'bonus',
+        self::TYPE_REQUEST_WITHDRAWAL => 'request-withdrawal',
+    ];
 
     protected $fillable = [
         'wallet_id',

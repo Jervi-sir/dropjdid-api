@@ -14,6 +14,21 @@ class Product extends Model
 {
     use FormatsModel, HasFactory, SoftDeletes;
 
+    public const STATUS_DRAFT = 0;
+
+    public const STATUS_PUBLISHED = 1;
+
+    public const STATUS_ARCHIVED = 2;
+
+    public const STATUS_REJECTED = 3;
+
+    public const STATUSES = [
+        self::STATUS_DRAFT => 'draft',
+        self::STATUS_PUBLISHED => 'published',
+        self::STATUS_ARCHIVED => 'archived',
+        self::STATUS_REJECTED => 'rejected',
+    ];
+
     protected $fillable = ['store_id', 'category_id', 'quality_id', 'name', 'description', 'payment_method_id', 'original_price', 'show_price', 'store_price', 'gender_id', 'status', 'refreshed_at', 'rejection_reason'];
 
     protected function casts(): array

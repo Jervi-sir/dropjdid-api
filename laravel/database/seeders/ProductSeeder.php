@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Product;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -43,12 +44,10 @@ class ProductSeeder extends Seeder
                 'store_price' => $storePrice,
 
                 'status' => fake()->randomElement([
-                    'draft',
-                    'published',
-                    'published',
-                    'published',
-                    'archived',
-                    'rejected',
+                    Product::STATUS_DRAFT,
+                    Product::STATUS_PUBLISHED,
+                    Product::STATUS_ARCHIVED,
+                    Product::STATUS_REJECTED,
                 ]),
                 'rejection_reason' => fake()->boolean(10) ? fake()->sentence() : null,
                 'refreshed_at' => fake()->boolean(60) ? now()->subDays(fake()->numberBetween(0, 30)) : null,

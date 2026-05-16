@@ -19,11 +19,7 @@ return new class extends Migration
             $table->string('url')->nullable();
             $table->string('description')->nullable();
 
-            $table->enum('status', [
-                'draft',
-                'active',
-                'inactive',
-            ])->default('draft');
+            $table->smallInteger('status')->default(0); // draft, active, inactive
 
             $table->integer('sort_order')->default(0);
 
