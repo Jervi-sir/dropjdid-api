@@ -56,7 +56,7 @@ class ShowCurrentPrizeController extends Controller
         $user = $request->user();
 
         return Prize::query()
-            ->where('status', 'active')
+            ->where('status', Prize::STATUS_ACTIVE)
             ->where(function ($query): void {
                 $query
                     ->whereNull('starts_at')

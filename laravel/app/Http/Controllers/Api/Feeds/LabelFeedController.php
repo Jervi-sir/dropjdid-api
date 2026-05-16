@@ -41,10 +41,10 @@ class LabelFeedController extends Controller
                 $this->labelLikedProductsCount($label->id, $userId),
             ))
             ->values();
-        
+
         $adsCount = $validated['ads_count'] ?? 4;
         $data = Advertisement::injectIntoFeed($labelSections, adsCount: $adsCount)->values();
-        
+
         return response()->json([
             'data' => $data,
             'next_page' => $labelPaginator->hasMorePages() ? $labelPaginator->currentPage() + 1 : null,
@@ -96,7 +96,7 @@ class LabelFeedController extends Controller
     private function baseProductsQuery(?int $userId)
     {
         return Product::query()
-            ->where('status', 'published')
+            ->where('status', Product::STATUS_PUBLISHED)
             ->with([
                 'images',
                 'store.user',

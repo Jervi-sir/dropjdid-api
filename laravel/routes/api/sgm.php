@@ -18,12 +18,12 @@ Route::prefix('sgm')->middleware('auth:sanctum')->group(function () {
 
     Route::prefix('stores')->group(function () {
         Route::get('/', ListMyStoresController::class);
-        Route::get('upsert', UpsertStoreController::class);
+        Route::post('upsert', UpsertStoreController::class);
         Route::get('{store_id}/preview', PreviewStoreController::class);
 
         Route::get('{store_id}/products', ListProductsController::class);
         Route::get('{store_id}/products/{product_id}', ShowProductController::class);
         Route::delete('{store_id}/products/{product_id}/delete', DeleteProductController::class);
-        Route::post('{store_id}/products/upsert', UpsertProductController::class);
+        Route::post('{store_id}/products/upsert/{product_id?}', UpsertProductController::class);
     });
 });

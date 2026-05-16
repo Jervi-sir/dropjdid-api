@@ -28,7 +28,7 @@ return new class extends Migration
 
             $table->smallInteger('status')->default(0); // draft, published, archived, rejected,
 
-            $table->text('rejection_reason')->nullable();
+            $table->json('rejection_reason')->nullable();
 
             $table->timestamp('refreshed_at')->nullable()->after('status');
             $table->softDeletes();

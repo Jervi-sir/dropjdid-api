@@ -37,9 +37,31 @@ class Product extends Model
             'original_price' => 'decimal:2',
             'show_price' => 'decimal:2',
             'store_price' => 'decimal:2',
+            'status' => 'integer',
             'deleted_at' => 'datetime',
             'refreshed_at' => 'datetime',
+            'rejection_reason' => 'array',
         ];
+    }
+
+    public function addRejectionReason(string $en, string $fr, string $ar): void
+    {
+        $reasons = $this->rejection_reason ?? [];
+
+        array_unshift($reasons, [
+            'id' => count($reasons) + 1,
+            'en' => $en,
+            'fr' => $fr,
+            'ar' => $ar,
+        ]);
+
+        $this->rejection_reason = $reasons;
+        $this->save();
+    }
+
+    public function getStatusTextAttribute(): string
+    {
+        return self::STATUSES[$this->status] ?? 'unknown';
     }
 
     public function store(): BelongsTo
@@ -134,6 +156,9 @@ class Product extends Model
                 'fr' => $product->paymentMethod->fr,
                 'ar' => $product->paymentMethod->ar,
             ] : null,
+            'rejection_reason' => collect($this->rejection_reason)->first(),
+            'status' => self::STATUSES[$this->status] ?? 'unknown',
+
         ];
     }
 }

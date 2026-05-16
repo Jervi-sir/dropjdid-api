@@ -21,7 +21,7 @@ class MyProfileController extends Controller
 
         $isUser = $user->roles->contains('code', Role::USER);
         $isCreator = $user->roles->contains('code', Role::CREATOR);
-        $isSgm = $user->roles->contains('code', Role::SGM);
+        $isSgm = $user->roles->contains('code', Role::STORE);
 
         $friendsCount = $user->sentFriendships()
             ->where('status', Friendship::STATUS_ACCEPTED)

@@ -27,8 +27,8 @@ class UpsertStoreController extends Controller
                 $isUpdate ? Rule::unique('stores', 'phone_number')->ignore($id) : 'unique:stores,phone_number',
             ],
             'old_password' => [$isUpdate && $request->filled('new_password') ? 'required' : 'nullable', 'string'],
-            'new_password' => [$isUpdate ? 'nullable' : 'required', 'string', 'min:8', 'max:255'],
-            'password' => [! $isUpdate ? 'required' : 'nullable', 'string', 'min:8', 'max:255'], // Legacy field support if needed
+            'new_password' => [$isUpdate ? 'nullable' : 'required_without:password', 'string', 'min:8', 'max:255'],
+            'password' => [$isUpdate ? 'nullable' : 'required_without:new_password', 'string', 'min:8', 'max:255'],
             'description' => ['nullable', 'string'],
         ]);
 
@@ -63,7 +63,7 @@ class UpsertStoreController extends Controller
                 'phone_number' => $validated['phone_number'],
                 'password' => $validated['new_password'] ?? $validated['password'],
                 'description' => $validated['description'] ?? null,
-                'status' => 'pending',
+                'status' => Store::STATUS_PENDING,
             ]);
 
             $message = 'Store creation request submitted successfully.';

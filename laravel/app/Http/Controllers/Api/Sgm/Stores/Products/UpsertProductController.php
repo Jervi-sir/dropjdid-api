@@ -21,7 +21,7 @@ class UpsertProductController extends Controller
             'original_price' => 'nullable|numeric',
             'show_price' => 'nullable|numeric',
             'store_price' => 'nullable|numeric',
-            'status' => 'required|in:draft,published,archived',
+            'status' => 'required|in:' . implode(',', Product::STATUSES),
             'images' => 'nullable|array',
             'images.*.image' => 'required|string',
             'images.*.sort_order' => 'nullable|integer',
@@ -33,6 +33,9 @@ class UpsertProductController extends Controller
             'keywords.*.label_id' => 'required|exists:labels,id',
             'keywords.*.keyword_id' => 'required|exists:keywords,id',
         ]);
+
+        // Map string status to integer value
+        $validated['status'] = array_search($validated['status'], Product::STATUSES);
 
         return DB::transaction(function () use ($validated, $product) {
             if ($product) {

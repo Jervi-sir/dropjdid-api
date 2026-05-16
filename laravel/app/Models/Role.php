@@ -15,7 +15,7 @@ class Role extends Model
 
     public const CREATOR = 'creator';
 
-    public const SGM = 'sgm';
+    public const STORE = 'store';
 
     protected $fillable = ['code', 'description', 'en', 'fr', 'ar'];
 
