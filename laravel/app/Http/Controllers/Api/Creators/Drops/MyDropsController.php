@@ -155,42 +155,57 @@ class MyDropsController extends Controller
         // Ensure the drop belongs to the authenticated creator
         $drop = Drop::where('creator_id', $user->id)->findOrFail($drop_id);
 
-        // Fetch paginated order items of this product in this drop
-        $orderItems = OrderItem::query()
-            ->where('drop_id', $drop_id)
-            ->where('product_id', $product_id)
-            ->with(['order.user', 'size'])
+        // Fetch paginated orders of this product in this drop
+        $orders = Order::query()
+            ->whereHas('items', function ($query) use ($drop_id, $product_id) {
+                $query->where('drop_id', $drop_id)->where('product_id', $product_id);
+            })
+            ->with(['user', 'items' => function ($query) use ($drop_id, $product_id) {
+                $query->where('drop_id', $drop_id)->where('product_id', $product_id)->with('size');
+            }])
             ->latest()
             ->paginate($request->get('per_page', 10));
 
-        $formattedOrders = collect($orderItems->items())->map(function (OrderItem $item) {
-            $order = $item->order;
-            $customer = $order?->user;
+        $formattedOrders = collect($orders->items())->map(function (Order $order) {
+            $item = $order->items->first();
+            $customer = $order->user;
 
             return [
-                'id' => $item->id,
-                'order_id' => $item->order_id,
-                'order_number' => $order?->order_number,
-                'quantity' => $item->quantity,
-                'unit_price' => (float) $item->unit_price,
-                'total_price' => (float) $item->total_price,
-                'size' => $item->size?->code ?? $item->size?->en ?? $item->size?->fr ?? $item->size?->ar,
-                'status' => $order?->status !== null ? (Order::STATUS[$order->status] ?? 'pending') : 'pending',
-                'created_at' => $item->created_at?->toISOString(),
+                'id' => $order->id, // Order ID at top level
+                'order_number' => $order->order_number,
+                'status' => $order->status !== null ? (Order::STATUS[$order->status] ?? 'pending') : 'pending',
+                'created_at' => $order->created_at?->toISOString(),
+                'full_name' => $order->full_name,
+                'phone_number' => $order->phone_number,
+                'wilaya' => $order->wilaya,
+                'baladiya' => $order->baladiya,
+                'home_address' => $order->home_address,
+                'delivery_method' => Order::DELIVERY_METHOD[$order->delivery_method] ?? 'home',
+                'delivery_fees' => (float) $order->delivery_fees,
+                'subtotal' => (float) $order->subtotal,
+                'total' => (float) $order->total,
+                
+                // Item details
+                'quantity' => $item?->quantity ?? 0,
+                'unit_price' => $item ? (float) $item->unit_price : 0.0,
+                'total_price' => $item ? (float) $item->total_price : 0.0,
+                'size' => $item?->size?->code ?? $item?->size?->en ?? $item?->size?->fr ?? $item?->size?->ar,
+
+                // Customer/Buyer details
                 'user' => [
                     'id' => $customer?->id,
-                    'full_name' => $customer?->full_name ?? $order?->full_name ?? 'Anonymous',
+                    'full_name' => $customer?->full_name ?? $order->full_name ?? 'Anonymous',
                     'username' => $customer?->username ?? 'unknown',
                     'image' => $customer?->image,
-                    'phone_number' => $order?->phone_number ?? $customer?->phone_number,
+                    'phone_number' => $order->phone_number ?? $customer?->phone_number,
                 ],
             ];
         });
 
         return response()->json([
             'data' => $formattedOrders,
-            'total' => $orderItems->total(),
-            'next_page' => $orderItems->hasMorePages() ? $orderItems->currentPage() + 1 : null,
+            'total' => $orders->total(),
+            'next_page' => $orders->hasMorePages() ? $orders->currentPage() + 1 : null,
         ]);
     }
 }
