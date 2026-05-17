@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Creators\Drops;
 use App\Http\Controllers\Controller;
 use App\Models\Drop;
 use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -138,6 +140,51 @@ class MyDropsController extends Controller
 
         return response()->json([
             'message' => 'Drop deleted successfully.',
+        ]);
+    }
+
+    public function productOrders(Request $request, int $drop_id, int $product_id): JsonResponse
+    {
+        $user = $request->user();
+        // Ensure the drop belongs to the authenticated creator
+        $drop = Drop::where('creator_id', $user->id)->findOrFail($drop_id);
+
+        // Fetch paginated order items of this product in this drop
+        $orderItems = OrderItem::query()
+            ->where('drop_id', $drop_id)
+            ->where('product_id', $product_id)
+            ->with(['order.user', 'size'])
+            ->latest()
+            ->paginate($request->get('per_page', 10));
+
+        $formattedOrders = collect($orderItems->items())->map(function (OrderItem $item) {
+            $order = $item->order;
+            $customer = $order?->user;
+
+            return [
+                'id' => $item->id,
+                'order_id' => $item->order_id,
+                'order_number' => $order?->order_number,
+                'quantity' => $item->quantity,
+                'unit_price' => (float) $item->unit_price,
+                'total_price' => (float) $item->total_price,
+                'size' => $item->size?->code ?? $item->size?->en ?? $item->size?->fr ?? $item->size?->ar,
+                'status' => $order?->status !== null ? (Order::STATUS[$order->status] ?? 'pending') : 'pending',
+                'created_at' => $item->created_at?->toISOString(),
+                'user' => [
+                    'id' => $customer?->id,
+                    'full_name' => $customer?->full_name ?? $order?->full_name ?? 'Anonymous',
+                    'username' => $customer?->username ?? 'unknown',
+                    'image' => $customer?->image,
+                    'phone_number' => $order?->phone_number ?? $customer?->phone_number,
+                ],
+            ];
+        });
+
+        return response()->json([
+            'data' => $formattedOrders,
+            'total' => $orderItems->total(),
+            'next_page' => $orderItems->hasMorePages() ? $orderItems->currentPage() + 1 : null,
         ]);
     }
 }

@@ -11,7 +11,7 @@ class OrderItem extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['order_id', 'product_id', 'size_id', 'product_name', 'quantity', 'unit_price', 'total_price'];
+    protected $fillable = ['order_id', 'product_id', 'drop_id', 'size_id', 'product_name', 'quantity', 'unit_price', 'total_price'];
 
     protected function casts(): array
     {
@@ -25,6 +25,11 @@ class OrderItem extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function drop(): BelongsTo
+    {
+        return $this->belongsTo(Drop::class);
     }
 
     public function isOnline(): bool

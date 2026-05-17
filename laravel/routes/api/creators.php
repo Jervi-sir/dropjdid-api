@@ -19,6 +19,7 @@ Route::prefix('creators')->middleware('auth:sanctum')->group(function () {
     Route::get('drops/{drop_id}/likes', ListLikesController::class);
     Route::get('drops/{drop_id}/saves', ListSavesController::class);
     Route::get('drops/{drop_id}/products', [MyDropsController::class, 'products']);
+    Route::get('drops/{drop_id}/products/{product_id}/orders', [MyDropsController::class, 'productOrders']);
     Route::get('affiliate-library', [AffiliateLibraryController::class, 'suggest']);
     Route::get('affiliate-library/search', [AffiliateLibraryController::class, 'search']);
 });

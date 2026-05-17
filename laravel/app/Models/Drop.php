@@ -46,10 +46,12 @@ class Drop extends Model
     {
         return Attribute::make(
             set: function ($value) {
-                if (is_string($value) && !is_numeric($value)) {
+                if (is_string($value) && ! is_numeric($value)) {
                     $statusMap = array_flip(self::STATUSES);
+
                     return $statusMap[$value] ?? self::STATUS_DRAFT;
                 }
+
                 return (int) $value;
             }
         );
@@ -68,6 +70,11 @@ class Drop extends Model
 
         $this->rejection_reason = $reasons;
         $this->save();
+    }
+
+    public function orderItem(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
     }
 
     public function creator(): BelongsTo

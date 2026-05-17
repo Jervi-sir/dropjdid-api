@@ -49,6 +49,7 @@ return new class extends Migration
 
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('drop_id')->nullable()->constrained();
             $table->foreignId('size_id')->constrained()->cascadeOnDelete();
             // $table->foreignId('product_variant_id')->nullable()->constrained()->nullOnDelete();
 
