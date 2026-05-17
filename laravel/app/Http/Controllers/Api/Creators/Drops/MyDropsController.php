@@ -160,8 +160,8 @@ class MyDropsController extends Controller
             ->whereHas('items', function ($query) use ($drop_id, $product_id) {
                 $query->where('drop_id', $drop_id)->where('product_id', $product_id);
             })
-            ->with(['user', 'items' => function ($query) use ($drop_id, $product_id) {
-                $query->where('drop_id', $drop_id)->where('product_id', $product_id)->with('size');
+            ->with(['user', 'paymentMethod', 'items' => function ($query) use ($drop_id, $product_id) {
+                $query->where('drop_id', $drop_id)->where('product_id', $product_id)->with(['size', 'product.images']);
             }])
             ->latest()
             ->paginate($request->get('per_page', 10));
@@ -169,11 +169,17 @@ class MyDropsController extends Controller
         $formattedOrders = collect($orders->items())->map(function (Order $order) {
             $item = $order->items->first();
             $customer = $order->user;
+            $firstProduct = $item?->product;
 
             return [
                 'id' => $order->id, // Order ID at top level
                 'order_number' => $order->order_number,
-                'status' => $order->status !== null ? (Order::STATUS[$order->status] ?? 'pending') : 'pending',
+                'type' => $order->paymentMethod?->code === 'online' ? 'online' : 'cod',
+                'is_online' => $order->isOnline(),
+                'status' => $order->formatStatusForMobile(),
+                'image' => $firstProduct?->images->sortBy('sort_order')->first()?->image,
+                'product_name' => $item?->product_name,
+                'total' => (float) $order->total,
                 'created_at' => $order->created_at?->toISOString(),
                 'full_name' => $order->full_name,
                 'phone_number' => $order->phone_number,
@@ -183,7 +189,6 @@ class MyDropsController extends Controller
                 'delivery_method' => Order::DELIVERY_METHOD[$order->delivery_method] ?? 'home',
                 'delivery_fees' => (float) $order->delivery_fees,
                 'subtotal' => (float) $order->subtotal,
-                'total' => (float) $order->total,
                 
                 // Item details
                 'quantity' => $item?->quantity ?? 0,
