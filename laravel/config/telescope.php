@@ -209,4 +209,20 @@ return [
         Watchers\ScheduleWatcher::class => env('TELESCOPE_SCHEDULE_WATCHER', true),
         Watchers\ViewWatcher::class => env('TELESCOPE_VIEW_WATCHER', true),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Telescope Production Access Control
+    |--------------------------------------------------------------------------
+    |
+    | Define who is allowed to access Telescope in production. You can either
+    | specify a list of emails or configure a bypass for stateless APIs.
+    |
+    */
+
+    'allowed_emails' => env('TELESCOPE_ALLOWED_EMAILS')
+        ? explode(',', env('TELESCOPE_ALLOWED_EMAILS'))
+        : [],
+
+    'bypass_auth' => env('TELESCOPE_BYPASS_AUTH', false),
 ];
