@@ -1,15 +1,15 @@
 <?php
 
 use App\Http\Controllers\Api\Sgm\BecomeSgm\BecomeSGMController;
-use App\Http\Controllers\Api\SGM\Stores\ListMyStoresController;
-use App\Http\Controllers\Api\SGM\Stores\ListProductsController;
+use App\Http\Controllers\Api\Sgm\Stores\ListMyStoresController;
+use App\Http\Controllers\Api\Sgm\Stores\ListProductsController;
 use App\Http\Controllers\Api\Sgm\Stores\Orders\ListOrdersByProductsController;
-use App\Http\Controllers\Api\SGM\Stores\PreviewStoreController;
+use App\Http\Controllers\Api\Sgm\Stores\PreviewStoreController;
 use App\Http\Controllers\Api\Sgm\Stores\Products\DeleteProductController;
 use App\Http\Controllers\Api\Sgm\Stores\Products\ShowProductController;
 use App\Http\Controllers\Api\Sgm\Stores\Products\UpsertProductController;
 use App\Http\Controllers\Api\Sgm\Stores\LoginToStoreController;
-use App\Http\Controllers\Api\SGM\Stores\UpsertStoreController;
+use App\Http\Controllers\Api\Sgm\Stores\UpsertStoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('sgm')->middleware('auth:sanctum')->group(function () {

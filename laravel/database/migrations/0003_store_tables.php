@@ -51,7 +51,7 @@ return new class extends Migration
 
         Schema::create('store_wallet_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wallet_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('store_wallet_id')->constrained()->cascadeOnDelete();
             $table->foreignId('store_id')->constrained()->cascadeOnDelete();
 
             $table->smallInteger('direction')->default(0); // in, out
@@ -80,7 +80,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['store_id', 'created_at']);
-            $table->index(['wallet_id', 'status']);
+            $table->index(['store_wallet_id', 'status']);
 
         });
 

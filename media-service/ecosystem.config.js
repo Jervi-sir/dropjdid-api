@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'media-service',
+      name: 'dropjdid:media-service',
       script: 'dist/src/main.js',
       cwd: '/home/jervi/projects/dropjdid-api/media-service',
       instances: 1,

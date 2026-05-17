@@ -29,6 +29,22 @@ class ProductSeeder extends Seeder
             $storePrice = fake()->randomFloat(2, 1000, $originalPrice);
             $showPrice = fake()->randomFloat(2, $storePrice, $originalPrice + 10000);
 
+            $status = fake()->randomElement([
+                Product::STATUS_DRAFT,
+                Product::STATUS_PUBLISHED,
+                Product::STATUS_ARCHIVED,
+                Product::STATUS_REJECTED,
+            ]);
+
+            $rejectionReason = $status === Product::STATUS_REJECTED ? json_encode([
+                [
+                    'id' => 1,
+                    'en' => fake()->sentence(),
+                    'fr' => fake()->sentence(),
+                    'ar' => fake()->sentence(),
+                ]
+            ]) : null;
+
             $productId = DB::table('products')->insertGetId([
                 'store_id' => fake()->randomElement($storeIds),
                 'category_id' => $categoryId,
@@ -43,13 +59,8 @@ class ProductSeeder extends Seeder
                 'show_price' => $showPrice,
                 'store_price' => $storePrice,
 
-                'status' => fake()->randomElement([
-                    Product::STATUS_DRAFT,
-                    Product::STATUS_PUBLISHED,
-                    Product::STATUS_ARCHIVED,
-                    Product::STATUS_REJECTED,
-                ]),
-                'rejection_reason' => fake()->boolean(10) ? fake()->sentence() : null,
+                'status' => $status,
+                'rejection_reason' => $rejectionReason,
                 'refreshed_at' => fake()->boolean(60) ? now()->subDays(fake()->numberBetween(0, 30)) : null,
 
                 'created_at' => now(),
