@@ -1,42 +1,137 @@
-# ⚡ Laravel API — Supervisor Deployment & Process Management
+# 🐘 Laravel API — Process Management & Deployment Guide
 
-This documentation guides you through the process of setting up **Supervisor** to daemonize, monitor, and run the **Laravel API Service** on **Port 8000** in a production environment.
+This documentation guides you through setting up process managers to daemonize, monitor, and run the Laravel **API** (running on **Port 18000**) and its background **Queue Workers** in production.
+
+We provide two production-grade process management options:
+1. **PM2** (Recommended - features consolidated process management, built-in resource monitoring, and easy logs).
+2. **Supervisor** (Robust system-level manager - aligns with standard Linux system service architectures).
 
 ---
 
 ## 🏗️ Process Architecture Flow
 
-Using Supervisor ensures that your Laravel server automatically boots on system restart and self-heals (restarts) immediately if it crashes.
+Using a process manager ensures that your Laravel web server and background queue workers automatically boot on system restart and self-heal (restart) immediately if they crash.
 
 ```mermaid
 graph TD
-    SystemBoot[🔌 Server Boot / Restart] --> Supervisor[⚙️ Supervisor Service]
-    Supervisor -- Managed Process: Port 8000 --> LaravelServe[⚡ php artisan serve]
-    Supervisor -- Managed Process: Background Queues --> LaravelWorker[📥 php artisan queue:work]
-    Nginx[🔒 Nginx Reverse Proxy] -- Reverse Proxies to --> LaravelServe
+    SystemBoot[🔌 Server Boot / Restart] --> PM2[🚀 PM2 Process Manager]
+    SystemBoot --> Supervisor[⚙️ Supervisor Service]
     
+    PM2 -- Serves: Port 18000 --> Laravel_API_PM2[🐘 Laravel API: artisan serve]
+    PM2 -- background jobs --> Laravel_Worker_PM2[💼 Laravel Worker: queue:work]
+    
+    Supervisor -- Managed Process: Port 18000 --> Laravel_API_Sup[🐘 Laravel API: artisan serve]
+    Supervisor -- background jobs --> Laravel_Worker_Sup[💼 Laravel Worker: queue:work]
+    
+    Nginx[🔒 Nginx Reverse Proxy] -- Reverse Proxies to Port 18000 --> Laravel_API_PM2
+    Nginx -- Alternative Route --> Laravel_API_Sup
+
+    style PM2 fill:#fcf,stroke:#333,stroke-width:2px
     style Supervisor fill:#f9f,stroke:#333,stroke-width:2px
-    style LaravelServe fill:#bbf,stroke:#333,stroke-width:2px
-    style LaravelWorker fill:#bbf,stroke:#333,stroke-width:2px
+    style Laravel_API_PM2 fill:#bbf,stroke:#333,stroke-width:2px
+    style Laravel_Worker_PM2 fill:#bbf,stroke:#333,stroke-width:2px
+    style Laravel_API_Sup fill:#bbf,stroke:#333,stroke-width:2px
+    style Laravel_Worker_Sup fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 ---
 
-## 📄 Supervisor Configurations
-
-Below are the production-grade Supervisor configurations. We provide configurations for both the **API Web Server** (serving on port 8000) and the **Queue Workers** (critical for handling emails, background jobs, and system events).
-
 > [!IMPORTANT]
-> Change the paths (e.g. `/var/www/dropjdid`) and the execution user (`www-data`) to match your target server environment.
+> **Path Dependency Warning:**
+> All configurations below depend on the absolute path of your project's Laravel directory.
+> - The default workspace path is `/home/jervi/projects/dropjdid-api/laravel`.
+> - If deploying to a production server (e.g., `/var/www/dropjdid/servers/laravel`), make sure to replace `/home/jervi/projects/dropjdid-api/laravel` in all configuration files with your actual target installation path.
+
+---
+
+## 🚀 Option 1: PM2 Deployment (Recommended)
+
+PM2 can manage PHP processes using a custom interpreter config. Using a unified `ecosystem.config.cjs` allows you to manage both the web server and background workers with a single command dashboard.
+
+### 1️⃣ PM2 Ecosystem Configuration File (`ecosystem.config.cjs`)
+
+Create (or use the existing) `ecosystem.config.cjs` at the root of `laravel/`:
+
+```javascript
+module.exports = {
+  apps: [
+    {
+      name: 'dropjdid:laravel-api',
+      script: 'artisan',
+      interpreter: 'php',
+      args: 'serve --host=127.0.0.1 --port=18000',
+      cwd: '/home/jervi/projects/dropjdid-api/laravel',
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      max_memory_restart: '512M',
+      env: {
+        APP_ENV: 'production',
+      },
+    },
+    {
+      name: 'dropjdid:laravel-worker',
+      script: 'artisan',
+      interpreter: 'php',
+      args: 'queue:work --sleep=3 --tries=3 --max-time=3600',
+      cwd: '/home/jervi/projects/dropjdid-api/laravel',
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      max_memory_restart: '512M',
+      env: {
+        APP_ENV: 'production',
+      },
+    },
+  ],
+};
+```
+
+### 2️⃣ Step-by-Step PM2 Setup
+
+1. **Install PM2 globally:**
+   ```bash
+   sudo npm install pm2 -g
+   ```
+2. **Navigate to the Laravel directory:**
+   ```bash
+   cd /home/jervi/projects/dropjdid-api/laravel
+   ```
+3. **Start the Laravel API & Queue Worker using PM2:**
+   ```bash
+   pm2 start ecosystem.config.cjs
+   ```
+4. **Configure PM2 to start on system boot:**
+   ```bash
+   pm2 startup
+   ```
+   > [!NOTE]
+   > Execute the exact command generated and displayed on your screen by `pm2 startup` to register PM2 as a systemd service.
+5. **Save the running process list so it persists across reboots:**
+   ```bash
+   pm2 save
+   ```
+
+---
+
+## ⚙️ Option 2: Supervisor Deployment
+
+Supervisor is a robust, system-level process manager. It ensures your services run continuously as system daemons.
 
 ### 1️⃣ Laravel Web Server Configuration (`laravel-api.conf`)
-This configuration daemonizes `php artisan serve` to listen on port `8000`.
 
+This daemonizes `php artisan serve` to listen on port `18000`.
+
+```bash
+sudo nano /etc/supervisor/conf.d/laravel-api.conf
+```
+
+And paste the following configuration:
 ```ini
 [program:laravel-api]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/dropjdid/servers/laravel/artisan serve --host=127.0.0.1 --port=8000
-directory=/var/www/dropjdid/servers/laravel
+command=php /home/jervi/projects/dropjdid-api/laravel/artisan serve --host=127.0.0.1 --port=18000
+directory=/home/jervi/projects/dropjdid-api/laravel
 autostart=true
 autorestart=true
 user=www-data
@@ -48,13 +143,19 @@ stopsignal=INT
 ```
 
 ### 2️⃣ Laravel Queue Worker Configuration (`laravel-worker.conf`)
-Highly recommended for any production Laravel system to process background events, emails, and database heavy-lifting.
 
+Highly recommended to process background events, notifications, and database heavy-lifting.
+
+```bash
+sudo nano /etc/supervisor/conf.d/laravel-worker.conf
+```
+
+And paste the following configuration:
 ```ini
 [program:laravel-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/dropjdid/servers/laravel/artisan queue:work --sleep=3 --tries=3 --max-time=3600
-directory=/var/www/dropjdid/servers/laravel
+command=php /home/jervi/projects/dropjdid-api/laravel/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+directory=/home/jervi/projects/dropjdid-api/laravel
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -66,94 +167,55 @@ stdout_logfile=/var/log/supervisor/laravel-worker.log
 stopwaitsecs=3600
 ```
 
----
+### 3️⃣ Step-by-Step Supervisor Setup
 
-## 🛠️ Step-by-Step Installation & Setup
-
-Follow these steps to deploy and activate the Supervisor configurations on your target server.
-
-### Step 1: Install Supervisor
-Install Supervisor via your Linux distribution's package manager:
-```bash
-sudo apt update
-sudo apt install supervisor -y
-```
-
-### Step 2: Configure Folder Permissions
-Ensure that the web server user (`www-data`) has read and write permissions to the Laravel application files, especially the `storage` and `bootstrap/cache` folders:
-```bash
-sudo chown -R www-data:www-data /var/www/dropjdid/servers/laravel
-sudo chmod -R 775 /var/www/dropjdid/servers/laravel/storage
-sudo chmod -R 775 /var/www/dropjdid/servers/laravel/bootstrap/cache
-```
-
-### Step 3: Write Supervisor Config Files
-Create the Supervisor configuration files inside the `/etc/supervisor/conf.d/` directory:
-
-1. **For the Web Server:**
+1. **Reread the new configuration files:**
    ```bash
-   sudo nano /etc/supervisor/conf.d/laravel-api.conf
+   sudo supervisorctl reread
    ```
-   Paste the content of **Laravel Web Server Configuration** shown above.
-
-2. **For the Queue Worker (Optional but Recommended):**
+2. **Apply updates and start processes:**
    ```bash
-   sudo nano /etc/supervisor/conf.d/laravel-worker.conf
+   sudo supervisorctl update
    ```
-   Paste the content of **Laravel Queue Worker Configuration** shown above.
-
-### Step 4: Create Log Files (If they do not exist)
-Make sure the Supervisor log files are created and writable:
-```bash
-sudo touch /var/log/supervisor/laravel-api-stdout.log
-sudo touch /var/log/supervisor/laravel-api-stderr.log
-sudo touch /var/log/supervisor/laravel-worker.log
-sudo chown www-data:www-data /var/log/supervisor/laravel*.log
-```
-
-### Step 5: Read and Start the Configurations
-Instruct Supervisor to scan for new configuration files, apply updates, and start the processes:
-```bash
-sudo supervisorctl reread
-sudo supervisorctl update
-```
 
 ---
 
 ## 🔄 Management & Monitoring Commands
 
-Use these commands to manage your Laravel processes on the server:
+Use the respective commands depending on which process manager you opted for:
 
-| Command | Action |
-|:---|:---|
-| `sudo supervisorctl status` | View the status of all managed programs |
-| `sudo supervisorctl restart laravel-api:*` | Restart the Laravel API server |
-| `sudo supervisorctl restart laravel-worker:*` | Restart the Queue Workers (Run after deploying new code!) |
-| `sudo supervisorctl stop laravel-api:*` | Stop the API server |
-| `sudo supervisorctl start laravel-api:*` | Start the API server |
-
-> [!TIP]
-> **Important CI/CD Note:** Whenever you push/deploy new code changes to your Laravel server, you **MUST** run:
-> `sudo supervisorctl restart laravel-api:* laravel-worker:*`
-> This ensures that the PHP process memory is cleared and your running processes load the updated codebase.
+| Management Action | 🚀 PM2 Command | ⚙️ Supervisor Command |
+| :--- | :--- | :--- |
+| **Status / List** | `pm2 list` or `pm2 status` | `sudo supervisorctl status` |
+| **Restart Web Server** | `pm2 restart dropjdid:laravel-api` | `sudo supervisorctl restart laravel-api:*` |
+| **Restart Queue Worker** | `pm2 restart dropjdid:laravel-worker` | `sudo supervisorctl restart laravel-worker:*` |
+| **Restart All Services** | `pm2 restart ecosystem.config.cjs` | `sudo supervisorctl restart all` |
+| **Stop All Services** | `pm2 stop ecosystem.config.cjs` | `sudo supervisorctl stop all` |
+| **View Realtime Logs** | `pm2 logs` | `tail -f /var/log/supervisor/*.log` |
+| **Monitoring Dashboard** | `pm2 monit` | *N/A* |
 
 ---
 
-## 🔍 Troubleshooting
+## 🚀 Production Deployment Hook
 
-### 🛑 Issue: Process fails to start (`FATAL` or `BACKOFF`)
-If `supervisorctl status` indicates that a process is not running:
-1. **Check the logs:**
-   ```bash
-   tail -n 50 /var/log/supervisor/laravel-api-stderr.log
-   # or check Laravel's application logs
-   tail -n 50 /var/www/dropjdid/servers/laravel/storage/logs/laravel.log
-   ```
-2. **PHP Path issues:** Ensure `php` is in the system path for the `www-data` user. If you are using a custom PHP version (e.g. PHP 8.3), write the absolute path to it in the configuration:
-   `command=/usr/bin/php8.3 /var/www/dropjdid/servers/laravel/artisan serve --host=127.0.0.1 --port=8000`
+When updating your Laravel application in production, integrate the following restart sequence into your deployment pipeline:
 
-### 🛑 Issue: Permission Denied on Logs
-Ensure Supervisor has permissions to write into the targeted log directories:
+### For PM2
 ```bash
-sudo chmod -R 755 /var/log/supervisor/
+cd /home/jervi/projects/dropjdid-api/laravel
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+pm2 restart ecosystem.config.cjs
+```
+
+### For Supervisor
+```bash
+cd /home/jervi/projects/dropjdid-api/laravel
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+sudo supervisorctl restart laravel-api:* laravel-worker:*
 ```

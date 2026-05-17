@@ -5,6 +5,7 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +25,41 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        if (
+            app()->isProduction() ||
+            str_starts_with(config('app.url'), 'https://') ||
+            $this->serverHasIpPrefix('91.')
+        ) {
+            URL::forceScheme('https');
+        }
+    }
+
+    /**
+     * Determine if the server has a network interface IP starting with the given prefix.
+     */
+    protected function serverHasIpPrefix(string $prefix): bool
+    {
+        if (!function_exists('net_get_interfaces')) {
+            return false;
+        }
+
+        $interfaces = net_get_interfaces();
+        if ($interfaces === false) {
+            return false;
+        }
+
+        foreach ($interfaces as $details) {
+            if (!empty($details['unicast'])) {
+                foreach ($details['unicast'] as $unicast) {
+                    if (isset($unicast['address']) && str_starts_with($unicast['address'], $prefix)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
