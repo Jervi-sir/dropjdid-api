@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Concerns\FormatsModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -45,6 +46,19 @@ class Advertisement extends Model
             'ends_at' => 'datetime',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                if (is_string($value) && !is_numeric($value)) {
+                    $statusMap = array_flip(self::STATUS);
+                    return $statusMap[$value] ?? self::STATUS_DRAFT;
+                }
+                return (int) $value;
+            }
+        );
     }
 
     public function scopeActiveForFeed(Builder $query, ?Carbon $now = null): Builder

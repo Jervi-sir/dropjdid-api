@@ -24,6 +24,13 @@ class UpsertDropController extends Controller
             'products.*.drop_price' => 'required|numeric',
         ]);
 
+        $validated['status'] = match ($validated['status']) {
+            'draft' => Drop::STATUS_DRAFT,
+            'published' => Drop::STATUS_PUBLISHED,
+            'ended' => Drop::STATUS_ENDED,
+            'cancelled' => Drop::STATUS_CANCELLED,
+        };
+
         return DB::transaction(function () use ($validated, $drop, $request) {
             if ($drop) {
                 $drop->update($validated);

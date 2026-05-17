@@ -58,7 +58,7 @@ class DropsFeedController extends Controller
         $formattedDrops = collect($drops->items())
             ->map(fn (Drop $drop): array => $drop->formatDrop($user));
 
-        $data = Advertisement::injectIntoFeed($formattedDrops, adsCount: $adsCount)->values();
+        $data = Advertisement::injectIntoFeed($formattedDrops, interval: 10, adsCount: $adsCount)->values();
 
         return response()->json([
             'data' => $data,

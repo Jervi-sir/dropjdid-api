@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,6 +40,19 @@ class Drop extends Model
             'ends_at' => 'datetime',
             'rejection_reason' => 'array',
         ];
+    }
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                if (is_string($value) && !is_numeric($value)) {
+                    $statusMap = array_flip(self::STATUSES);
+                    return $statusMap[$value] ?? self::STATUS_DRAFT;
+                }
+                return (int) $value;
+            }
+        );
     }
 
     public function addRejectionReason(string $en, string $fr, string $ar): void

@@ -123,7 +123,7 @@ function createDropsListFixture(): array
 test('guests can list published drops with products and next page', function () {
     $fixture = createDropsListFixture();
 
-    $response = $this->getJson('/api/drops?per_page=1');
+    $response = $this->getJson('/api/feeds/drops?per_page=1');
 
     $response
         ->assertOk()
@@ -151,7 +151,7 @@ test('clients with bearer token get authenticated user on drops list', function 
 
     $response = $this
         ->withHeader('Authorization', 'Bearer '.$token)
-        ->getJson('/api/drops?per_page=1');
+        ->getJson('/api/feeds/drops?per_page=1');
 
     $response
         ->assertOk()
@@ -176,7 +176,7 @@ test('clients with bearer token get authenticated user on drops list', function 
 test('drops list accepts feed filter parameter', function () {
     createDropsListFixture();
 
-    $this->getJson('/api/drops?filter=trending')
+    $this->getJson('/api/feeds/drops?filter=trending')
         ->assertOk()
         ->assertJsonStructure([
             'data',
@@ -228,7 +228,7 @@ test('active advertisements are injected after every 10 drops', function () {
         'sort_order' => 2,
     ]);
 
-    $response = $this->getJson('/api/drops?per_page=10');
+    $response = $this->getJson('/api/feeds/drops?per_page=10&ads_count=1');
 
     $response
         ->assertOk()

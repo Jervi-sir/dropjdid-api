@@ -32,29 +32,31 @@ class DropsSearchController extends Controller
         $user = $request->user();
         $userId = $user?->getAuthIdentifier();
 
+        $likeOperator = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite' ? 'like' : 'ilike';
+
         $drops = Drop::query()
-            ->where('status', 'published')
+            ->where('status', Drop::STATUS_PUBLISHED)
             ->whereHas('creator')
-            ->where(function (Builder $builder) use ($query): void {
+            ->where(function (Builder $builder) use ($query, $likeOperator): void {
                 $builder
-                    ->where('title', 'ilike', '%'.$query.'%')
-                    ->orWhereHas('products.keywords', function (Builder $keywordQuery) use ($query): void {
+                    ->where('title', $likeOperator, '%'.$query.'%')
+                    ->orWhereHas('products.keywords', function (Builder $keywordQuery) use ($query, $likeOperator): void {
                         $keywordQuery
-                            ->where('code', 'ilike', '%'.$query.'%')
-                            ->orWhereHas('label', function (Builder $labelQuery) use ($query): void {
+                            ->where('code', $likeOperator, '%'.$query.'%')
+                            ->orWhereHas('label', function (Builder $labelQuery) use ($query, $likeOperator): void {
                                 $labelQuery
-                                    ->where('code', 'ilike', '%'.$query.'%')
-                                    ->orWhere('en', 'ilike', '%'.$query.'%')
-                                    ->orWhere('fr', 'ilike', '%'.$query.'%')
-                                    ->orWhere('ar', 'ilike', '%'.$query.'%');
+                                    ->where('code', $likeOperator, '%'.$query.'%')
+                                    ->orWhere('en', $likeOperator, '%'.$query.'%')
+                                    ->orWhere('fr', $likeOperator, '%'.$query.'%')
+                                    ->orWhere('ar', $likeOperator, '%'.$query.'%');
                             });
                     })
-                    ->orWhereHas('products.productKeywords.label', function (Builder $labelQuery) use ($query): void {
+                    ->orWhereHas('products.productKeywords.label', function (Builder $labelQuery) use ($query, $likeOperator): void {
                         $labelQuery
-                            ->where('code', 'ilike', '%'.$query.'%')
-                            ->orWhere('en', 'ilike', '%'.$query.'%')
-                            ->orWhere('fr', 'ilike', '%'.$query.'%')
-                            ->orWhere('ar', 'ilike', '%'.$query.'%');
+                            ->where('code', $likeOperator, '%'.$query.'%')
+                            ->orWhere('en', $likeOperator, '%'.$query.'%')
+                            ->orWhere('fr', $likeOperator, '%'.$query.'%')
+                            ->orWhere('ar', $likeOperator, '%'.$query.'%');
                     });
             })
             ->withCount(['likedDrops', 'savedDrops'])

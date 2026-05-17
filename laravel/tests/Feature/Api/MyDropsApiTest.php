@@ -87,7 +87,7 @@ test('authenticated users can list their created drops', function () {
     ]);
 
     $this->actingAs($creator, 'sanctum')
-        ->getJson('/api/drops/my-drops?per_page=10')
+        ->getJson('/api/creators/my-drops?per_page=10')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.title', 'Latest Drop')
