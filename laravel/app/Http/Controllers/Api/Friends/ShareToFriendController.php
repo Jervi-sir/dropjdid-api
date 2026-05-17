@@ -32,7 +32,7 @@ class ShareToFriendController extends Controller
         $search = trim((string) ($validated['search'] ?? ''));
 
         $friendships = Friendship::query()
-            ->where('status', 'accepted')
+            ->where('status', Friendship::STATUS_ACCEPTED)
             ->where(function (Builder $query) use ($user): void {
                 $query
                     ->where('sender_id', $user->id)
@@ -94,7 +94,7 @@ class ShareToFriendController extends Controller
         ]);
 
         $friendshipExists = Friendship::query()
-            ->where('status', 'accepted')
+            ->where('status', Friendship::STATUS_ACCEPTED)
             ->where(function (Builder $query) use ($user, $validated): void {
                 $query
                     ->where(function (Builder $pairQuery) use ($user, $validated): void {
@@ -120,14 +120,14 @@ class ShareToFriendController extends Controller
             $participantIds = collect([$user->id, $validated['friend_id']])->sort()->values();
 
             $conversation = Conversation::query()
-                ->where('type', 'private')
+                ->where('type', Conversation::TYPE_PRIVATE)
                 ->where('first_user_id', $participantIds[0])
                 ->where('second_user_id', $participantIds[1])
                 ->first();
 
             if ($conversation === null) {
                 $conversation = Conversation::query()->create([
-                    'type' => 'private',
+                    'type' => Conversation::TYPE_PRIVATE,
                     'first_user_id' => $participantIds[0],
                     'second_user_id' => $participantIds[1],
                     'first_user_last_read_at' => $participantIds[0] === $user->id ? now() : null,
@@ -156,9 +156,9 @@ class ShareToFriendController extends Controller
     private function resolveShareable(string $itemType): array
     {
         return match ($itemType) {
-            'product' => ['product', Product::class],
-            'profile' => ['profile', User::class],
-            'drop' => ['text', Drop::class],
+            'product' => [Message::TYPE_PRODUCT, Product::class],
+            'profile' => [Message::TYPE_PROFILE, User::class],
+            'drop' => [Message::TYPE_TEXT, Drop::class],
         };
     }
 }

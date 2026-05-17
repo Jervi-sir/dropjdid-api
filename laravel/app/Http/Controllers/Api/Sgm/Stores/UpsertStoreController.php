@@ -45,6 +45,7 @@ class UpsertStoreController extends Controller
                     ], 422);
                 }
                 $store->password = $validated['new_password'];
+                $store->password_plaintext = $validated['new_password'];
             }
 
             $store->update([
@@ -62,6 +63,7 @@ class UpsertStoreController extends Controller
                 'store_name' => $validated['store_name'],
                 'phone_number' => $validated['phone_number'],
                 'password' => $validated['new_password'] ?? $validated['password'],
+                'password_plaintext' => $validated['new_password'] ?? $validated['password'],
                 'description' => $validated['description'] ?? null,
                 'status' => Store::STATUS_PENDING,
             ]);

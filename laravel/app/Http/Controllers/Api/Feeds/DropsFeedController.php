@@ -69,11 +69,12 @@ class DropsFeedController extends Controller
     public function products(Request $request, Drop $drop): JsonResponse
     {
         $validated = $request->validate([
-            'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'ads_count' => ['nullable', 'integer', 'min:1', 'max:20'],
         ]);
 
         $perPage = $validated['per_page'] ?? 10;
+        $adsCount = $validated['ads_count'] ?? 4;
         $user = $request->user();
         $userId = $user?->getAuthIdentifier();
 
@@ -92,8 +93,10 @@ class DropsFeedController extends Controller
         $formattedProducts = collect($products->items())
             ->map(fn (Product $product): array => $drop->formatProduct($product, $user));
 
+        $data = Advertisement::injectIntoFeed($formattedProducts, adsCount: $adsCount)->values();
+
         return response()->json([
-            'data' => $formattedProducts,
+            'data' => $data,
             'next_page' => $products->hasMorePages() ? $products->currentPage() + 1 : null,
         ]);
     }

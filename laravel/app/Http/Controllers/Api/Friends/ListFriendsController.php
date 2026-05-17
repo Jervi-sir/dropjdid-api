@@ -26,7 +26,7 @@ class ListFriendsController extends Controller
         $search = trim((string) ($validated['search'] ?? ''));
 
         $friendships = Friendship::query()
-            ->where('status', 'accepted')
+            ->where('status', Friendship::STATUS_ACCEPTED)
             ->where(function (Builder $query) use ($user): void {
                 $query
                     ->where('sender_id', $user->id)

@@ -126,6 +126,13 @@ class Order extends Model
             'payment_method' => $this->paymentMethod?->en,
             'is_online' => $this->isOnline(),
             'created_at' => $this->created_at?->toISOString(),
+            'full_name' => $this->full_name,
+            'phone_number' => $this->phone_number,
+            'wilaya' => $this->wilaya,
+            'baladiya' => $this->baladiya,
+            'home_address' => $this->home_address,
+            'delivery_method' => self::DELIVERY_METHOD[$this->delivery_method] ?? 'home',
+            'delivery_fees' => (float) $this->delivery_fees,
             'items' => $this->items->map(function ($item) {
                 return [
                     'id' => $item->id,
@@ -134,6 +141,7 @@ class Order extends Model
                     'unit_price' => (float) $item->unit_price,
                     'total_price' => (float) $item->total_price,
                     'is_online' => $this->isOnline(),
+                    'size' => $item->size?->code ?? $item->size?->en ?? $item->size?->fr ?? $item->size?->ar,
                 ];
             }),
         ];
@@ -141,6 +149,10 @@ class Order extends Model
 
     private function formatStatusForMobile(): string
     {
+        if (is_numeric($this->status) || is_int($this->status)) {
+            return self::STATUS[$this->status] ?? 'pending';
+        }
+
         return in_array($this->status, [
             'pending',
             'confirmed',

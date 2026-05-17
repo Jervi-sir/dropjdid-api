@@ -37,6 +37,11 @@ class OrderItem extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function size(): BelongsTo
+    {
+        return $this->belongsTo(Size::class);
+    }
+
     protected function formatterRelations(): array
     {
         return ['order', 'product'];

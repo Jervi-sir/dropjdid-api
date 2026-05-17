@@ -119,6 +119,7 @@ class Drop extends Model
     public function formatProduct(Product $product, ?User $user): array
     {
         return [
+            'type' => 'product',
             'id' => $product->id,
             'title' => $product->name,
             'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),

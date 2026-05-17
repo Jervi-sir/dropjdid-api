@@ -37,7 +37,7 @@ class LabelFeedController extends Controller
 
         $labelSections = $labelPaginator->getCollection()
             ->map(fn (Label $label): array => $label->formatFeedSection(
-                $this->productsPayloadForLabel($label->id, 1, $productsPerPage, $userId, $user),
+                $this->productsPayloadForLabel($label->id, $validated['products_page'] ?? 1, $productsPerPage, $userId, $user),
                 $this->labelLikedProductsCount($label->id, $userId),
             ))
             ->values();
@@ -56,6 +56,7 @@ class LabelFeedController extends Controller
         $validated = $request->validate([
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'ads_count' => ['nullable', 'integer', 'min:1', 'max:20'],
         ]);
 
         $user = $request->user();
@@ -69,8 +70,12 @@ class LabelFeedController extends Controller
             $user
         );
 
+        $adsCount = $validated['ads_count'] ?? 4;
+
+        $data = Advertisement::injectIntoFeed($payload['data'], adsCount: $adsCount)->values();
+
         return response()->json([
-            'data' => $payload['data']->values()->all(),
+            'data' => $data,
             'liked_products_count' => $this->labelLikedProductsCount($label->id, $userId),
             'next_page' => $payload['next_page'],
         ]);

@@ -35,6 +35,7 @@ class ProductsFeedController extends Controller
                 $validated['products_per_page'] ?? $validated['per_page'] ?? 10,
                 $userId,
                 $user,
+                $validated['ads_count'] ?? 4,
             );
         }
 
@@ -76,8 +77,8 @@ class ProductsFeedController extends Controller
     public function labelProducts(Request $request, Label $label): JsonResponse
     {
         $validated = $request->validate([
-            'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'ads_count' => ['nullable', 'integer', 'min:1', 'max:20'],
         ]);
 
         $user = $request->user();
@@ -89,6 +90,7 @@ class ProductsFeedController extends Controller
             $validated['per_page'] ?? 10,
             $userId,
             $user,
+            $validated['ads_count'] ?? 4
         );
     }
 
@@ -101,12 +103,14 @@ class ProductsFeedController extends Controller
         return Advertisement::injectIntoFeed($labelSections->values(), interval: 6, adsCount: $adsCount)->values();
     }
 
-    private function productsForLabel(int $labelId, int $page, int $perPage, ?int $userId, $user): JsonResponse
+    private function productsForLabel(int $labelId, int $page, int $perPage, ?int $userId, $user, int $adsCount = 4): JsonResponse
     {
         $payload = $this->productsPayloadForLabel($labelId, $page, $perPage, $userId, $user);
 
+        $data = Advertisement::injectIntoFeed($payload['data'], adsCount: $adsCount)->values();
+
         return response()->json([
-            'data' => $payload['data']->values()->all(),
+            'data' => $data,
             'liked_products_count' => $this->labelLikedProductsCount($labelId, $userId),
             'next_page' => $payload['next_page'],
         ]);

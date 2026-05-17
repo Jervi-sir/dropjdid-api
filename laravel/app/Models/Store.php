@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Store extends Model
 {
@@ -24,15 +25,16 @@ class Store extends Model
         self::STATUS_SUSPENED => 'suspended',
     ];
 
-    protected $fillable = ['user_id', 'wilaya_id', 'store_name', 'phone_number', 'password', 'logo', 'description', 'balance', 'status'];
+    protected $fillable = ['user_id', 'wilaya_id', 'store_name', 'phone_number', 'password', 'logo', 'description', 'balance', 'status', 'is_verified', 'password_plaintext'];
 
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'password_plaintext'];
 
     protected function casts(): array
     {
         return [
             'balance' => 'decimal:2',
             'password' => 'hashed',
+            'is_verified' => 'boolean',
         ];
     }
 
@@ -56,8 +58,23 @@ class Store extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function storeWallets(): HasMany
+    {
+        return $this->hasMany(StoreWallet::class);
+    }
+
+    public function balanceWallet(): HasOne
+    {
+        return $this->hasOne(StoreWallet::class)->where('type', StoreWallet::TYPE_BALANCE);
+    }
+
+    public function refundWallet(): HasOne
+    {
+        return $this->hasOne(StoreWallet::class)->where('type', StoreWallet::TYPE_REFUND);
+    }
+
     protected function formatterRelations(): array
     {
-        return ['user', 'wilaya', 'products', 'orders'];
+        return ['user', 'wilaya', 'products', 'orders', 'storeWallets'];
     }
 }

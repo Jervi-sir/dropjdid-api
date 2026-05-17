@@ -11,9 +11,10 @@ use Illuminate\Http\Request;
 
 class RequestFriendController extends Controller
 {
-    public function send(Request $request, User $user): JsonResponse
+    public function send(Request $request, int $user_id): JsonResponse
     {
         $authUser = $request->user();
+        $user = User::find($user_id);
 
         $this->validateFriendshipTarget($authUser, $user);
 
@@ -24,9 +25,10 @@ class RequestFriendController extends Controller
         return $this->buildFriendshipResponse($authUser, $user);
     }
 
-    public function cancel(Request $request, User $user): JsonResponse
+    public function cancel(Request $request, int $user_id): JsonResponse
     {
         $authUser = $request->user();
+        $user = User::find($user_id);
 
         $this->validateFriendshipTarget($authUser, $user);
 
@@ -39,9 +41,10 @@ class RequestFriendController extends Controller
         return $this->buildFriendshipResponse($authUser, $user);
     }
 
-    public function accept(Request $request, User $user): JsonResponse
+    public function accept(Request $request, int $user_id): JsonResponse
     {
         $authUser = $request->user();
+        $user = User::find($user_id);
 
         $this->validateFriendshipTarget($authUser, $user);
 
@@ -52,9 +55,10 @@ class RequestFriendController extends Controller
         return $this->buildFriendshipResponse($authUser, $user);
     }
 
-    public function reject(Request $request, User $user): JsonResponse
+    public function reject(Request $request, int $user_id): JsonResponse
     {
         $authUser = $request->user();
+        $user = User::find($user_id);
 
         $this->validateFriendshipTarget($authUser, $user);
 
@@ -67,9 +71,10 @@ class RequestFriendController extends Controller
         return $this->buildFriendshipResponse($authUser, $user);
     }
 
-    public function unfriend(Request $request, User $user): JsonResponse
+    public function unfriend(Request $request, int $user_id): JsonResponse
     {
         $authUser = $request->user();
+        $user = User::find($user_id);
 
         $this->validateFriendshipTarget($authUser, $user);
 

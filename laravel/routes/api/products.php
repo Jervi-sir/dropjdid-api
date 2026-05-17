@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\Products\LikeProductController;
-use App\Http\Controllers\Api\Products\PaginateByController;
+use App\Http\Controllers\Api\Products\PaginatedBy\ByDropIdController;
+use App\Http\Controllers\Api\Products\PaginatedBy\ByLabelIdController;
+use App\Http\Controllers\Api\Products\PaginatedBy\ByLabelProductController;
+use App\Http\Controllers\Api\Products\PaginatedBy\ByProductIdController;
 use App\Http\Controllers\Api\Products\SaveProductController;
 use App\Http\Controllers\Api\Products\ShowDropsController;
 use App\Http\Controllers\Api\Products\ShowProductController;
@@ -22,8 +25,8 @@ Route::prefix('products')->group(function () {
 });
 
 Route::prefix('paginate-by')->middleware('optional-sanctum')->group(function () {
-    Route::get('suggest-by-label/{product_id}', [PaginateByController::class, 'byLabels']);
-    Route::get('product/{product_id}', [PaginateByController::class, 'byProductId']);
-    Route::get('label/{label_id}', [PaginateByController::class, 'byLabelId']);
-    Route::get('drop/{drop_id}', [PaginateByController::class, 'byDropId']);
+    Route::get('suggest-by-label/{product_id}', ByLabelProductController::class);
+    Route::get('product/{product_id}', ByProductIdController::class);
+    Route::get('label/{label_id}', ByLabelIdController::class);
+    Route::get('drop/{drop_id}', ByDropIdController::class);
 });
