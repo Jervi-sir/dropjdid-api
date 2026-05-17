@@ -33,9 +33,9 @@ class MyDropsController extends Controller
                 'products.store.user',
                 'products.images',
                 'products' => function ($query) use ($userId): void {
-                    $query->withSum(['orderItems as order_items_sum_quantity' => function ($subQuery) {
+                    $query->withCount(['orderItems as order_items_sum_quantity' => function ($subQuery) {
                         $subQuery->whereColumn('order_items.drop_id', 'drop_product.drop_id');
-                    }], 'quantity')->with([
+                    }])->with([
                         'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
                     ]);
                 },
@@ -85,9 +85,9 @@ class MyDropsController extends Controller
         $drop = Drop::where('creator_id', $user->id)->findOrFail($drop_id);
 
         $products = $drop->products()
-            ->withSum(['orderItems as order_items_sum_quantity' => function ($subQuery) use ($drop_id) {
+            ->withCount(['orderItems as order_items_sum_quantity' => function ($subQuery) use ($drop_id) {
                 $subQuery->where('order_items.drop_id', $drop_id);
-            }], 'quantity')
+            }])
             ->with([
                 'images',
                 'store.user',
@@ -117,9 +117,9 @@ class MyDropsController extends Controller
                 'products.store.user',
                 'products.images',
                 'products' => function ($query) use ($userId): void {
-                    $query->withSum(['orderItems as order_items_sum_quantity' => function ($subQuery) {
+                    $query->withCount(['orderItems as order_items_sum_quantity' => function ($subQuery) {
                         $subQuery->whereColumn('order_items.drop_id', 'drop_product.drop_id');
-                    }], 'quantity')->with([
+                    }])->with([
                         'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
                     ]);
                 },
