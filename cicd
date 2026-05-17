@@ -1,3 +1,6 @@
-- alias gpdeploy='git push origin main && gh workflow run Deploy'
+- run
+```
+alias gpdeploy='git push origin main && gh workflow run Deploy'
+```
 
 - then do `gpdeploy` to push and deploy
