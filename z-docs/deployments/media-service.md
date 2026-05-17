@@ -1,42 +1,108 @@
-# 📦 NestJS Media Service — Supervisor Deployment & Process Management
+# ⚡ NestJS Media Service — Process Management & Deployment Guide
 
-This documentation guides you through setting up **Supervisor** to manage, monitor, and run the **NestJS Media Service** on **Port 8001** in a production environment.
+This documentation guides you through setting up process managers to daemonize, monitor, and run the NestJS **Media Service** (running on **Port 18001**) in production.
+
+We provide two production-grade process management options:
+1. **PM2** (Recommended for Node.js - features zero-downtime reloads, built-in resource monitoring, and clustering).
+2. **Supervisor** (Robust system-level manager - aligns with the Laravel API deployment).
 
 ---
 
 ## 🏗️ Process Architecture Flow
 
-Using Supervisor ensures that the NestJS Media Service starts automatically upon system reboot, handles crashes by immediately restarting, and manages console logs safely.
+Using a process manager ensures that your NestJS application automatically boots on system restart and self-heals (restarts) immediately if it crashes.
 
 ```mermaid
 graph TD
-    SystemBoot[🔌 Server Boot / Restart] --> Supervisor[⚙️ Supervisor Service]
-    Supervisor -- Managed Process: Port 8001 --> NestApp[📦 Node.js / dist/main.js]
-    NestApp -- Reads Config --> EnvFile[📄 .env File]
-    Nginx[🔒 Nginx Reverse Proxy] -- Reverse Proxies to --> NestApp
+    SystemBoot[🔌 Server Boot / Restart] --> PM2[🚀 PM2 Process Manager]
+    SystemBoot --> Supervisor[⚙️ Supervisor Service]
     
+    PM2 -- Zero-Downtime: Port 18001 --> NestJS_PM2[⚡ NestJS App: dist/src/main.js]
+    Supervisor -- Managed Process: Port 18001 --> NestJS_Sup[⚡ NestJS App: dist/src/main.js]
+    
+    Nginx[🔒 Nginx Reverse Proxy] -- Reverse Proxies to Port 18001 --> NestJS_PM2
+    Nginx -- Alternative Route --> NestJS_Sup
+
+    style PM2 fill:#fcf,stroke:#333,stroke-width:2px
     style Supervisor fill:#f9f,stroke:#333,stroke-width:2px
-    style NestApp fill:#bfb,stroke:#333,stroke-width:2px
-    style EnvFile fill:#ffb,stroke:#333,stroke-width:2px
+    style NestJS_PM2 fill:#bbf,stroke:#333,stroke-width:2px
+    style NestJS_Sup fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 ---
 
-## 📄 Supervisor Configuration
+## 🚀 Option 1: PM2 Deployment (Recommended)
 
-Below is the production-ready Supervisor configuration block for the Media Service.
+PM2 is the industry-standard process manager for Node.js applications. It offers easy scaling, log management, and **zero-downtime application reloading**.
 
-> [!IMPORTANT]
-> - Ensure you run `npm run build` or `pnpm build` first to compile the TypeScript code to JavaScript (`dist/main.js`).
-> - Setting the `directory` option is critical! It ensures that the application executes in its root directory, which allows it to correctly find the `.env` file and mount files into the uploads directory (`/uploads`).
+### 1️⃣ PM2 Ecosystem Configuration File (`ecosystem.config.js`)
 
-### `media-service.conf`
+Create (or use the existing) `ecosystem.config.js` at the root of `media-service/`:
 
+```javascript
+module.exports = {
+  apps: [
+    {
+      name: 'media-service',
+      script: 'dist/src/main.js',
+      cwd: '/home/jervi/projects/dropjdid-api/media-service',
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      max_memory_restart: '1G',
+      env: {
+        NODE_ENV: 'production',
+        PORT: '18001',
+      },
+    },
+  ],
+};
+```
+
+### 2️⃣ Step-by-Step PM2 Setup
+
+1. **Install PM2 globally:**
+   ```bash
+   sudo npm install pm2 -g
+   ```
+2. **Build the application:**
+   ```bash
+   pnpm run build
+   ```
+3. **Start the application using the ecosystem config:**
+   ```bash
+   pm2 start ecosystem.config.js
+   ```
+4. **Configure PM2 to start on system boot:**
+   ```bash
+   pm2 startup
+   ```
+   > [!NOTE]
+   > Run the command printed on your screen by `pm2 startup` (which registers PM2 as a systemd service).
+5. **Save the running process list so it persists across reboots:**
+   ```bash
+   pm2 save
+   ```
+
+---
+
+## ⚙️ Option 2: Supervisor Deployment
+
+If you prefer to align with the **Laravel API** process management pattern, you can deploy using Supervisor.
+
+### 1️⃣ Supervisor Configuration File (`media-service.conf`)
+
+Create the configuration file inside `/etc/supervisor/conf.d/`:
+```bash
+sudo nano /etc/supervisor/conf.d/media-service.conf
+```
+
+And paste the following configuration:
 ```ini
 [program:media-service]
 process_name=%(program_name)s_%(process_num)02d
-command=node dist/main.js
-directory=/var/www/dropjdid/servers/media-service
+command=node dist/src/main.js
+directory=/home/jervi/projects/dropjdid-api/media-service
 autostart=true
 autorestart=true
 user=www-data
@@ -44,103 +110,69 @@ numprocs=1
 redirect_stderr=true
 stdout_logfile=/var/log/supervisor/media-service-stdout.log
 stderr_logfile=/var/log/supervisor/media-service-stderr.log
-environment=NODE_ENV="production",PORT="8001"
+environment=NODE_ENV="production",PORT="18001"
 stopasgroup=true
 killasgroup=true
 stopwaitsecs=10
 ```
 
+### 2️⃣ Step-by-Step Supervisor Setup
+
+1. **Reread the new configuration:**
+   ```bash
+   sudo supervisorctl reread
+   ```
+2. **Update Supervisor to start the process:**
+   ```bash
+   sudo supervisorctl update
+   ```
+
 ---
 
-## 🛠️ Step-by-Step Installation & Setup
+## 📁 Step 3: Configure Media Uploads Directory
 
-Follow these steps to deploy and activate the Supervisor configuration on your target server.
+Ensure that the media uploads directory exists and has correct permissions so the NestJS application (running under PM2 or Supervisor/`www-data`) can write files to it.
 
-### Step 1: Build the Application
-On your production server, compile the NestJS codebase into production JavaScript:
 ```bash
-cd /var/www/dropjdid/servers/media-service
-# Install production dependencies
-pnpm install --frozen-lockfile
-# Compile TypeScript to JavaScript
-pnpm run build
-```
+# Create uploads folder inside media-service
+mkdir -p uploads
 
-### Step 2: Configure Folder Permissions
-The Media Service handles file uploads (storing files in `/uploads` or `/storage` depending on config). The executing user (e.g. `www-data`) must own these directories to avoid permission errors:
-```bash
-sudo chown -R www-data:www-data /var/www/dropjdid/servers/media-service
-sudo chmod -R 775 /var/www/dropjdid/servers/media-service/uploads
-```
-
-### Step 3: Write Supervisor Config File
-Create the Supervisor configuration file inside the `/etc/supervisor/conf.d/` directory:
-```bash
-sudo nano /etc/supervisor/conf.d/media-service.conf
-```
-Paste the content of **media-service.conf** shown above.
-
-### Step 4: Create Log Files
-Create the log files and assign ownership to the executing user:
-```bash
-sudo touch /var/log/supervisor/media-service-stdout.log
-sudo touch /var/log/supervisor/media-service-stderr.log
-sudo chown www-data:www-data /var/log/supervisor/media-service*.log
-```
-
-### Step 5: Read and Start the Configuration
-Instruct Supervisor to scan for the new file, update configurations, and start the NestJS process:
-```bash
-sudo supervisorctl reread
-sudo supervisorctl update
+# Grant read/write/execute permissions to group/owner
+sudo chmod -R 775 uploads
 ```
 
 ---
 
 ## 🔄 Management & Monitoring Commands
 
-Use these commands to manage the NestJS Media Service:
+Use the respective commands depending on which process manager you opted for:
 
-| Command | Action |
-|:---|:---|
-| `sudo supervisorctl status` | View the status of all managed programs |
-| `sudo supervisorctl restart media-service:*` | Restart the Media Service (Run after deploying new code!) |
-| `sudo supervisorctl stop media-service:*` | Stop the NestJS application |
-| `sudo supervisorctl start media-service:*` | Start the NestJS application |
-
-> [!TIP]
-> **Production Deployment Hook:** When setting up your CI/CD pipeline or runner, add the following script sequence for a zero-downtime or minimal-downtime release:
-> ```bash
-> pnpm install --frozen-lockfile
-> pnpm run build
-> sudo supervisorctl restart media-service:*
-> ```
+| Management Action | 🚀 PM2 Command | ⚙️ Supervisor Command |
+| :--- | :--- | :--- |
+| **Status / List** | `pm2 list` or `pm2 status` | `sudo supervisorctl status` |
+| **Restart App** | `pm2 restart media-service` | `sudo supervisorctl restart media-service:*` |
+| **Zero-Downtime Reload** | `pm2 reload media-service` 🚀 | *N/A (Requires Full Process Restart)* |
+| **Stop App** | `pm2 stop media-service` | `sudo supervisorctl stop media-service:*` |
+| **Start App** | `pm2 start media-service` | `sudo supervisorctl start media-service:*` |
+| **View Realtime Logs** | `pm2 logs media-service` | `tail -f /var/log/supervisor/media-service-stdout.log` |
+| **Monitoring Dashboard** | `pm2 monit` | *N/A* |
 
 ---
 
-## 🔍 Troubleshooting
+## 🚀 Production Deployment Hook
 
-### 🛑 Issue: Node path not found
-If Supervisor fails to start because it cannot find the `node` binary, find the absolute path of `node` using:
+When setting up your CI/CD pipeline or deployment runner, add the corresponding build and reload sequence:
+
+### For PM2 (Zero-Downtime Reload)
 ```bash
-which node
-# Output is usually: /usr/bin/node or /usr/local/bin/node
-```
-Then, update your `command` in `media-service.conf` to use the absolute path:
-```ini
-command=/usr/bin/node dist/main.js
+pnpm install --frozen-lockfile
+pnpm run build
+pm2 reload media-service --update-env
 ```
 
-### 🛑 Issue: Database Connection Failures
-If the Media Service fails to boot with a database connection error, ensure that:
-1. The Postgres database is running and accepting connections.
-2. The environment connection strings in `/var/www/dropjdid/servers/media-service/.env` match the production database:
-   ```ini
-   DATABASE_URL="postgresql://user:password@127.0.0.1:5432/db_name"
-   ```
-
-### 🛑 Issue: Log Directory Permission Error
-If you see a `permission denied` or `could not open log file` error in Supervisor logs:
+### For Supervisor
 ```bash
-sudo chown -R www-data:www-data /var/log/supervisor/
+pnpm install --frozen-lockfile
+pnpm run build
+sudo supervisorctl restart media-service:*
 ```

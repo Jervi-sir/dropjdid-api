@@ -17,7 +17,7 @@ async function bootstrap() {
   await app.register(multipart);
 
   await app.register(fastifyStatic, {
-    root: join(process.cwd(), 'uploads'),
+    root: process.env.STORAGE_PATH ?? join(process.cwd(), 'uploads'),
     prefix: '/storage/',
   });
 

@@ -51,7 +51,10 @@ export class MediaService {
     const name = `${randomUUID()}${extension}`;
     const relativePath = `${directory}/${name}`;
 
-    const uploadDir = join(process.cwd(), 'uploads', directory);
+    const uploadDir = join(
+      process.env.STORAGE_PATH ?? join(process.cwd(), 'uploads'),
+      directory,
+    );
     const fullPath = join(uploadDir, name);
 
     await mkdir(uploadDir, { recursive: true });
