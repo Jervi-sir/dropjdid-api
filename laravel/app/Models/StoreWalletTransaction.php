@@ -71,6 +71,51 @@ class StoreWalletTransaction extends Model
         'metadata' => 'array',
     ];
 
+    public function getTypeAttribute(int $value): string
+    {
+        return self::TYPES[$value] ?? (is_string($value) ? $value : 'unknown');
+    }
+
+    public function setTypeAttribute(int $value): void
+    {
+        if (is_numeric($value)) {
+            $this->attributes['type'] = (int) $value;
+        } else {
+            $flipped = array_flip(self::TYPES);
+            $this->attributes['type'] = $flipped[$value] ?? self::TYPE_DROPS;
+        }
+    }
+
+    public function getDirectionAttribute(int $value): string
+    {
+        return self::DIRECTION[$value] ?? (is_string($value) ? $value : 'unknown');
+    }
+
+    public function setDirectionAttribute(int $value): void
+    {
+        if (is_numeric($value)) {
+            $this->attributes['direction'] = (int) $value;
+        } else {
+            $flipped = array_flip(self::DIRECTION);
+            $this->attributes['direction'] = $flipped[$value] ?? self::DIRECTION_IN;
+        }
+    }
+
+    public function getStatusAttribute(int $value): string
+    {
+        return self::STATUS[$value] ?? (is_string($value) ? $value : 'unknown');
+    }
+
+    public function setStatusAttribute(int $value): void
+    {
+        if (is_numeric($value)) {
+            $this->attributes['status'] = (int) $value;
+        } else {
+            $flipped = array_flip(self::STATUS);
+            $this->attributes['status'] = $flipped[$value] ?? self::STATUS_PENDING;
+        }
+    }
+
     public function storeWallet(): BelongsTo
     {
         return $this->belongsTo(StoreWallet::class, 'wallet_id');
