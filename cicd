@@ -1,8 +1,8 @@
 - run
 
 ```
-alias gitpushd='git push origin main && gh workflow run Deploy'
+alias gitpushd='git push origin master && gh workflow run dropjdid'
 ```
 
-- then do `gitpushd` to push and deploy
+- then do `gitpushd` to push and dropjdid
   ss
