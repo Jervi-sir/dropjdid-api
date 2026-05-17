@@ -1,8 +1,23 @@
-- run
+shortcut for git
+in macos/ubuntu
 
 ```
-alias gitpushd='git push origin master && gh workflow run dropjdid'
+nano ~/.zshrc
 ```
 
-- then do `gitpushd` to push and dropjdid
-  ss
+```
+gitpush() {
+  git add .
+  git commit -m "$1"
+  git push origin master
+  gh workflow run dropjdid
+}
+```
+
+```
+source ~/.zshrc
+```
+
+```
+gitpush "your commit message"
+```
