@@ -136,20 +136,20 @@ class AffiliateLibraryController extends Controller
                         ->orWhere('code', 'ilike', "%$query%");
                 })
                     ->whereHas('keywords.productKeywords.product', function ($pq) {
-                        $pq->where('status', 'published');
+                        $pq->where('status', Product::STATUS_PUBLISHED);
                         $pq->whereHas('paymentMethod', fn ($query) => $query->where('is_online', true));
                     })
                 // OR it has keywords matching the query
                     ->orWhereHas('keywords', function ($kq) use ($query) {
                         $kq->where('code', 'ilike', "%$query%")
                             ->whereHas('productKeywords.product', function ($pq) {
-                                $pq->where('status', 'published');
+                                $pq->where('status', Product::STATUS_PUBLISHED);
                                 $pq->whereHas('paymentMethod', fn ($query) => $query->where('is_online', true));
                             });
                     })
                 // OR it has products whose name or description matches the query
                     ->orWhereHas('keywords.productKeywords.product', function ($pq) use ($query) {
-                        $pq->where('status', 'published')
+                        $pq->where('status', Product::STATUS_PUBLISHED)
                             ->whereHas('paymentMethod', fn ($query) => $query->where('is_online', true))
                             ->where(function ($sq) use ($query) {
                                 $sq->where('name', 'ilike', "%$query%")
@@ -206,7 +206,7 @@ class AffiliateLibraryController extends Controller
     private function baseProductsQuery(?int $userId)
     {
         return Product::query()
-            ->where('status', 'published')
+            ->where('status', Product::STATUS_PUBLISHED)
             // ->whereHas('paymentMethod', fn ($query) => $query->where('is_online', true))
             ->with([
                 'images',
