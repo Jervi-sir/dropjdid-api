@@ -33,6 +33,8 @@ server {
     }
 }
    ```
+
+---
 3. Enable the site and restart Nginx:
    ```bash
    sudo ln -sf /etc/nginx/sites-available/api.dropjdid.com /etc/nginx/sites-enabled/
