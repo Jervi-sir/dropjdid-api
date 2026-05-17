@@ -5,3 +5,4 @@ alias gitpushd='git push origin main && gh workflow run Deploy'
 ```
 
 - then do `gitpushd` to push and deploy
+  ss
