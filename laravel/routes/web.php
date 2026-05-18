@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Admin\Drops\ListDropsController;
 use App\Http\Controllers\Admin\Drops\ShowDropController;
 use App\Http\Controllers\Admin\Friendships\ActionFriendshipController;
@@ -28,6 +29,7 @@ Route::inertia('/', 'welcome', [
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('admin/dashboard', AdminDashboardController::class)->name('admin.dashboard');
     Route::get('admin/drops', ListDropsController::class)->name('admin.drops.index');
     Route::get('admin/drops/{drop}', [ShowDropController::class, 'show'])->name('admin.drops.show');
     Route::put('admin/drops/{drop}', [ShowDropController::class, 'update'])->name('admin.drops.update');

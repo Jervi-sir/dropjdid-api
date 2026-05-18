@@ -1,4 +1,4 @@
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react"
+import { IconLayoutDashboard, IconMail, type Icon } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +11,7 @@ import {
 import { ChartBarIcon } from "lucide-react"
 import { Link } from "@inertiajs/react"
 import { useCurrentUrl } from "@/hooks/use-current-url"
+import AdminDashboardController from "@/actions/App/Http/Controllers/Admin/Dashboard/AdminDashboardController"
 
 export function NavMain({
   items,
@@ -28,20 +29,24 @@ export function NavMain({
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton
-              tooltip="Stats"
-              className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
+            <Link href={AdminDashboardController.url()}
+              className="flex-1"
             >
-              <IconCirclePlusFilled />
-              <span>Stats</span>
-            </SidebarMenuButton>
+              <SidebarMenuButton
+                tooltip="Dashboard"
+                isActive={isCurrentOrParentUrl(AdminDashboardController.url())}
+              >
+                <IconLayoutDashboard />
+                <span>Dashboard</span>
+              </SidebarMenuButton>
+            </Link>
             <Button
               size="icon"
               className="size-8 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
             >
               <ChartBarIcon />
-              <span className="sr-only">Inbox</span>
+              <span className="sr-only">Quick Stats</span>
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>

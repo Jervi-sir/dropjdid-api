@@ -41,6 +41,8 @@ import ListStoresController from "@/actions/App/Http/Controllers/Admin/Stores/Li
 import ListStoreWalletsController from "@/actions/App/Http/Controllers/Admin/StoreWallets/ListStoreWalletsController"
 import ListLabelsController from "@/actions/App/Http/Controllers/Admin/Labels/ListLabelsController"
 import ListWalletsController from "@/actions/App/Http/Controllers/Admin/Wallets/ListWalletsController"
+import AdminDashboardController from "@/actions/App/Http/Controllers/Admin/Dashboard/AdminDashboardController"
+import { Link } from "@inertiajs/react"
 
 const data = {
   user: {
@@ -184,10 +186,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="#">
+              <Link href={AdminDashboardController.url()}>
                 <IconInnerShadowTop className="size-5!" />
                 <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
