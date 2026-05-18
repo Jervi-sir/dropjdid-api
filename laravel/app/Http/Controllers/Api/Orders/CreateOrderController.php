@@ -60,6 +60,13 @@ class CreateOrderController extends Controller
             $otherFees = 40; // Fixed transaction fees as per frontend
             $total = $subtotal + $deliveryFees + $otherFees;
 
+            $deliveryMethod = match ($request->delivery_method) {
+                'desk' => Order::DELIVERY_METHOD_DESK,
+                default => Order::DELIVERY_METHOD_HOME,
+            };
+
+            $status = Order::STATUS_PENDING;
+
             $order = Order::create([
                 'user_id' => $request->user()->id,
                 'store_id' => $product->store_id,
@@ -71,11 +78,11 @@ class CreateOrderController extends Controller
                 'wilaya' => $request->wilaya,
                 'baladiya' => $request->baladiya ?? 'Alger',
                 'home_address' => $request->home_address,
-                'delivery_method' => $request->delivery_method,
+                'delivery_method' => $deliveryMethod,
                 'delivery_fees' => $deliveryFees,
                 'subtotal' => $subtotal,
                 'total' => $total,
-                'status' => 'pending',
+                'status' => $status,
             ]);
 
             foreach ($items as $itemData) {

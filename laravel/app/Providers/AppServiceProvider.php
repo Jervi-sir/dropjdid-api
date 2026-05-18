@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -29,10 +30,25 @@ class AppServiceProvider extends ServiceProvider
         if (
             app()->isProduction() ||
             str_starts_with(config('app.url'), 'https://') ||
-            $this->serverHasIpPrefix('91.')
+            $this->serverHasIpPrefix('91.') ||
+            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
         ) {
             URL::forceScheme('https');
         }
+
+        // Define authorization gate for Log Viewer
+        Gate::define('viewLogViewer', function ($user = null) {
+            if (config('log-viewer.bypass_auth')) {
+                return true;
+            }
+
+            $allowedEmails = env('LOG_VIEWER_ALLOWED_EMAILS') ? explode(',', env('LOG_VIEWER_ALLOWED_EMAILS')) : [];
+            if ($user && in_array($user->email, $allowedEmails)) {
+                return true;
+            }
+
+            return false;
+        });
     }
 
     /**

@@ -55,7 +55,39 @@ class Order extends Model
             'subtotal' => 'integer',
             'total' => 'integer',
             'has_claim_issue' => 'boolean',
+            'status' => 'integer',
+            'delivery_method' => 'integer',
         ];
+    }
+
+    public function setStatusAttribute(mixed $value): void
+    {
+        if (is_string($value)) {
+            $key = array_search($value, self::STATUS, true);
+            $this->attributes['status'] = $key !== false ? $key : self::STATUS_PENDING;
+        } else {
+            $this->attributes['status'] = $value;
+        }
+    }
+
+    public function getStatusAttribute(mixed $value): string
+    {
+        return self::STATUS[$value] ?? 'pending';
+    }
+
+    public function setDeliveryMethodAttribute(mixed $value): void
+    {
+        if (is_string($value)) {
+            $key = array_search($value, self::DELIVERY_METHOD, true);
+            $this->attributes['delivery_method'] = $key !== false ? $key : self::DELIVERY_METHOD_HOME;
+        } else {
+            $this->attributes['delivery_method'] = $value;
+        }
+    }
+
+    public function getDeliveryMethodAttribute(mixed $value): string
+    {
+        return self::DELIVERY_METHOD[$value] ?? 'home';
     }
 
     public function isOnline(): bool
@@ -131,7 +163,7 @@ class Order extends Model
             'wilaya' => $this->wilaya,
             'baladiya' => $this->baladiya,
             'home_address' => $this->home_address,
-            'delivery_method' => self::DELIVERY_METHOD[$this->delivery_method] ?? 'home',
+            'delivery_method' => $this->delivery_method,
             'delivery_fees' => (float) $this->delivery_fees,
             'items' => $this->items->map(function ($item) {
                 return [
@@ -149,18 +181,6 @@ class Order extends Model
 
     private function formatStatusForMobile(): string
     {
-        if (is_numeric($this->status) || is_int($this->status)) {
-            return self::STATUS[$this->status] ?? 'pending';
-        }
-
-        return in_array($this->status, [
-            'pending',
-            'confirmed',
-            'processing',
-            'shipped',
-            'delivered',
-            'cancelled',
-            'returned',
-        ]) ? $this->status : 'pending';
+        return $this->status;
     }
 }

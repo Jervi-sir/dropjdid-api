@@ -4,7 +4,7 @@ module.exports = {
       name: 'dropjdid:laravel-api',
       script: 'artisan',
       interpreter: 'php',
-      args: 'serve --host=127.0.0.1 --port=18000',
+      args: 'serve --host=0.0.0.0 --port=18000',
       cwd: '/home/jervi/projects/dropjdid-api/laravel',
       instances: 1,
       exec_mode: 'fork',

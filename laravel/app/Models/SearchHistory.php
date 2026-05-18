@@ -28,6 +28,28 @@ class SearchHistory extends Model
 
     protected $fillable = ['user_id', 'query', 'type'];
 
+    protected function casts(): array
+    {
+        return [
+            'type' => 'integer',
+        ];
+    }
+
+    public function setTypeAttribute(mixed $value): void
+    {
+        if (is_string($value)) {
+            $key = array_search($value, self::TYPES, true);
+            $this->attributes['type'] = $key !== false ? $key : self::TYPE_GENERAL;
+        } else {
+            $this->attributes['type'] = $value;
+        }
+    }
+
+    public function getTypeAttribute(mixed $value): string
+    {
+        return self::TYPES[$value] ?? 'general';
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -38,3 +60,4 @@ class SearchHistory extends Model
         return ['user'];
     }
 }
+

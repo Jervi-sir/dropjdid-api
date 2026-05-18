@@ -47,6 +47,7 @@ function createOrdersListFixture(): array
     $category = Category::query()->create(['code' => 'shoes', 'en' => 'Shoes']);
     $gender = Gender::query()->create(['code' => 'women', 'en' => 'Women']);
     $quality = Quality::query()->create(['code' => 'original', 'en' => 'Original']);
+    $size = \App\Models\Size::query()->create(['code' => 'm', 'en' => 'M', 'category_id' => $category->id]);
 
     $product = Product::query()->create([
         'store_id' => $store->id,
@@ -85,6 +86,7 @@ function createOrdersListFixture(): array
         OrderItem::query()->create([
             'order_id' => $order->id,
             'product_id' => $product->id,
+            'size_id' => $size->id,
             'product_name' => 'Product 1',
             'quantity' => 1,
             'unit_price' => 1000,

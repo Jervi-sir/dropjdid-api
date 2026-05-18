@@ -21,7 +21,7 @@ class ListDropsController extends Controller
         $authUserId = $authUser?->id;
 
         $drops = $user->drops()
-            ->where('status', 'published')
+            ->where('status', Drop::STATUS_PUBLISHED)
             ->withCount(['likedDrops', 'products', 'savedDrops'])
             ->with([
                 'creator',

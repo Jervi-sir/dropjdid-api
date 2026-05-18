@@ -4,8 +4,15 @@ import { DataTable } from '@/components/data-table';
 import { SectionCards } from '@/components/section-cards';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { useEffect } from 'react';
+import { router } from '@inertiajs/react';
+import AdminDashboardController from '@/actions/App/Http/Controllers/Admin/Dashboard/AdminDashboardController';
 
 export default function Page() {
+    useEffect(() => {
+        router.visit(AdminDashboardController.url(), { replace: true });
+    }, []);
+
     return (
         <SidebarProvider
             style={

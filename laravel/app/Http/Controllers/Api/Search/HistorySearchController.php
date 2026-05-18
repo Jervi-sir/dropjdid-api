@@ -21,7 +21,7 @@ class HistorySearchController extends Controller
 
         $validated = $request->validate([
             'query' => ['required', 'string', 'max:255'],
-            'type' => ['nullable', 'string', 'max:255'],
+            'type' => ['nullable', 'string', 'in:' . implode(',', SearchHistory::TYPES)],
         ]);
 
         $query = trim($validated['query']);
@@ -32,20 +32,27 @@ class HistorySearchController extends Controller
             ]);
         }
 
+        $type = match ($validated['type'] ?? 'general') {
+            'product' => SearchHistory::TYPE_PRODUCT,
+            'store' => SearchHistory::TYPE_STORE,
+            'creator' => SearchHistory::TYPE_CREATOR,
+            default => SearchHistory::TYPE_GENERAL,
+        };
+
         $history = SearchHistory::query()
             ->where('user_id', $user->id)
             ->where('query', $query)
             ->first();
 
         if ($history !== null) {
-            $history->type = $validated['type'] ?? $history->type ?? 'general';
+            $history->type = $type;
             $history->save();
             $history->touch();
         } else {
             $history = SearchHistory::query()->create([
                 'user_id' => $user->id,
                 'query' => $query,
-                'type' => $validated['type'] ?? 'general',
+                'type' => $type,
             ]);
         }
 
@@ -53,7 +60,7 @@ class HistorySearchController extends Controller
             'data' => [
                 'id' => $history->id,
                 'query' => $history->query,
-                'type' => $history->type,
+                'type' => SearchHistory::TYPES[$history->type] ?? $history->type,
             ],
             'message' => 'Search query saved successfully.',
         ]);
@@ -81,7 +88,7 @@ class HistorySearchController extends Controller
             'data' => collect($history->items())->map(fn (SearchHistory $item): array => [
                 'id' => $item->id,
                 'query' => $item->query,
-                'type' => $item->type,
+                'type' => SearchHistory::TYPES[$item->type] ?? $item->type,
             ])->values(),
             'next_page' => $history->hasMorePages() ? $history->currentPage() + 1 : null,
         ]);

@@ -6,15 +6,18 @@ use App\Http\Controllers\Api\Search\PeopleSearchController;
 use App\Http\Controllers\Api\Search\ProductsSearchController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('search/suggestions', [HistorySearchController::class, 'suggestions']);
+
 Route::prefix('search')->middleware('auth:sanctum')->group(function () {
     Route::get('drops', DropsSearchController::class);
     Route::get('people', PeopleSearchController::class);
     Route::get('products', ProductsSearchController::class);
+
     Route::prefix('history')->group(function () {
-        Route::get('list', [HistorySearchController::class, 'list']);
-        Route::get('suggestions', [HistorySearchController::class, 'suggestions']);
-        Route::post('store', [HistorySearchController::class, 'store']);
-        Route::delete('destroy/{history}', [HistorySearchController::class, 'destroy']);
-        Route::delete('clear', [HistorySearchController::class, 'clear']);
+        Route::get('/', [HistorySearchController::class, 'list']);
+        Route::post('/', [HistorySearchController::class, 'store']);
+        Route::delete('{history}', [HistorySearchController::class, 'destroy']);
+        Route::delete('/', [HistorySearchController::class, 'clear']);
     });
 });
+
