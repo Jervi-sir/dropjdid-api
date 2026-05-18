@@ -180,7 +180,7 @@ export default function StoreShow({ store, statuses }: StoreShowProps) {
             const matchesStatus =
                 productStatusFilter === 'all' ||
                 product.status.toLowerCase() ===
-                    productStatusFilter.toLowerCase();
+                productStatusFilter.toLowerCase();
 
             return matchesSearch && matchesStatus;
         });
@@ -352,11 +352,10 @@ export default function StoreShow({ store, statuses }: StoreShowProps) {
                                 onClick={() =>
                                     setData('is_verified', !data.is_verified)
                                 }
-                                className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
-                                    data.is_verified
+                                className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${data.is_verified
                                         ? 'border-cyan-500/40 bg-cyan-500/5 dark:bg-cyan-500/10'
                                         : 'border-muted bg-muted/5 hover:border-foreground/20'
-                                }`}
+                                    }`}
                             >
                                 <div className="flex flex-col gap-0.5">
                                     <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
@@ -368,11 +367,10 @@ export default function StoreShow({ store, statuses }: StoreShowProps) {
                                     </span>
                                 </div>
                                 <div
-                                    className={`flex size-5 shrink-0 items-center justify-center rounded-full border transition-all ${
-                                        data.is_verified
+                                    className={`flex size-5 shrink-0 items-center justify-center rounded-full border transition-all ${data.is_verified
                                             ? 'border-cyan-600 bg-cyan-600 text-white'
                                             : 'border-muted-foreground/35 bg-background'
-                                    }`}
+                                        }`}
                                 >
                                     {data.is_verified && (
                                         <IconCheck className="size-3.5 stroke-[2.5]" />
@@ -509,9 +507,9 @@ export default function StoreShow({ store, statuses }: StoreShowProps) {
                                                                     className="h-full w-full object-cover"
                                                                 />
                                                             ) : (
-                                                                product.name
-                                                                    .charAt(0)
-                                                                    .toUpperCase()
+                                                                product?.name
+                                                                    ?.charAt(0)
+                                                                    ?.toUpperCase()
                                                             )}
                                                         </div>
                                                     </TableCell>

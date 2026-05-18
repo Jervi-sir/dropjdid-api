@@ -143,7 +143,7 @@ export default function UserShow({ user, all_roles }: UserShowProps) {
                                     className="h-full w-full object-cover"
                                 />
                             ) : (
-                                user.full_name.charAt(0).toUpperCase()
+                                user.full_name?.charAt(0).toUpperCase()
                             )}
                         </div>
                         <div>
@@ -232,11 +232,10 @@ export default function UserShow({ user, all_roles }: UserShowProps) {
                                                 onClick={() =>
                                                     handleRoleToggle(role.id)
                                                 }
-                                                className={`flex items-center justify-between rounded-xl border p-4 text-left transition-all ${
-                                                    isChecked
+                                                className={`flex items-center justify-between rounded-xl border p-4 text-left transition-all ${isChecked
                                                         ? 'border-primary bg-primary/5 shadow-xs ring-1 ring-primary/10'
                                                         : 'border-muted bg-card hover:border-foreground/30'
-                                                }`}
+                                                    }`}
                                             >
                                                 <div className="flex flex-col gap-0.5">
                                                     <span className="text-xs font-bold text-foreground capitalize">
@@ -247,11 +246,10 @@ export default function UserShow({ user, all_roles }: UserShowProps) {
                                                     </span>
                                                 </div>
                                                 <div
-                                                    className={`flex size-5 shrink-0 items-center justify-center rounded-full border transition-all ${
-                                                        isChecked
+                                                    className={`flex size-5 shrink-0 items-center justify-center rounded-full border transition-all ${isChecked
                                                             ? 'border-primary bg-primary text-primary-foreground'
                                                             : 'border-muted-foreground/35 bg-background'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {isChecked && (
                                                         <IconCheck className="size-3.5 stroke-[2.5]" />
