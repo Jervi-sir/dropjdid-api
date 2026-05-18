@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
 import { IconArrowUpRight, IconInnerShadowTop } from '@tabler/icons-react';
+import AdminDashboardController from '@/actions/App/Http/Controllers/Admin/Dashboard/AdminDashboardController';
 
 export default function Welcome({
     canRegister = true,
@@ -29,7 +30,7 @@ export default function Welcome({
                 <nav className="flex items-center gap-4">
                     {auth.user ? (
                         <Link
-                            href={dashboard()}
+                            href={AdminDashboardController.url()}
                             className="text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-250 flex items-center gap-1 bg-muted px-4 py-2 rounded-xl border hover:shadow-xs"
                         >
                             Dashboard <IconArrowUpRight className="size-3" />
@@ -58,7 +59,7 @@ export default function Welcome({
             {/* Hero Main Content */}
             <main className="relative z-10 flex-1 flex flex-col justify-center items-center px-6 py-12 text-center max-w-4xl mx-auto">
                 <div className="flex flex-col gap-6 lg:gap-8 items-center">
-                    
+
                     {/* Minimalist Micro Tag */}
                     <div className="inline-flex items-center gap-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-indigo-500/20">
                         Peer Commerce Drop Engine
@@ -78,7 +79,7 @@ export default function Welcome({
                     <div className="flex items-center gap-3 mt-4">
                         {auth.user ? (
                             <Link
-                                href={dashboard()}
+                                href={AdminDashboardController.url()}
                                 className="inline-flex items-center justify-center h-11 px-6 rounded-2xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-500 shadow-lg shadow-indigo-600/10 active:scale-[0.98] transition-all duration-200"
                             >
                                 Enter Console
