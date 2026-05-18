@@ -47,7 +47,7 @@ class WithdrawalRequest extends Model
     ];
 
     protected $fillable = [
-        'wallet_id',
+        'wallet_transaction_id',
         'user_id',
         'amount',
         'method',

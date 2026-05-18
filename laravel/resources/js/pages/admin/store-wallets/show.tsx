@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import ShowWalletController from '@/actions/App/Http/Controllers/Admin/Wallets/ShowWalletController';
+import ShowStoreWalletController from '@/actions/App/Http/Controllers/Admin/StoreWallets/ShowStoreWalletController';
 import {
   Table,
   TableHeader,
@@ -31,30 +31,27 @@ import {
 import {
   IconArrowLeft,
   IconWallet,
-  IconUser,
   IconCalendar,
   IconCircleCheck,
   IconAlertTriangle,
-  IconClock,
-  IconBan,
   IconArrowsUpDown,
   IconCoin,
   IconReceipt,
   IconEdit,
   IconCheck,
+  IconBuildingStore,
 } from '@tabler/icons-react';
 
-interface User {
+interface Store {
   id: number;
-  full_name: string;
-  username: string;
-  email: string;
-  image: string | null;
+  store_name: string;
+  phone_number: string;
+  logo: string | null;
 }
 
-interface Wallet {
+interface StoreWallet {
   id: number;
-  user: User | null;
+  store: Store | null;
   type: string;
   type_raw: number;
   balance: string;
@@ -98,19 +95,19 @@ interface Withdrawal {
   created_at: string;
 }
 
-interface WalletShowProps {
-  wallet: Wallet;
+interface StoreWalletShowProps {
+  store_wallet: StoreWallet;
   transactions: Transaction[];
   withdrawals: Withdrawal[];
 }
 
-export default function WalletShow({ wallet, transactions, withdrawals }: WalletShowProps) {
+export default function StoreWalletShow({ store_wallet, transactions, withdrawals }: StoreWalletShowProps) {
   const [activeTab, setActiveTab] = React.useState<'transactions' | 'withdrawals'>('transactions');
 
   // Wallet Form
   const walletForm = useForm({
-    status: wallet.status_raw,
-    is_identity_verified: wallet.is_identity_verified,
+    status: store_wallet.status_raw,
+    is_identity_verified: store_wallet.is_identity_verified,
   });
 
   // Withdrawal Edit State
@@ -125,7 +122,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
 
   const handleWalletSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    walletForm.put(ShowWalletController.update.url(wallet.id), {
+    walletForm.put(ShowStoreWalletController.update.url(store_wallet.id), {
       preserveScroll: true,
     });
   };
@@ -145,7 +142,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
     if (!selectedWithdrawal) return;
 
     withdrawalForm.put(
-      ShowWalletController.updateWithdrawal.url({ wallet: wallet.id, withdrawalRequest: selectedWithdrawal.id }),
+      ShowStoreWalletController.updateWithdrawal.url({ store_wallet: store_wallet.id, storeWithdrawalRequest: selectedWithdrawal.id }),
       {
         onSuccess: () => {
           setWithdrawalDialogOpen(false);
@@ -192,7 +189,6 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
     if (!details) return 'None';
     if (typeof details === 'string') return details;
     
-    // Renders key-value list elegantly
     return (
       <div className="flex flex-col gap-0.5 text-[11px] text-muted-foreground">
         {Object.entries(details).map(([key, val]) => (
@@ -207,28 +203,26 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
 
   return (
     <>
-      <Head title={`Wallet details - Merchant ${wallet.user?.full_name || 'N/A'}`} />
+      <Head title={`Store Wallet details - ${store_wallet.store?.store_name || 'N/A'}`} />
       <div className="flex flex-col gap-6 p-4 lg:p-8">
 
-        {/* Back Link */}
         <div>
           <Link
-            href="/admin/wallets"
+            href="/admin/store-wallets"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
           >
             <IconArrowLeft className="size-4" />
-            <span>Back to Wallets</span>
+            <span>Back to Store Wallets</span>
           </Link>
         </div>
 
-        {/* Header Summary */}
         <div className="border-b pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-              Financial Audit Room
+              Store Financial Auditor
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Verify ledger transitions, confirm withdrawal logs, and adjust account limits.
+              Verify vendor balance operations, authorize payout requests, and freeze ledger limits.
             </p>
           </div>
         </div>
@@ -236,28 +230,26 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
         {/* Top Panels: Overview & Moderator settings */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Column 1: Profile & Wallet Stats Summary (lg:col-span-8) */}
           <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* Owner Info Profile */}
+            {/* Store Profile Card */}
             <div className="bg-card border rounded-2xl p-5 shadow-xs flex flex-col gap-4">
               <div className="flex items-center gap-2 border-b pb-3.5">
-                <IconUser className="size-5 text-primary shrink-0" />
-                <h3 className="font-extrabold text-sm uppercase tracking-wider text-muted-foreground">Owner Account</h3>
+                <IconBuildingStore className="size-5 text-primary shrink-0" />
+                <h3 className="font-extrabold text-sm uppercase tracking-wider text-muted-foreground">Store Account</h3>
               </div>
 
               <div className="flex items-center gap-4 py-2">
-                <div className="size-14 rounded-full bg-primary/10 border text-primary flex items-center justify-center font-black text-xl uppercase overflow-hidden shrink-0">
-                  {wallet.user?.image ? (
-                    <img src={wallet.user.image} alt={wallet.user.full_name} className="w-full h-full object-cover" />
+                <div className="size-14 rounded-xl bg-primary/10 border text-primary flex items-center justify-center font-black text-xl uppercase overflow-hidden shrink-0">
+                  {store_wallet.store?.logo ? (
+                    <img src={store_wallet.store.logo} alt={store_wallet.store.store_name} className="w-full h-full object-cover" />
                   ) : (
-                    wallet.user?.full_name?.charAt(0).toUpperCase() || 'M'
+                    <IconBuildingStore className="size-8 stroke-[1.8]" />
                   )}
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-black text-foreground text-sm">{wallet.user?.full_name || 'N/A'}</span>
-                  <span className="text-xs text-muted-foreground font-semibold">@{wallet.user?.username || 'unknown'}</span>
-                  <span className="text-xs text-muted-foreground font-medium mt-0.5">{wallet.user?.email || 'N/A'}</span>
+                  <span className="font-black text-foreground text-sm">{store_wallet.store?.store_name || 'N/A'}</span>
+                  <span className="text-xs text-muted-foreground font-semibold">{store_wallet.store?.phone_number || 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -272,26 +264,24 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
               <div className="grid grid-cols-2 gap-4 py-1">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Available Balance</span>
-                  <span className="text-lg font-black text-foreground mt-0.5">{wallet.balance} {wallet.currency}</span>
+                  <span className="text-lg font-black text-foreground mt-0.5">{store_wallet.balance} {store_wallet.currency}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Pending Balance</span>
-                  <span className="text-lg font-black text-amber-600 dark:text-amber-400 mt-0.5">{wallet.pending_balance} {wallet.currency}</span>
+                  <span className="text-lg font-black text-amber-600 dark:text-amber-400 mt-0.5">{store_wallet.pending_balance} {store_wallet.currency}</span>
                 </div>
               </div>
             </div>
 
           </div>
 
-          {/* Column 2: Moderator settings card (lg:col-span-4) */}
           <div className="lg:col-span-4">
             <form onSubmit={handleWalletSubmit} className="bg-card border rounded-2xl p-5 shadow-xs flex flex-col gap-4">
               <div className="flex items-center justify-between border-b pb-3">
                 <span className="font-extrabold text-xs uppercase tracking-wider text-muted-foreground">Wallet Moderator</span>
-                {getStatusBadge(wallet.status)}
+                {getStatusBadge(store_wallet.status)}
               </div>
 
-              {/* Status */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Operational Status</label>
                 <Select value={String(walletForm.data.status)} onValueChange={(val) => walletForm.setData('status', Number(val))}>
@@ -308,7 +298,6 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                 </Select>
               </div>
 
-              {/* Identity toggle */}
               <div className="flex items-center space-x-2 py-2">
                 <Checkbox
                   id="identity_check"
@@ -319,7 +308,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                   htmlFor="identity_check"
                   className="text-xs font-bold text-foreground leading-none cursor-pointer"
                 >
-                  Verify Legal Identity Documents
+                  Verify Business legal documents
                 </label>
               </div>
 
@@ -330,7 +319,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
               {walletForm.recentlySuccessful && (
                 <div className="flex items-center gap-1.5 justify-center text-[10px] text-emerald-600 dark:text-emerald-400 font-bold py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                   <IconCheck className="size-3.5 shrink-0" />
-                  <span>Wallet synchronized successfully</span>
+                  <span>Wallet settings synchronized</span>
                 </div>
               )}
             </form>
@@ -341,7 +330,6 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
         {/* Tabbed Ledgers / Withdrawals section */}
         <div className="bg-card border rounded-2xl shadow-xs overflow-hidden mt-6 flex flex-col">
           
-          {/* Tab Selector */}
           <div className="flex items-center border-b bg-muted/15 px-6">
             <button
               onClick={() => setActiveTab('transactions')}
@@ -367,7 +355,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
             >
               <div className="flex items-center gap-1.5">
                 <IconCoin className="size-4" />
-                <span>Withdrawal Requests ({withdrawals.length})</span>
+                <span>Store Withdrawal Requests ({withdrawals.length})</span>
               </div>
             </button>
           </div>
@@ -393,17 +381,14 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                     transactions.map((tx) => (
                       <TableRow key={tx.id} className="hover:bg-muted/5 transition-colors">
                         
-                        {/* Transaction Ref */}
                         <TableCell className="pl-6 py-4 font-mono font-extrabold text-[11px] uppercase tracking-wider text-foreground">
                           {tx.reference || 'N/A'}
                         </TableCell>
 
-                        {/* Title */}
                         <TableCell className="py-4 text-xs font-semibold text-foreground max-w-[200px] truncate">
                           {tx.title}
                         </TableCell>
 
-                        {/* Direction */}
                         <TableCell className="py-4 text-center">
                           {tx.direction === 'in' ? (
                             <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/15">
@@ -416,26 +401,22 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                           )}
                         </TableCell>
 
-                        {/* Type */}
                         <TableCell className="py-4 text-center">
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
                             {tx.type}
                           </span>
                         </TableCell>
 
-                        {/* Amount */}
                         <TableCell className={`py-4 text-right font-black text-xs ${
                           tx.direction === 'in' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                         }`}>
-                          {tx.direction === 'in' ? '+' : '-'}{tx.amount} {wallet.currency}
+                          {tx.direction === 'in' ? '+' : '-'}{tx.amount} {store_wallet.currency}
                         </TableCell>
 
-                        {/* Balance Change */}
                         <TableCell className="py-4 text-right text-[10px] text-muted-foreground font-semibold">
-                          {tx.balance_before} ➔ {tx.balance_after} {wallet.currency}
+                          {tx.balance_before} ➔ {tx.balance_after} {store_wallet.currency}
                         </TableCell>
 
-                        {/* Status */}
                         <TableCell className="py-4 text-center">
                           {tx.status === 'completed' ? (
                             <Badge className="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20">Completed</Badge>
@@ -446,7 +427,6 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                           )}
                         </TableCell>
 
-                        {/* Date */}
                         <TableCell className="py-4 text-right pr-6 text-[10px] text-muted-foreground font-medium">
                           {tx.created_at ? new Date(tx.created_at).toLocaleString() : 'N/A'}
                         </TableCell>
@@ -491,37 +471,30 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                     withdrawals.map((wr) => (
                       <TableRow key={wr.id} className="hover:bg-muted/5 transition-colors">
                         
-                        {/* Amount */}
                         <TableCell className="pl-6 py-4 font-black text-foreground text-xs">
-                          {wr.amount} {wallet.currency}
+                          {wr.amount} {store_wallet.currency}
                         </TableCell>
 
-                        {/* Method */}
                         <TableCell className="py-4 font-extrabold text-[10px] uppercase text-indigo-600 dark:text-indigo-400">
                           {wr.method}
                         </TableCell>
 
-                        {/* Details */}
                         <TableCell className="py-4">
                           {formatPayoutDetails(wr.payment_details)}
                         </TableCell>
 
-                        {/* Status */}
                         <TableCell className="py-4 text-center">
                           {getWithdrawalStatusBadge(wr.status)}
                         </TableCell>
 
-                        {/* Auditor Note */}
                         <TableCell className="py-4 text-xs text-muted-foreground max-w-[200px] truncate">
                           {wr.admin_note || '-'}
                         </TableCell>
 
-                        {/* Date */}
                         <TableCell className="py-4 text-[10px] text-muted-foreground font-medium">
                           {wr.created_at ? new Date(wr.created_at).toLocaleString() : 'N/A'}
                         </TableCell>
 
-                        {/* Action Edit */}
                         <TableCell className="py-4 text-right pr-6">
                           <Button
                             variant="outline"
@@ -543,7 +516,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                           <IconCoin className="size-11 text-muted-foreground/50 stroke-[1.5]" />
                           <div className="flex flex-col gap-0.5">
                             <p className="font-semibold text-sm text-foreground">No withdrawals logged</p>
-                            <p className="text-xs">No payout withdrawal requests exist for this merchant wallet.</p>
+                            <p className="text-xs">No payout withdrawal requests exist for this store wallet.</p>
                           </div>
                         </div>
                       </TableCell>
@@ -562,7 +535,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
         <DialogContent className="sm:max-w-md bg-card">
           <form onSubmit={handleWithdrawalSubmit} className="flex flex-col gap-4">
             <DialogHeader>
-              <DialogTitle className="text-lg font-black text-foreground">Audit Payout request</DialogTitle>
+              <DialogTitle className="text-lg font-black text-foreground">Audit Payout Request</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
                 Approve, decline, or mark payout requests as settled once transfers complete.
               </DialogDescription>
@@ -571,11 +544,10 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
             {selectedWithdrawal && (
               <div className="grid grid-cols-1 gap-4 py-2">
                 
-                {/* Meta details */}
                 <div className="bg-muted/15 border p-3.5 rounded-xl flex items-center justify-between">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Amount Requested</span>
-                    <span className="text-sm font-black text-foreground">{selectedWithdrawal.amount} {wallet.currency}</span>
+                    <span className="text-sm font-black text-foreground">{selectedWithdrawal.amount} {store_wallet.currency}</span>
                   </div>
                   <div className="flex flex-col items-end gap-0.5">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Method</span>
@@ -583,9 +555,8 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                   </div>
                 </div>
 
-                {/* Status Dropdown */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Payout status</label>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Payout Status</label>
                   <Select value={String(withdrawalForm.data.status)} onValueChange={(val) => withdrawalForm.setData('status', Number(val))}>
                     <SelectTrigger className="w-full h-10 bg-background">
                       <SelectValue placeholder="Payout Status" />
@@ -605,7 +576,6 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                   )}
                 </div>
 
-                {/* Admin Note */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Moderator Note / Remarks</label>
                   <Input
@@ -627,7 +597,7 @@ export default function WalletShow({ wallet, transactions, withdrawals }: Wallet
                 Cancel
               </Button>
               <Button type="submit" disabled={withdrawalForm.processing} className="font-bold shadow-xs">
-                {withdrawalForm.processing ? 'Syncing...' : 'Sync Payout status'}
+                {withdrawalForm.processing ? 'Syncing...' : 'Sync Payout Status'}
               </Button>
             </DialogFooter>
           </form>

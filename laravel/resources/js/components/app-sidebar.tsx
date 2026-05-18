@@ -15,6 +15,9 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconWallet,
+  IconBuildingStore,
+  IconFriends,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -31,6 +34,13 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import ListDropsController from "@/actions/App/Http/Controllers/Admin/Drops/ListDropsController"
+import ListFriendshipsController from "@/actions/App/Http/Controllers/Admin/Friendships/ListFriendshipsController"
+import ListProductsController from "@/actions/App/Http/Controllers/Admin/Products/ListProductsController"
+import ListUsersController from "@/actions/App/Http/Controllers/Admin/Users/ListUsersController"
+import ListStoresController from "@/actions/App/Http/Controllers/Admin/Stores/ListStoresController"
+import ListStoreWalletsController from "@/actions/App/Http/Controllers/Admin/StoreWallets/ListStoreWalletsController"
+import ListLabelsController from "@/actions/App/Http/Controllers/Admin/Labels/ListLabelsController"
+import ListWalletsController from "@/actions/App/Http/Controllers/Admin/Wallets/ListWalletsController"
 
 const data = {
   user: {
@@ -46,23 +56,38 @@ const data = {
     },
     {
       title: "Labels",
-      url: "/admin/labels",
+      url: ListLabelsController.url(),
       icon: IconListDetails,
     },
     {
       title: "Products",
-      url: "/admin/products",
+      url: ListProductsController.url(),
       icon: IconChartBar,
     },
     {
       title: "Stores",
-      url: "/admin/stores",
+      url: ListStoresController.url(),
       icon: IconFolder,
     },
     {
+      title: "Store Wallets",
+      url: ListStoreWalletsController.url(),
+      icon: IconBuildingStore,
+    },
+    {
       title: "Users",
-      url: "/admin/users",
+      url: ListUsersController.url(),
       icon: IconUsers,
+    },
+    {
+      title: "Wallets",
+      url: ListWalletsController.url(),
+      icon: IconWallet,
+    },
+    {
+      title: "Friendships",
+      url: ListFriendshipsController.url(),
+      icon: IconFriends,
     },
   ],
   navClouds: [

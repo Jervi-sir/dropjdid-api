@@ -1,36 +1,36 @@
 - list drops to approve
-  - show the drop
+  - show the drop @done
   - show who liked this drop
   - show who saved this drop
 
-- list stores to approve 
-- list products
-  - show the product
-  - show who liked this product
-  - show who saved this product
+- list stores to approve @done
+- list products @done
+  - show the product @done
+  - show who liked this product @done
+  - show who saved this product @done
 
-- list orders
-  - show the order and this product
-  - change the order status
+- list orders @done
+  - show the order and this product @done
+  - change the order status @done
 
-- list users
-  - and their statuses
-  - and their permissions
+- list users @done
+  - and their statuses @done
+  - and their permissions @done
 
-- list labels
-  - list keywords
-  - crud keyword
-  - crud label
+- list labels @done
+  - list keywords @done
+  - crud keyword @done
+  - crud label @done
 
-- list wallets
-  - approve wallet
-  - list transactions
-  - approve the transcation
+- list wallets @done
+  - approve wallet @done
+  - list transactions @done
+  - approve the transcation @done
 
-- list store wallets
-  - approve store wallet
-  - approve store transcation
+- list store wallets @done
+  - approve store wallet @done
+  - approve store transcation @done
 
-- list friend request
-  - change the friend request status
+- list friend request @done
+  - change the friend request status @done
   - 
