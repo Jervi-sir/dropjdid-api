@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, PayloadTooLargeException } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
 import { randomUUID } from 'crypto';
 import { createWriteStream } from 'fs';
-import { mkdir, stat } from 'fs/promises';
+import { mkdir, stat, unlink } from 'fs/promises';
 import { extname, join } from 'path';
 import { pipeline } from 'stream/promises';
 import { db } from '../database/database';
@@ -59,7 +59,28 @@ export class MediaService {
 
     await mkdir(uploadDir, { recursive: true });
 
-    await pipeline(file.file, createWriteStream(fullPath));
+    try {
+      await pipeline(file.file, createWriteStream(fullPath));
+    } catch (error: any) {
+      try {
+        await unlink(fullPath);
+      } catch (cleanupError) {}
+
+      if (file.file.truncated) {
+        throw new PayloadTooLargeException('File size limit exceeded (max 50MB)');
+      }
+      if (error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+        throw new BadRequestException('File upload was aborted or interrupted');
+      }
+      throw error;
+    }
+
+    if (file.file.truncated) {
+      try {
+        await unlink(fullPath);
+      } catch (cleanupError) {}
+      throw new PayloadTooLargeException('File size limit exceeded (max 50MB)');
+    }
 
     const publicBaseUrl = (
       process.env.STORAGE_PUBLIC_URL ??

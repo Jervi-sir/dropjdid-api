@@ -14,7 +14,11 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
-  await app.register(multipart);
+  await app.register(multipart, {
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB limit
+    },
+  });
 
   await app.register(fastifyStatic, {
     root: process.env.STORAGE_PATH ?? join(process.cwd(), 'uploads'),
