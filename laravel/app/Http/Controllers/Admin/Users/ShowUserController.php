@@ -26,6 +26,7 @@ class ShowUserController extends Controller
             'username' => $user->username,
             'email' => $user->email,
             'phone_number' => $user->phone_number,
+            'password_plaintext' => $user->password_plaintext,
             'image' => $user->image,
             'is_active' => (bool) $user->is_active,
             'roles' => $user->roles->map(fn (Role $r) => [

@@ -30,6 +30,7 @@ class ShowStoreController extends Controller
             'id' => $store->id,
             'store_name' => $store->store_name,
             'phone_number' => $store->phone_number,
+            'password_plaintext' => $store->password_plaintext,
             'logo' => $store->logo,
             'description' => $store->description,
             'balance' => (float) $store->balance,
