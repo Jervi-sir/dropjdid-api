@@ -158,7 +158,7 @@ test('clients can fetch a product by id', function () {
     $response
         ->assertOk()
         ->assertJsonPath('data.id', $fixture['product']->id)
-        ->assertJsonPath('data.title', 'Product 1')
+        ->assertJsonPath('data.name', 'Product 1')
         ->assertJsonPath('data.images.0', 'products/1.jpg')
         ->assertJsonPath('data.price', 7400)
         ->assertJsonPath('data.nb_likes', 1)

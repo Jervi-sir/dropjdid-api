@@ -9,15 +9,17 @@ use Illuminate\Http\Request;
 
 class ShowProductController extends Controller
 {
-    public function __invoke(Request $request, int $product_id): JsonResponse
+    public function __invoke(Request $request, $product_id): JsonResponse
     {
         $userId = $request->user()?->getAuthIdentifier();
 
-        $product = Product::find($product_id);
+        $product = Product::find((int) $product_id);
 
         $product->load([
             'images',
-            'drops',
+            'drops' => function ($query) {
+                $query->where('status', \App\Models\Drop::STATUS_PUBLISHED);
+            },
             'variants.size',
             'store.user',
             'paymentMethod',

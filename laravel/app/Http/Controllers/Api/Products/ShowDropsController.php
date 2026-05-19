@@ -10,9 +10,9 @@ use Illuminate\Http\Request;
 
 class ShowDropsController extends Controller
 {
-    public function __invoke(Request $request, int $product_id): JsonResponse
+    public function __invoke(Request $request, $product_id): JsonResponse
     {
-        $product = Product::findOrFail($product_id);
+        $product = Product::findOrFail((int) $product_id);
         $user = $request->user();
         $userId = $user?->id;
 
