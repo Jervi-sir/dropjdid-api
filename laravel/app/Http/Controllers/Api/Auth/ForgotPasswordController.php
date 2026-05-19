@@ -4,19 +4,31 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserSupportRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\UserSupportRequest;
 use Illuminate\Validation\ValidationException;
 
 class ForgotPasswordController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        $userRequest = UserSupportRequest::where('user_id', $request->user()->id)
+        $user = $request->user();
+
+        if (! $user) {
+            $contact = $request->query('email') ?? $request->query('phone_number') ?? $request->query('username') ?? $request->query('contact');
+            if ($contact) {
+                $user = User::where('email', $contact)
+                    ->orWhere('phone_number', $contact)
+                    ->orWhere('username', $contact)
+                    ->first();
+            }
+        }
+
+        $userRequest = $user ? UserSupportRequest::where('user_id', $user->id)
             ->where('target', 'forgot-password')
             ->latest()
-            ->first();
+            ->first() : null;
 
         return response()->json([
             'data' => $userRequest,

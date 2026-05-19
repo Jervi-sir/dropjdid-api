@@ -9,8 +9,11 @@ use App\Http\Controllers\Api\Auth\UsernameAvailabilityController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::get('forgot-password', [ForgotPasswordController::class, 'show']);
-    Route::post('forgot-password', [ForgotPasswordController::class, 'store']);
+
+    Route::prefix('forgot-password')->middleware('optional-sanctum')->group(function () {
+        Route::get('/', [ForgotPasswordController::class, 'show']);
+        Route::post('/', [ForgotPasswordController::class, 'store']);
+    });
     Route::post('login', LoginController::class);
     Route::post('register', RegisterController::class);
     Route::get('username-availability', UsernameAvailabilityController::class);
