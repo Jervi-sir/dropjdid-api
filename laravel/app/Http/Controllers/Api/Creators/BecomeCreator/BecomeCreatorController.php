@@ -17,7 +17,7 @@ class BecomeCreatorController extends Controller
 
         $creatorRequest = UserSupportRequest::query()
             ->where('user_id', $user->id)
-            ->where('target', 'become-creator')
+            ->where('target', UserSupportRequest::TARGET_BECOME_CREATOR)
             ->latest('id')
             ->first();
 
@@ -38,11 +38,11 @@ class BecomeCreatorController extends Controller
 
         $latestRequest = UserSupportRequest::query()
             ->where('user_id', $user->id)
-            ->where('target', 'become-creator')
+            ->where('target', UserSupportRequest::TARGET_BECOME_CREATOR)
             ->latest('id')
             ->first();
 
-        if ($latestRequest !== null && in_array($latestRequest->status, ['pending', 'approved'], true)) {
+        if ($latestRequest !== null && in_array((int) $latestRequest->status, [UserSupportRequest::STATUS_PENDING, UserSupportRequest::STATUS_APPROVED], true)) {
             return response()->json([
                 'message' => 'You already have a creator request in progress.',
                 'data' => $this->formatRequest($latestRequest),
@@ -52,9 +52,9 @@ class BecomeCreatorController extends Controller
         $creatorRequest = UserSupportRequest::query()->create([
             'user_id' => $user->id,
             'contact' => $validated['phone_number'],
-            'type' => 'phone_number',
-            'target' => 'become-creator',
-            'status' => 'pending',
+            'type' => UserSupportRequest::TYPE_PHONE_NUMBER,
+            'target' => UserSupportRequest::TARGET_BECOME_CREATOR,
+            'status' => UserSupportRequest::STATUS_PENDING,
         ]);
 
         return response()->json([
@@ -68,7 +68,7 @@ class BecomeCreatorController extends Controller
         return [
             'id' => $creatorRequest->id,
             'phone_number' => $creatorRequest->contact,
-            'status' => $creatorRequest->status,
+            'status' => UserSupportRequest::STATUS[$creatorRequest->status] ?? 'pending',
             'note' => $creatorRequest->note,
             'reviewed_at' => $creatorRequest->reviewed_at?->toISOString(),
             'created_at' => $creatorRequest->created_at?->toISOString(),

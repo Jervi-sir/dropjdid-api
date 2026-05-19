@@ -31,7 +31,7 @@ class ForgotPasswordController extends Controller
             ->first() : null;
 
         return response()->json([
-            'data' => $userRequest,
+            'data' => $userRequest ? $this->formatRequest($userRequest) : null,
         ]);
     }
 
@@ -49,22 +49,22 @@ class ForgotPasswordController extends Controller
 
         if (! empty($validated['email'])) {
             $contact = $validated['email'];
-            $type = 'email';
+            $type = UserSupportRequest::TYPE_EMAIL;
             $user = User::where('email', $contact)->first();
         } elseif (! empty($validated['phone_number'])) {
             $contact = $validated['phone_number'];
             $user = User::where('phone_number', $contact)->first();
             if ($user) {
-                $type = 'phone_number';
+                $type = UserSupportRequest::TYPE_PHONE_NUMBER;
             } else {
                 $user = User::where('username', $contact)->first();
                 if ($user) {
-                    $type = 'username';
+                    $type = UserSupportRequest::TYPE_USERNAME;
                 }
             }
         } elseif (! empty($validated['username'])) {
             $contact = $validated['username'];
-            $type = 'username';
+            $type = UserSupportRequest::TYPE_USERNAME;
             $user = User::where('username', $contact)->first();
         }
 
@@ -82,7 +82,7 @@ class ForgotPasswordController extends Controller
         if ($existingRequest) {
             return response()->json([
                 'message' => 'You already have a pending password reset request.',
-                'data' => $existingRequest,
+                'data' => $this->formatRequest($existingRequest),
             ], 422);
         }
 
@@ -96,7 +96,23 @@ class ForgotPasswordController extends Controller
 
         return response()->json([
             'message' => 'Your password reset request has been sent to our support team for review.',
-            'data' => $userRequest,
+            'data' => $this->formatRequest($userRequest),
         ]);
+    }
+
+    private function formatRequest(UserSupportRequest $userRequest): array
+    {
+        return [
+            'id' => $userRequest->id,
+            'user_id' => $userRequest->user_id,
+            'contact' => $userRequest->contact,
+            'type' => UserSupportRequest::TYPES[$userRequest->type] ?? 'phone_number',
+            'status' => UserSupportRequest::STATUS[$userRequest->status] ?? 'pending',
+            'note' => $userRequest->note,
+            'reviewed_at' => $userRequest->reviewed_at?->toISOString(),
+            'target' => UserSupportRequest::TARGETS[$userRequest->target] ?? 'forgot-password',
+            'created_at' => $userRequest->created_at?->toISOString(),
+            'updated_at' => $userRequest->updated_at?->toISOString(),
+        ];
     }
 }
