@@ -26,7 +26,7 @@ class ForgotPasswordController extends Controller
         }
 
         $userRequest = $user ? UserSupportRequest::where('user_id', $user->id)
-            ->where('target', 'forgot-password')
+            ->where('target', UserSupportRequest::TARGET_FORGOT_PASSWORD)
             ->latest()
             ->first() : null;
 
@@ -75,7 +75,7 @@ class ForgotPasswordController extends Controller
         }
 
         $existingRequest = UserSupportRequest::where('user_id', $user->id)
-            ->where('target', 'forgot-password')
+            ->where('target', UserSupportRequest::TARGET_FORGOT_PASSWORD)
             ->where('status', 'pending')
             ->first();
 
@@ -90,7 +90,7 @@ class ForgotPasswordController extends Controller
             'user_id' => $user->id,
             'contact' => $contact,
             'type' => $type,
-            'target' => 'forgot-password',
+            'target' => UserSupportRequest::TARGET_FORGOT_PASSWORD,
             'status' => 'pending',
         ]);
 
