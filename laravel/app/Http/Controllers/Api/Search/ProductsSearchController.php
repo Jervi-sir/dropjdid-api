@@ -39,7 +39,7 @@ class ProductsSearchController extends Controller
 
         if ($page == 1) {
             $similarProducts = Product::query()
-                ->where('status', 'published')
+                ->where('status', Product::STATUS_PUBLISHED)
                 ->where(function ($q) use ($query) {
                     $q->where('name', 'ilike', "%$query%")
                         ->orWhereHas('keywords', fn ($qk) => $qk->where('code', 'ilike', "%$query%"))
@@ -88,11 +88,11 @@ class ProductsSearchController extends Controller
                         ->orWhere('code', 'ilike', "%$query%");
                 })
                     ->whereHas('keywords.productKeywords.product', function ($pq) {
-                        $pq->where('status', 'published');
+                        $pq->where('status', Product::STATUS_PUBLISHED);
                     })
                 // OR it has products whose name matches the query
                     ->orWhereHas('keywords.productKeywords.product', function ($pq) use ($query) {
-                        $pq->where('status', 'published')
+                        $pq->where('status', Product::STATUS_PUBLISHED)
                             ->where('name', 'ilike', "%$query%");
                     });
             })
@@ -105,7 +105,7 @@ class ProductsSearchController extends Controller
                 || str_contains(strtolower($label->code ?? ''), strtolower($query));
 
             $productsPaginator = Product::query()
-                ->where('status', 'published')
+                ->where('status', Product::STATUS_PUBLISHED)
                 ->where(function ($q) use ($label) {
                     $q->whereHas('productKeywords', fn ($qk) => $qk->where('product_keywords.label_id', $label->id))
                         ->orWhereHas('keywords', fn ($k) => $k->where('keywords.label_id', $label->id));

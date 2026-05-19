@@ -25,6 +25,13 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+        Schema::create('saved_labels', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('label_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+        });
     }
 
     /**
