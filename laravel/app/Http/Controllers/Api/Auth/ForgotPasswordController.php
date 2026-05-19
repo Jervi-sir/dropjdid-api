@@ -76,7 +76,7 @@ class ForgotPasswordController extends Controller
 
         $existingRequest = UserSupportRequest::where('user_id', $user->id)
             ->where('target', UserSupportRequest::TARGET_FORGOT_PASSWORD)
-            ->where('status', 'pending')
+            ->where('status', UserSupportRequest::STATUS_PENDING)
             ->first();
 
         if ($existingRequest) {
@@ -91,7 +91,7 @@ class ForgotPasswordController extends Controller
             'contact' => $contact,
             'type' => $type,
             'target' => UserSupportRequest::TARGET_FORGOT_PASSWORD,
-            'status' => 'pending',
+            'status' => UserSupportRequest::STATUS_PENDING,
         ]);
 
         return response()->json([
