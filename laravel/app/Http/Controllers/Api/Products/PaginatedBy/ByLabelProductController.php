@@ -38,10 +38,8 @@ class ByLabelProductController extends Controller
                 ->limit(10)
                 ->get();
 
-            $likedProductsCount = LikedProduct::query()
-                ->where('user_id', $userId)
-                ->whereHas('product.productKeywords', fn (Builder $query) => $query->where('label_id', $label->id))
-                ->count();
+            $nbLikes = \App\Models\SavedLabel::where('label_id', $label->id)->count();
+            $isLiked = $userId !== null && \App\Models\SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists();
 
             return [
                 'type' => 'label',
@@ -51,6 +49,7 @@ class ByLabelProductController extends Controller
                     'en' => $label->en,
                     'fr' => $label->fr,
                     'ar' => $label->ar,
+                    'is_liked' => $isLiked,
                 ],
                 'products' => $products->map(fn (Product $p) => [
                     'id' => $p->id,
@@ -63,7 +62,7 @@ class ByLabelProductController extends Controller
                     ],
                     'is_saved' => $userId !== null && $p->savedProducts->isNotEmpty(),
                 ]),
-                'nb_likes' => $likedProductsCount,
+                'nb_likes' => $nbLikes,
                 'next_page' => null,
             ];
         });

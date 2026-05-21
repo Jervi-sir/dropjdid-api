@@ -137,10 +137,11 @@ class ProductsSearchController extends Controller
                     'en' => $label->en,
                     'fr' => $label->fr,
                     'ar' => $label->ar,
+                    'is_liked' => $userId !== null && \App\Models\SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists(),
                 ],
                 'products' => collect($productsPaginator->items())->map(fn (Product $p) => $p->formatProduct($p, $user))->values(),
                 'next_page' => $productsPaginator->hasMorePages() ? 2 : null,
-                'nb_likes' => 0,
+                'nb_likes' => \App\Models\SavedLabel::where('label_id', $label->id)->count(),
             ];
         })->filter();
 

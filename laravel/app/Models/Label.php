@@ -19,6 +19,11 @@ class Label extends Model
         return $this->hasMany(Keyword::class);
     }
 
+    public function savedLabels(): HasMany
+    {
+        return $this->hasMany(SavedLabel::class);
+    }
+
     protected function formatterRelations(): array
     {
         return ['keywords'];
@@ -32,7 +37,7 @@ class Label extends Model
     /**
      * @param  array{data: Collection<int, array>, next_page: ?int}  $productsPayload
      */
-    public function formatFeedSection(array $productsPayload, int $likedProductsCount): array
+    public function formatFeedSection(array $productsPayload, int $nbLikes, bool $isLiked): array
     {
         return [
             'type' => 'label',
@@ -42,9 +47,10 @@ class Label extends Model
                 'en' => $this->en,
                 'fr' => $this->fr,
                 'ar' => $this->ar,
+                'is_liked' => $isLiked,
             ],
             'products' => $productsPayload['data']->values()->all(),
-            'nb_likes' => $likedProductsCount,
+            'nb_likes' => $nbLikes,
             'next_page' => $productsPayload['next_page'],
         ];
     }

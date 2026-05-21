@@ -61,7 +61,8 @@ class ProductsFeedController extends Controller
         $labelSections = $labelPaginator->getCollection()
             ->map(fn (Label $label): array => $label->formatFeedSection(
                 $this->productsPayloadForLabel($label->id, 1, $productsPerPage, $userId, $user),
-                $this->labelLikedProductsCount($label->id, $userId),
+                \App\Models\SavedLabel::where('label_id', $label->id)->count(),
+                $userId !== null && \App\Models\SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists(),
             ))
             ->values();
 
