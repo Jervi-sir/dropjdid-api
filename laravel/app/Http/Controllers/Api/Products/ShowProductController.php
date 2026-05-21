@@ -47,6 +47,8 @@ class ShowProductController extends Controller
                 'en' => $label->en,
                 'fr' => $label->fr,
                 'ar' => $label->ar,
+                'is_liked' => $userId !== null && \App\Models\SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists(),
+                'nb_likes' => \App\Models\SavedLabel::where('label_id', $label->id)->count(),
             ])
             ->all();
 
