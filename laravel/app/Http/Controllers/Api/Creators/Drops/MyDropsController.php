@@ -4,9 +4,8 @@ namespace App\Http\Controllers\Api\Creators\Drops;
 
 use App\Http\Controllers\Controller;
 use App\Models\Drop;
-use App\Models\Product;
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,27 +26,14 @@ class MyDropsController extends Controller
             ->where('creator_id', $userId)
             ->withCount('likedDrops')
             ->withCount('savedDrops')
-            ->with([
-                'creator',
-                'images',
-                'products.store.user',
-                'products.images',
-                'products' => function ($query) use ($userId): void {
-                    $query->withCount(['orderItems as order_items_sum_quantity' => function ($subQuery) {
-                        $subQuery->whereColumn('order_items.drop_id', 'drop_product.drop_id');
-                    }])->with([
-                        'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
-                    ]);
-                },
-                'likedDrops' => function ($query) use ($userId) {
-                    return $query->where('user_id', $userId);
-                },
-                'savedDrops' => function ($query) use ($userId) {
-                    return $query->where('user_id', $userId);
-                },
-            ])
             ->latest()
             ->paginate($perPage);
+
+        Drop::loadFeedRelations($drops, $userId, function ($query): void {
+            $query->withCount(['orderItems as order_items_sum_quantity' => function ($subQuery): void {
+                $subQuery->whereColumn('order_items.drop_id', 'drop_product.drop_id');
+            }]);
+        });
 
         $formattedDrops = collect($drops->items())
             ->map(fn (Drop $drop): array => $drop->formatDrop($user));
@@ -111,26 +97,13 @@ class MyDropsController extends Controller
             ->where('creator_id', $userId)
             ->withCount('likedDrops')
             ->withCount('savedDrops')
-            ->with([
-                'creator',
-                'images',
-                'products.store.user',
-                'products.images',
-                'products' => function ($query) use ($userId): void {
-                    $query->withCount(['orderItems as order_items_sum_quantity' => function ($subQuery) {
-                        $subQuery->whereColumn('order_items.drop_id', 'drop_product.drop_id');
-                    }])->with([
-                        'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
-                    ]);
-                },
-                'likedDrops' => function ($query) use ($userId) {
-                    return $query->where('user_id', $userId);
-                },
-                'savedDrops' => function ($query) use ($userId) {
-                    return $query->where('user_id', $userId);
-                },
-            ])
             ->findOrFail($drop_id);
+
+        Drop::loadFeedRelations($drop, $userId, function ($query): void {
+            $query->withCount(['orderItems as order_items_sum_quantity' => function ($subQuery): void {
+                $subQuery->whereColumn('order_items.drop_id', 'drop_product.drop_id');
+            }]);
+        });
 
         return response()->json($drop->formatDrop($user));
     }
@@ -189,7 +162,7 @@ class MyDropsController extends Controller
                 'delivery_method' => Order::DELIVERY_METHOD[$order->delivery_method] ?? 'home',
                 'delivery_fees' => (float) $order->delivery_fees,
                 'subtotal' => (float) $order->subtotal,
-                
+
                 // Item details
                 'quantity' => $item?->quantity ?? 0,
                 'unit_price' => $item ? (float) $item->unit_price : 0.0,

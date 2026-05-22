@@ -19,31 +19,10 @@ class ShowDropsController extends Controller
         $drops = $product->drops()
             ->where('status', Drop::STATUS_PUBLISHED)
             ->withCount(['likedDrops', 'products', 'savedDrops'])
-            ->with([
-                'creator',
-                'images',
-                'products.store.user',
-                'products.images',
-                'products' => function ($query) use ($userId): void {
-                    if ($userId !== null) {
-                        $query->with([
-                            'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
-                        ]);
-                    }
-                },
-                'likedDrops' => function ($query) use ($userId) {
-                    return $userId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $userId);
-                },
-                'savedDrops' => function ($query) use ($userId) {
-                    return $userId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $userId);
-                },
-            ])
             ->latest()
             ->paginate($request->get('per_page', 10));
+
+        Drop::loadFeedRelations($drops, $userId);
 
         $formattedDrops = collect($drops->items())
             ->map(fn (Drop $drop): array => $drop->formatDrop($user));

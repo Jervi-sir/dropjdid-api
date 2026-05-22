@@ -8,6 +8,7 @@ use App\Models\Drop;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DropsSearchController extends Controller
 {
@@ -32,7 +33,7 @@ class DropsSearchController extends Controller
         $user = $request->user();
         $userId = $user?->getAuthIdentifier();
 
-        $likeOperator = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite' ? 'like' : 'ilike';
+        $likeOperator = DB::connection()->getDriverName() === 'sqlite' ? 'like' : 'ilike';
 
         $drops = Drop::query()
             ->where('status', Drop::STATUS_PUBLISHED)
@@ -60,31 +61,10 @@ class DropsSearchController extends Controller
                     });
             })
             ->withCount(['likedDrops', 'savedDrops'])
-            ->with([
-                'creator',
-                'images',
-                'products.store.user',
-                'products.images',
-                'products' => function ($query) use ($userId): void {
-                    if ($userId !== null) {
-                        $query->with([
-                            'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
-                        ]);
-                    }
-                },
-                'likedDrops' => function ($query) use ($userId) {
-                    return $userId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $userId);
-                },
-                'savedDrops' => function ($query) use ($userId) {
-                    return $userId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $userId);
-                },
-            ])
             ->latest()
             ->simplePaginate($perPage);
+
+        Drop::loadFeedRelations($drops, $userId);
 
         $data = collect($drops->items())->map(fn (Drop $drop): array => $drop->formatDrop($user))->values();
 

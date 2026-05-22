@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Drop extends Model
 {
@@ -160,5 +162,90 @@ class Drop extends Model
                 'ar' => $product->paymentMethod->ar,
             ] : null,
         ];
+    }
+
+    /**
+     * Eager load standard feed relations for a collection or paginator of drops.
+     * Consolidates user loading to prevent duplicate queries.
+     */
+    public static function loadFeedRelations(mixed $drops, ?int $userId, ?callable $productCallback = null): void
+    {
+        $items = match (true) {
+            $drops instanceof Paginator => \Illuminate\Database\Eloquent\Collection::make($drops->items()),
+            $drops instanceof \Illuminate\Database\Eloquent\Collection => $drops,
+            $drops instanceof Collection => \Illuminate\Database\Eloquent\Collection::make($drops->all()),
+            $drops instanceof Drop => \Illuminate\Database\Eloquent\Collection::make([$drops]),
+            default => \Illuminate\Database\Eloquent\Collection::make($drops),
+        };
+
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $items->load([
+            'images',
+            'products.store',
+            'products.images',
+            'products' => function ($query) use ($userId, $productCallback): void {
+                if ($userId !== null) {
+                    $query->with([
+                        'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
+                    ]);
+                }
+                if ($productCallback !== null) {
+                    $productCallback($query);
+                }
+            },
+            'likedDrops' => function ($query) use ($userId): void {
+                if ($userId === null) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->where('user_id', $userId);
+                }
+            },
+            'savedDrops' => function ($query) use ($userId): void {
+                if ($userId === null) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->where('user_id', $userId);
+                }
+            },
+        ]);
+
+        $userIds = [];
+        foreach ($items as $drop) {
+            if ($drop->creator_id) {
+                $userIds[] = $drop->creator_id;
+            }
+            foreach ($drop->products as $product) {
+                if ($product->store && $product->store->user_id) {
+                    $userIds[] = $product->store->user_id;
+                }
+            }
+        }
+
+        $uniqueUserIds = array_unique(array_filter($userIds));
+
+        if (! empty($uniqueUserIds)) {
+            $users = User::query()->whereIn('id', $uniqueUserIds)->get()->keyBy('id');
+
+            foreach ($items as $drop) {
+                $drop->setRelation('creator', $users->get($drop->creator_id));
+                foreach ($drop->products as $product) {
+                    if ($product->store) {
+                        $product->store->setRelation('user', $users->get($product->store->user_id));
+                    }
+                }
+            }
+        } else {
+            foreach ($items as $drop) {
+                $drop->setRelation('creator', null);
+                foreach ($drop->products as $product) {
+                    if ($product->store) {
+                        $product->store->setRelation('user', null);
+                    }
+                }
+            }
+        }
     }
 }

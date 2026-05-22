@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
 
 class Product extends Model
 {
@@ -161,5 +164,60 @@ class Product extends Model
             'status' => self::STATUSES[$this->status] ?? 'unknown',
 
         ];
+    }
+
+    /**
+     * Eager load product feed relations in a consolidated manner to avoid duplicate store owner user queries.
+     */
+    public static function loadFeedRelations(mixed $products, ?int $userId): void
+    {
+        $items = match (true) {
+            $products instanceof Paginator || $products instanceof LengthAwarePaginator => \Illuminate\Database\Eloquent\Collection::make($products->items()),
+            $products instanceof \Illuminate\Database\Eloquent\Collection => $products,
+            $products instanceof Collection => \Illuminate\Database\Eloquent\Collection::make($products->all()),
+            $products instanceof Product => \Illuminate\Database\Eloquent\Collection::make([$products]),
+            default => \Illuminate\Database\Eloquent\Collection::make($products),
+        };
+
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $items->load([
+            'images',
+            'store',
+            'savedProducts' => function ($query) use ($userId): void {
+                if ($userId === null) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->where('user_id', $userId);
+                }
+            },
+        ]);
+
+        $userIds = [];
+        foreach ($items as $product) {
+            if ($product->store && $product->store->user_id) {
+                $userIds[] = $product->store->user_id;
+            }
+        }
+
+        $uniqueUserIds = array_unique(array_filter($userIds));
+
+        if (! empty($uniqueUserIds)) {
+            $users = User::query()->whereIn('id', $uniqueUserIds)->get()->keyBy('id');
+
+            foreach ($items as $product) {
+                if ($product->store) {
+                    $product->store->setRelation('user', $users->get($product->store->user_id));
+                }
+            }
+        } else {
+            foreach ($items as $product) {
+                if ($product->store) {
+                    $product->store->setRelation('user', null);
+                }
+            }
+        }
     }
 }

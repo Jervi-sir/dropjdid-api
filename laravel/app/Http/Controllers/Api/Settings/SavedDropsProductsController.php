@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Drop;
+use App\Models\PaymentMethod;
 use App\Models\SavedDrop;
 use App\Models\SavedProduct;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +28,7 @@ class SavedDropsProductsController extends Controller
         $savedProducts = SavedProduct::query()
             ->where('user_id', $user->id)
             ->when($request->boolean('is_online'), function ($query) {
-                $query->whereHas('product.paymentMethod', fn ($q) => $q->where('code', \App\Models\PaymentMethod::ONLINE));
+                $query->whereHas('product.paymentMethod', fn ($q) => $q->where('code', PaymentMethod::ONLINE));
             })
             ->with([
                 'product.images',
@@ -63,26 +64,16 @@ class SavedDropsProductsController extends Controller
         $savedDrops = SavedDrop::query()
             ->where('user_id', $user->id)
             ->with([
-                'drop' => function ($query) use ($user): void {
-                    $userId = $user->id;
-
-                    $query
-                        ->withCount(['likedDrops', 'savedDrops'])
-                        ->with([
-                            'creator',
-                            'images',
-                            'products.store.user',
-                            'products.images',
-                            'products.savedProducts' => fn ($savedProductsQuery) => $savedProductsQuery->where('user_id', $userId),
-                            'likedDrops' => fn ($likedDropsQuery) => $likedDropsQuery->where('user_id', $userId),
-                            'savedDrops' => fn ($savedDropsQuery) => $savedDropsQuery->where('user_id', $userId),
-                        ]);
+                'drop' => function ($query): void {
+                    $query->withCount(['likedDrops', 'savedDrops']);
                 },
             ])
             ->latest('id')
             ->simplePaginate($perPage);
 
         $drops = collect($savedDrops->items())->pluck('drop')->filter();
+
+        Drop::loadFeedRelations($drops, $user->id);
 
         return response()->json([
             'data' => $drops

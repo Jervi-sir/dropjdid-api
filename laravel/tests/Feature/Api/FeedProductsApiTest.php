@@ -12,6 +12,7 @@ use App\Models\ProductImage;
 use App\Models\ProductKeyword;
 use App\Models\Quality;
 use App\Models\Role;
+use App\Models\SavedLabel;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,6 +73,11 @@ test('clients can fetch the mixed products feed with visible and queued label se
                     'user_id' => $viewer->id,
                     'product_id' => $product->id,
                 ]);
+
+                SavedLabel::query()->create([
+                    'user_id' => $viewer->id,
+                    'label_id' => $label->id,
+                ]);
             }
         }
 
@@ -97,7 +103,7 @@ test('clients can fetch the mixed products feed with visible and queued label se
     ]);
 
     $response = $this->actingAs($viewer, 'sanctum')
-        ->getJson('/api/feeds/products?per_page=4&products_per_page=1');
+        ->getJson('/api/feeds/products?per_page=4&products_per_page=1&ads_count=1');
 
     $response
         ->assertOk()

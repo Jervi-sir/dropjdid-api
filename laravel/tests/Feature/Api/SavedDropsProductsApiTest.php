@@ -81,7 +81,7 @@ test('authenticated users can fetch paginated saved products', function () {
     SavedProduct::query()->create(['user_id' => $viewer->id, 'product_id' => $secondProduct->id]);
 
     $this->actingAs($viewer, 'sanctum')
-        ->getJson('/api/settings/saved/products?per_page=1')
+        ->getJson('/api/settings/saved-products?per_page=1')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $secondProduct->id)
@@ -162,7 +162,7 @@ test('authenticated users can fetch paginated saved drops', function () {
     SavedDrop::query()->create(['user_id' => $viewer->id, 'drop_id' => $secondDrop->id]);
 
     $this->actingAs($viewer, 'sanctum')
-        ->getJson('/api/settings/saved/drops?per_page=1')
+        ->getJson('/api/settings/saved-drops?per_page=1')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $secondDrop->id)

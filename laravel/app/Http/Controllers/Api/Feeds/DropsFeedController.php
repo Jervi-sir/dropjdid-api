@@ -29,31 +29,10 @@ class DropsFeedController extends Controller
             ->where('status', Drop::STATUS_PUBLISHED)
             ->whereHas('creator')
             ->withCount(['likedDrops', 'products', 'savedDrops'])
-            ->with([
-                'creator',
-                'images',
-                'products.store.user',
-                'products.images',
-                'products' => function ($query) use ($userId): void {
-                    if ($userId !== null) {
-                        $query->with([
-                            'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
-                        ]);
-                    }
-                },
-                'likedDrops' => function ($query) use ($userId) {
-                    return $userId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $userId);
-                },
-                'savedDrops' => function ($query) use ($userId) {
-                    return $userId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $userId);
-                },
-            ])
             ->latest()
             ->simplePaginate($perPage);
+
+        Drop::loadFeedRelations($drops, $userId);
 
         $formattedDrops = collect($drops->items())
             ->map(fn (Drop $drop): array => $drop->formatDrop($user));

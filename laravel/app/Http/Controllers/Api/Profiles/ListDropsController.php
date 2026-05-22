@@ -23,31 +23,10 @@ class ListDropsController extends Controller
         $drops = $user->drops()
             ->where('status', Drop::STATUS_PUBLISHED)
             ->withCount(['likedDrops', 'products', 'savedDrops'])
-            ->with([
-                'creator',
-                'images',
-                'products.store.user',
-                'products.images',
-                'products' => function ($query) use ($authUserId): void {
-                    if ($authUserId !== null) {
-                        $query->with([
-                            'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $authUserId),
-                        ]);
-                    }
-                },
-                'likedDrops' => function ($query) use ($authUserId) {
-                    return $authUserId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $authUserId);
-                },
-                'savedDrops' => function ($query) use ($authUserId) {
-                    return $authUserId === null
-                        ? $query->whereRaw('1 = 0')
-                        : $query->where('user_id', $authUserId);
-                },
-            ])
             ->latest()
             ->simplePaginate($perPage);
+
+        Drop::loadFeedRelations($drops, $authUserId);
 
         $formattedDrops = collect($drops->items())
             ->map(fn (Drop $drop): array => $drop->formatDrop($authUser));

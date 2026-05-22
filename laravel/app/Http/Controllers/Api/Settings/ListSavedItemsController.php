@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\Drop;
 use App\Models\SavedDrop;
 use App\Models\SavedProduct;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,7 @@ class ListSavedItemsController extends Controller
             $query->with(['images', 'store.user', 'savedProducts']);
         }])
             ->where('user_id', $user->id)
+            ->orderBy('id', 'desc')
             ->paginate($request->get('per_page', 10));
 
         return response()->json([
@@ -32,11 +34,15 @@ class ListSavedItemsController extends Controller
     {
         $user = $request->user();
 
-        $savedDrops = SavedDrop::with(['drop' => function ($query) {
-            $query->withCount(['likedDrops', 'savedDrops'])->with(['creator', 'images', 'likedDrops', 'savedDrops']);
+        $savedDrops = SavedDrop::with(['drop' => function ($query): void {
+            $query->withCount(['likedDrops', 'products', 'savedDrops']);
         }])
             ->where('user_id', $user->id)
+            ->orderBy('id', 'desc')
             ->paginate($request->get('per_page', 10));
+
+        $drops = $savedDrops->pluck('drop')->filter();
+        Drop::loadFeedRelations($drops, $user?->id);
 
         return response()->json([
             'data' => $savedDrops->map(function ($saved) use ($user) {

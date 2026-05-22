@@ -113,7 +113,7 @@ test('clients can search published drops with pagination', function () {
     ]);
 
     $response = $this->actingAs($viewer, 'sanctum')
-        ->getJson('/api/drops/search?query=Casual&per_page=1');
+        ->getJson('/api/search/drops?query=Casual&per_page=1');
 
     $response
         ->assertOk()
@@ -271,7 +271,8 @@ test('clients can search drops by product labels and keywords', function () {
 
     $drop->products()->attach($product->id, ['drop_price' => 98.5]);
 
-    $response = $this->getJson('/api/search/drops?query=Sabata&per_page=10');
+    $response = $this->actingAs($creator, 'sanctum')
+        ->getJson('/api/search/drops?query=Sabata&per_page=10');
 
     $response
         ->assertOk()
