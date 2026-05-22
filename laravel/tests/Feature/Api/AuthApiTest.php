@@ -22,13 +22,13 @@ uses(RefreshDatabase::class);
 test('users can register through the api and receive a bearer token', function () {
     $response = $this->postJson('/api/auth/register', [
         'username' => 'Amine',
-        'phone_number' => '0550000001',
+        'full_name' => 'Amine Bekheira',
         'password' => 'password123',
     ]);
 
     $response
         ->assertCreated()
-        ->assertJsonStructure(['token', 'token_type', 'user' => ['id', 'username', 'phone_number']])
+        ->assertJsonStructure(['token', 'token_type', 'user' => ['id', 'username', 'full_name']])
         ->assertJsonPath('user.username', 'amine');
 
     expect(User::query()->where('username', 'amine')->exists())->toBeTrue();

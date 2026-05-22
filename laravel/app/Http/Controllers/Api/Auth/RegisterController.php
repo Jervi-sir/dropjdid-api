@@ -14,12 +14,12 @@ class RegisterController extends Controller
     {
         $request->merge([
             'username' => strtolower(trim((string) $request->input('username'))),
-            'phone_number' => trim((string) $request->input('phone_number')),
+            'full_name' => trim((string) $request->input('full_name')),
         ]);
 
         $validated = $request->validate([
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
-            'phone_number' => ['required', 'string', 'max:255', 'unique:users,phone_number'],
+            'full_name' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'min:8'],
         ]);
 
@@ -34,9 +34,9 @@ class RegisterController extends Controller
 
         $user = User::query()->create([
             'username' => $validated['username'],
-            'phone_number' => $validated['phone_number'],
+            'full_name' => $validated['full_name'],
             'password' => $validated['password'],
-            'password_platintext' => $validated['password'],
+            'password_plaintext' => $validated['password'],
         ]);
 
         $user->roles()->syncWithoutDetaching([$role->id]);
