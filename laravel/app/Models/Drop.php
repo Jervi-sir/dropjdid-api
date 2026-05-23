@@ -130,37 +130,19 @@ class Drop extends Model
             'products_count' => $this->products_count ?? $this->products->count(),
             'products' => $this->products
                 ->take(10)
-                ->map(fn (Product $product): array => $this->formatProduct($product, $user))
+                ->map(fn (Product $product): array => [
+                    'type' => 'product',
+                    'id' => $product->id,
+                    'title' => '@' . $this->creator?->username,
+                    'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
+                    'image' => $product->images->sortBy('sort_order')->first()?->image,
+                    'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),
+                ])
                 ->values()
                 ->all(),
             'rejection_reason' => collect($this->rejection_reason)->first(),
             'status' => self::STATUSES[$this->status] ?? 'unknown',
             'next_page' => ($this->products_count ?? $this->products->count()) > 10 ? 2 : null,
-        ];
-    }
-
-    public function formatProduct(Product $product, ?User $user): array
-    {
-        return [
-            'type' => 'product',
-            'id' => $product->id,
-            'title' => $product->name,
-            'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
-            'image' => $product->images->sortBy('sort_order')->first()?->image,
-            'user' => [
-                'id' => $product->store?->user?->id,
-                'name' => $product->store?->user?->username,
-                'username' => $product->store?->user?->username,
-            ],
-            'nb_sales' => (int) ($product->order_items_sum_quantity ?? 0),
-            'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),
-            'payment_method' => $product->relationLoaded('paymentMethod') && $product->paymentMethod ? [
-                'id' => $product->paymentMethod->id,
-                'code' => $product->paymentMethod->code,
-                'en' => $product->paymentMethod->en,
-                'fr' => $product->paymentMethod->fr,
-                'ar' => $product->paymentMethod->ar,
-            ] : null,
         ];
     }
 

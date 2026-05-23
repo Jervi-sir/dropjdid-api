@@ -139,6 +139,18 @@ class Product extends Model
      * Formatter
      * --------------------------------------------------------------------------
      */
+    public function formatProductPreview(Product $product, ?User $user): array
+    {
+        return [
+            'type' => 'product',
+            'id' => $product->id,
+            'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
+            'image' => $product->images->sortBy('sort_order')->first()?->image,
+            'nb_sales' => (int) ($product->order_items_sum_quantity ?? 0),
+            'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),
+        ];
+    }
+
     public function formatProduct(Product $product, ?User $user): array
     {
         return [
@@ -146,11 +158,6 @@ class Product extends Model
             'id' => $product->id,
             'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
             'image' => $product->images->sortBy('sort_order')->first()?->image,
-            'user' => [
-                'id' => $product->store?->user?->id,
-                'name' => $product->store?->user?->username,
-                'username' => $product->store?->user?->username,
-            ],
             'nb_sales' => (int) ($product->order_items_sum_quantity ?? 0),
             'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),
             'payment_method' => $product->relationLoaded('paymentMethod') && $product->paymentMethod ? [
