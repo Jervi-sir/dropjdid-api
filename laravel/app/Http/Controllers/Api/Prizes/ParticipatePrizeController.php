@@ -22,7 +22,7 @@ class ParticipatePrizeController extends Controller
         ]);
 
         $prize = Prize::query()
-            ->where('status', 'active')
+            ->where('status', Prize::STATUS_ACTIVE)
             ->where(function ($query): void {
                 $query
                     ->whereNull('starts_at')
@@ -51,7 +51,7 @@ class ParticipatePrizeController extends Controller
                 ],
                 [
                     'amount_paid' => $prize->joining_price,
-                    'status' => 'joined',
+                    'status' => PrizeJoining::STATUS_JOINED,
                 ],
             );
         });
@@ -59,7 +59,7 @@ class ParticipatePrizeController extends Controller
         $prize->loadCount('joinings');
         $prize->load([
             'creator',
-            'joinings' => fn ($query) => $query->where('user_id', $user->id),
+            'joinings' => fn($query) => $query->where('user_id', $user->id),
         ]);
 
         return response()->json([
