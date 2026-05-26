@@ -38,6 +38,7 @@ class ListMyStoresController extends Controller
                 ] : null,
             ])->values(),
             'next_page' => $stores->hasMorePages() ? $stores->currentPage() + 1 : null,
+            'total' => Store::where('user_id', $request->user()->id)->count(),
         ]);
     }
 }

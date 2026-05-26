@@ -23,6 +23,22 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+    SheetFooter,
+} from '@/components/ui/sheet';
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from '@/components/ui/select';
+import UpsertLabelCategoryController from '@/actions/App/Http/Controllers/Admin/Labels/UpsertLabelCategoryController';
+import {
     IconSearch,
     IconPlus,
     IconEdit,
@@ -35,12 +51,22 @@ import {
     IconAlertTriangle,
 } from '@tabler/icons-react';
 
+interface LabelCategory {
+    id: number;
+    code: string;
+    en: string;
+    fr: string;
+    ar: string;
+}
+
 interface Label {
     id: number;
     code: string;
     en: string;
     fr: string;
     ar: string;
+    label_category_id: number;
+    label_category: LabelCategory | null;
     keywords_count: number;
     created_at: string;
 }
@@ -64,18 +90,25 @@ interface PaginatedLabels {
 
 interface LabelListProps {
     labels: PaginatedLabels;
+    labelCategories: LabelCategory[];
     filters: {
         search: string;
+        label_category_id?: string;
         per_page: number;
     };
 }
 
-export default function LabelList({ labels, filters }: LabelListProps) {
+export default function LabelList({ labels, labelCategories, filters }: LabelListProps) {
     const [searchTerm, setSearchTerm] = React.useState(filters.search || '');
+    const [categoryFilter, setCategoryFilter] = React.useState(filters.label_category_id || 'all');
 
     // Dialog state
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [editingLabel, setEditingLabel] = React.useState<Label | null>(null);
+
+    // Label Category modal & form state
+    const [categoryDialogOpen, setCategoryDialogOpen] = React.useState(false);
+    const [editingCategory, setEditingCategory] = React.useState<LabelCategory | null>(null);
 
     // Form hooks
     const {
@@ -89,6 +122,14 @@ export default function LabelList({ labels, filters }: LabelListProps) {
         reset,
         clearErrors,
     } = useForm({
+        label_category_id: '',
+        code: '',
+        en: '',
+        fr: '',
+        ar: '',
+    });
+
+    const categoryForm = useForm({
         code: '',
         en: '',
         fr: '',
@@ -97,14 +138,21 @@ export default function LabelList({ labels, filters }: LabelListProps) {
 
     const openAddDialog = () => {
         setEditingLabel(null);
-        reset();
         clearErrors();
+        setData({
+            label_category_id: categoryFilter && categoryFilter !== 'all' ? categoryFilter : '',
+            code: '',
+            en: '',
+            fr: '',
+            ar: '',
+        });
         setDialogOpen(true);
     };
 
     const openEditDialog = (label: Label) => {
         setEditingLabel(label);
         setData({
+            label_category_id: label.label_category_id?.toString() || '',
             code: label.code,
             en: label.en,
             fr: label.fr,
@@ -133,6 +181,59 @@ export default function LabelList({ labels, filters }: LabelListProps) {
         }
     };
 
+    const handleCategorySubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingCategory) {
+            categoryForm.put(UpsertLabelCategoryController.update.url(editingCategory.id), {
+                onSuccess: () => {
+                    setEditingCategory(null);
+                    categoryForm.reset();
+                },
+            });
+        } else {
+            categoryForm.post(UpsertLabelCategoryController.store.url(), {
+                onSuccess: () => {
+                    categoryForm.reset();
+                },
+            });
+        }
+    };
+
+    const startEditCategory = (cat: LabelCategory) => {
+        setEditingCategory(cat);
+        categoryForm.setData({
+            code: cat.code,
+            en: cat.en,
+            fr: cat.fr,
+            ar: cat.ar,
+        });
+    };
+
+    const cancelEditCategory = () => {
+        setEditingCategory(null);
+        categoryForm.reset();
+    };
+
+    const handleDeleteCategory = (catId: number) => {
+        if (confirm('Are you sure you want to delete this category? Associated labels will have their category cleared.')) {
+            router.delete(UpsertLabelCategoryController.destroy.url(catId), {
+                onSuccess: () => {
+                    if (editingCategory?.id === catId) {
+                        cancelEditCategory();
+                    }
+                }
+            });
+        }
+    };
+
+    const handleCategoryDialogOpenChange = (open: boolean) => {
+        setCategoryDialogOpen(open);
+        if (!open) {
+            setEditingCategory(null);
+            categoryForm.reset();
+        }
+    };
+
     const handleDeleteLabel = (labelId: number) => {
         if (
             confirm(
@@ -143,10 +244,13 @@ export default function LabelList({ labels, filters }: LabelListProps) {
         }
     };
 
-    const applySearch = (search = searchTerm) => {
+    const applySearch = (search = searchTerm, catFilter = categoryFilter) => {
         router.get(
             '/admin/labels',
-            { search: search || undefined },
+            {
+                search: search || undefined,
+                label_category_id: catFilter === 'all' ? undefined : catFilter,
+            },
             { preserveState: true, preserveScroll: true, replace: true },
         );
     };
@@ -154,11 +258,16 @@ export default function LabelList({ labels, filters }: LabelListProps) {
     React.useEffect(() => {
         const timer = setTimeout(() => {
             if (searchTerm !== (filters.search || '')) {
-                applySearch(searchTerm);
+                applySearch(searchTerm, categoryFilter);
             }
         }, 450);
         return () => clearTimeout(timer);
     }, [searchTerm]);
+
+    const handleCategoryFilterChange = (value: string) => {
+        setCategoryFilter(value);
+        applySearch(searchTerm, value);
+    };
 
     return (
         <>
@@ -178,10 +287,12 @@ export default function LabelList({ labels, filters }: LabelListProps) {
                     <div>
                         <Button
                             className="h-10 shrink-0 gap-1.5 px-4 font-bold shadow-md"
-                            onClick={openAddDialog}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCategoryDialogOpen(true)}
                         >
-                            <IconPlus className="size-4 stroke-[2.5]" />
-                            <span>Add New Label</span>
+                            <IconPlus className="size-4" />
+                            <span>New Category</span>
                         </Button>
                     </div>
                 </div>
@@ -190,23 +301,70 @@ export default function LabelList({ labels, filters }: LabelListProps) {
                 <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-xs">
                     {/* Search bar */}
                     <div className="flex flex-col items-center justify-between gap-4 border-b bg-muted/20 p-4 sm:flex-row">
-                        <div className="relative w-full sm:max-w-xs">
-                            <IconSearch className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search code or translation..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="h-10 w-full bg-background pl-9"
-                            />
+                        <div className="flex w-full flex-1 flex-col items-center gap-2 sm:flex-row">
+                            <div className="relative w-full sm:max-w-xs">
+                                <IconSearch className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search code or translation..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="h-10 w-full bg-background pl-9"
+                                />
+                            </div>
+
+                            <Select
+                                value={categoryFilter}
+                                onValueChange={handleCategoryFilterChange}
+                            >
+                                <SelectTrigger className="h-10 w-full bg-background sm:w-56">
+                                    <SelectValue placeholder="All Categories" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Categories</SelectItem>
+                                    {labelCategories.map((cat) => (
+                                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                                            {cat.en} ({cat.code})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            {(searchTerm || categoryFilter !== 'all') && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSearchTerm('');
+                                        setCategoryFilter('all');
+                                        router.get('/admin/labels', {}, { preserveState: true, replace: true });
+                                    }}
+                                    className="h-10 px-3 text-xs font-semibold hover:bg-muted"
+                                >
+                                    Clear Filters
+                                </Button>
+                            )}
                         </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => applySearch(searchTerm)}
-                        >
-                            <IconRefresh className="size-4" />
-                            <span>Refresh</span>
-                        </Button>
+
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySearch(searchTerm, categoryFilter)}
+                            >
+                                <IconRefresh className="size-4" />
+                                <span>Refresh</span>
+                            </Button>
+
+                            <Button
+                                className="h-10 border-indigo-500/30 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-500/20 dark:text-indigo-400 dark:hover:bg-indigo-950/20"
+                                variant="outline"
+                                size="sm"
+                                onClick={openAddDialog}
+                            >
+                                <IconPlus className="size-4 stroke-[2.5]" />
+                                <span>Add New Label</span>
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Table Element */}
@@ -216,6 +374,9 @@ export default function LabelList({ labels, filters }: LabelListProps) {
                                 <TableRow>
                                     <TableHead className="py-4 pl-6">
                                         System Code
+                                    </TableHead>
+                                    <TableHead className="py-4">
+                                        Category
                                     </TableHead>
                                     <TableHead className="py-4">
                                         <div className="flex items-center gap-1">
@@ -246,6 +407,18 @@ export default function LabelList({ labels, filters }: LabelListProps) {
                                         >
                                             <TableCell className="py-4 pl-6 text-xs font-extrabold tracking-wider text-foreground uppercase">
                                                 {lbl.code}
+                                            </TableCell>
+                                            <TableCell className="py-4 text-xs font-medium text-foreground">
+                                                {lbl.label_category ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-indigo-500/20 bg-indigo-500/5 px-2.5 py-0.5 text-xs font-bold text-indigo-600 dark:text-indigo-400"
+                                                    >
+                                                        {lbl.label_category.en}
+                                                    </Badge>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">-</span>
+                                                )}
                                             </TableCell>
                                             <TableCell className="py-4 text-xs font-semibold text-foreground">
                                                 {lbl.en}
@@ -313,7 +486,7 @@ export default function LabelList({ labels, filters }: LabelListProps) {
                                 ) : (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={6}
+                                            colSpan={7}
                                             className="py-12 text-center text-muted-foreground"
                                         >
                                             <div className="flex flex-col items-center justify-center gap-3">
@@ -399,6 +572,42 @@ export default function LabelList({ labels, filters }: LabelListProps) {
                         </DialogHeader>
 
                         <div className="grid grid-cols-1 gap-4 py-2">
+                            {/* Label Category */}
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                        Label Category
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCategoryDialogOpen(true)}
+                                        className="text-xs font-semibold text-primary hover:underline"
+                                    >
+                                        + New Category
+                                    </button>
+                                </div>
+                                <Select
+                                    value={data.label_category_id}
+                                    onValueChange={(val) => setData('label_category_id', val)}
+                                >
+                                    <SelectTrigger className="h-10 w-full bg-background">
+                                        <SelectValue placeholder="Select Category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {labelCategories.map((cat) => (
+                                            <SelectItem key={cat.id} value={cat.id.toString()}>
+                                                {cat.en} ({cat.code})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.label_category_id && (
+                                    <span className="text-xs font-semibold text-rose-500">
+                                        {errors.label_category_id}
+                                    </span>
+                                )}
+                            </div>
+
                             {/* System Code */}
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
@@ -506,13 +715,200 @@ export default function LabelList({ labels, filters }: LabelListProps) {
                                 {processing
                                     ? 'Saving...'
                                     : editingLabel
-                                      ? 'Save Changes'
-                                      : 'Create Label'}
+                                        ? 'Save Changes'
+                                        : 'Create Label'}
                             </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Add Label Category Sheet */}
+            <Sheet open={categoryDialogOpen} onOpenChange={handleCategoryDialogOpenChange}>
+                <SheetContent side="right" className="bg-card w-full sm:max-w-md flex flex-col h-full overflow-y-auto border-l shadow-xl p-6">
+                    <form
+                        onSubmit={handleCategorySubmit}
+                        className="flex flex-col gap-4"
+                    >
+                        <SheetHeader>
+                            <SheetTitle className="text-lg font-extrabold text-foreground">
+                                {editingCategory ? 'Edit Category' : 'Manage Categories'}
+                            </SheetTitle>
+                            <SheetDescription className="text-xs text-muted-foreground">
+                                {editingCategory 
+                                    ? 'Modify category properties.' 
+                                    : 'Create and manage categories to group labels.'}
+                            </SheetDescription>
+                        </SheetHeader>
+
+                        <div className="grid grid-cols-1 gap-4 py-2 border-b pb-4">
+                            <div className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                {editingCategory ? 'Edit Category Details' : 'Add New Category'}
+                            </div>
+
+                            {/* System Code */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                    System Code
+                                </label>
+                                <Input
+                                    placeholder="e.g. MARKETING"
+                                    value={categoryForm.data.code}
+                                    onChange={(e) =>
+                                        categoryForm.setData(
+                                            'code',
+                                            e.target.value.toUpperCase(),
+                                        )
+                                    }
+                                    required
+                                    className="h-10 bg-background"
+                                />
+                                {categoryForm.errors.code && (
+                                    <span className="text-xs font-semibold text-rose-500">
+                                        {categoryForm.errors.code}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* English */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                    English (EN)
+                                </label>
+                                <Input
+                                    placeholder="e.g. Marketing"
+                                    value={categoryForm.data.en}
+                                    onChange={(e) =>
+                                        categoryForm.setData('en', e.target.value)
+                                    }
+                                    required
+                                    className="h-10 bg-background"
+                                />
+                                {categoryForm.errors.en && (
+                                    <span className="text-xs font-semibold text-rose-500">
+                                        {categoryForm.errors.en}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* French */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                    French (FR)
+                                </label>
+                                <Input
+                                    placeholder="e.g. Marketing"
+                                    value={categoryForm.data.fr}
+                                    onChange={(e) =>
+                                        categoryForm.setData('fr', e.target.value)
+                                    }
+                                    required
+                                    className="h-10 bg-background"
+                                />
+                                {categoryForm.errors.fr && (
+                                    <span className="text-xs font-semibold text-rose-500">
+                                        {categoryForm.errors.fr}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Arabic */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-right text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                    Arabic (AR)
+                                </label>
+                                <Input
+                                    placeholder="مثال: تسويق"
+                                    value={categoryForm.data.ar}
+                                    onChange={(e) =>
+                                        categoryForm.setData('ar', e.target.value)
+                                    }
+                                    required
+                                    dir="rtl"
+                                    className="h-10 bg-background text-right"
+                                />
+                                {categoryForm.errors.ar && (
+                                    <span className="text-right text-xs font-semibold text-rose-500">
+                                        {categoryForm.errors.ar}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex justify-end gap-2 mt-2">
+                                {editingCategory && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={cancelEditCategory}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                )}
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={categoryForm.processing}
+                                    className="font-semibold shadow-xs"
+                                >
+                                    {categoryForm.processing ? 'Saving...' : editingCategory ? 'Save Changes' : 'Create Category'}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 pt-2">
+                            <div className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                Existing Categories ({labelCategories.length})
+                            </div>
+                            {labelCategories.length > 0 ? (
+                                <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+                                    {labelCategories.map((cat) => (
+                                        <div key={cat.id} className="flex items-center justify-between rounded-lg border bg-muted/15 p-2 text-sm transition-colors hover:bg-muted/30">
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-foreground">{cat.en}</span>
+                                                <span className="text-[10px] font-mono text-muted-foreground">{cat.code}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="xs"
+                                                    className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                                                    onClick={() => startEditCategory(cat)}
+                                                >
+                                                    <IconEdit className="size-3.5" />
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="xs"
+                                                    className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-600"
+                                                    onClick={() => handleDeleteCategory(cat.id)}
+                                                >
+                                                    <IconTrash className="size-3.5" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className="text-xs text-muted-foreground">No categories defined yet.</span>
+                            )}
+                        </div>
+
+                        <SheetFooter className="mt-2 border-t pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleCategoryDialogOpenChange(false)}
+                                disabled={categoryForm.processing}
+                            >
+                                Close
+                            </Button>
+                        </SheetFooter>
+                    </form>
+                </SheetContent>
+            </Sheet>
         </>
     );
 }

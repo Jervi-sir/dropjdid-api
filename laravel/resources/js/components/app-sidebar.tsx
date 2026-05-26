@@ -46,6 +46,7 @@ import BecomeCreatorController from '@/actions/App/Http/Controllers/Admin/UserSu
 import BecomeSgmController from '@/actions/App/Http/Controllers/Admin/UserSupportRequest/BecomeSgmController';
 import { Link } from '@inertiajs/react';
 import { IconUserCheck } from '@tabler/icons-react';
+import ListPrizesController from '@/actions/App/Http/Controllers/Admin/Prize/ListPrizesController';
 
 const data = {
     user: {
@@ -92,6 +93,11 @@ const data = {
         {
             title: 'Friendships',
             url: ListFriendshipsController.url(),
+            icon: IconFriends,
+        },
+        {
+            title: 'Prizes',
+            url: ListPrizesController.url(),
             icon: IconFriends,
         },
     ],

@@ -7,6 +7,16 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/*
+|--------------------------------------------------------------------------
+| Todo
+|--------------------------------------------------------------------------
+|
+| push the delete drop into a queue
+|
+*/
+
+
 class DeleteProductController extends Controller
 {
     /**
@@ -30,6 +40,18 @@ class DeleteProductController extends Controller
                 'status' => 'error',
                 'message' => 'Unauthorized action.',
             ], 403);
+        }
+
+        // Check drops associated with this product
+        $drops = $product->drops;
+        foreach ($drops as $drop) {
+            $hasOtherProducts = $drop->products()
+                ->where('products.id', '!=', $product->id)
+                ->exists();
+
+            if (!$hasOtherProducts) {
+                $drop->delete();
+            }
         }
 
         // Perform soft delete

@@ -51,7 +51,7 @@ class ParticipatePrizeController extends Controller
                 ],
                 [
                     'amount_paid' => $prize->joining_price,
-                    'status' => PrizeJoining::STATUS_JOINED,
+                    'status' => PrizeJoining::STATUS_PENDING,
                 ],
             );
         });
@@ -59,7 +59,7 @@ class ParticipatePrizeController extends Controller
         $prize->loadCount('joinings');
         $prize->load([
             'creator',
-            'joinings' => fn ($query) => $query->where('user_id', $user->id),
+            'joinings' => fn($query) => $query->where('user_id', $user->id),
         ]);
 
         return response()->json([

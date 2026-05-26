@@ -12,7 +12,6 @@ class ShowCurrentPrizeController extends Controller
     public function current(Request $request): JsonResponse
     {
         $prize = $this->resolveCurrentPrize($request);
-
         return response()->json([
             'data' => $prize?->formatForApi($request->user()),
         ]);
@@ -70,7 +69,7 @@ class ShowCurrentPrizeController extends Controller
             ->withCount('joinings')
             ->when($user !== null, function ($query) use ($user): void {
                 $query->withExists([
-                    'joinings as is_joined' => fn ($query) => $query->where('user_id', $user->id),
+                    'joinings as is_joined' => fn($query) => $query->where('user_id', $user->id),
                 ]);
             })
             ->with([

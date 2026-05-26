@@ -15,6 +15,7 @@ class UpsertLabelController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'label_category_id' => 'required|exists:label_categories,id',
             'code' => 'required|string|unique:labels,code',
             'en' => 'required|string',
             'fr' => 'required|string',
@@ -32,6 +33,7 @@ class UpsertLabelController extends Controller
     public function update(Request $request, Label $label): RedirectResponse
     {
         $validated = $request->validate([
+            'label_category_id' => 'required|exists:label_categories,id',
             'code' => 'required|string|unique:labels,code,'.$label->id,
             'en' => 'required|string',
             'fr' => 'required|string',

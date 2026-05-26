@@ -71,16 +71,27 @@ class UpsertStoreController extends Controller
             $message = 'Store creation request submitted successfully.';
         }
 
+        $store->load('wilaya');
+
         return response()->json([
             'data' => [
                 'id' => $store->id,
+                'wilaya_id' => $store->wilaya_id,
                 'store_name' => $store->store_name,
                 'phone_number' => $store->phone_number,
-                'status' => $store->status,
-                'wilaya_id' => $store->wilaya_id,
+                'logo' => $store->logo,
+                'status' => $store->status_details,
+                'is_verified' => $store->is_verified,
+                'wilaya' => $store->wilaya ? [
+                    'id' => $store->wilaya->id,
+                    'code' => $store->wilaya->code,
+                    'number' => $store->wilaya->number,
+                    'en' => $store->wilaya->en,
+                    'fr' => $store->wilaya->fr,
+                    'ar' => $store->wilaya->ar,
+                ] : null,
             ],
             'message' => $message,
         ], $isUpdate ? 200 : 201);
-
     }
 }

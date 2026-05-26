@@ -50,10 +50,16 @@ class WalletController extends Controller
             return response()->json(['message' => 'Invalid password'], 422);
         }
 
-        $wallet = $store->balanceWallet;
-        if (! $wallet) {
-            return response()->json(['message' => 'Wallet not found'], 404);
-        }
+        $wallet = $store->balanceWallet()->firstOrCreate([
+            'store_id' => $store->id,
+            'type' => StoreWallet::TYPE_BALANCE,
+        ], [
+            'balance' => 0,
+            'pending_balance' => 0,
+            'currency' => 'DZD',
+            'status' => StoreWallet::STATUS_NEW,
+            'is_identity_verified' => false,
+        ]);
 
         $wallet->update([
             'status' => StoreWallet::STATUS_PENDING,
@@ -65,7 +71,7 @@ class WalletController extends Controller
         ]);
     }
 
-    public function listTransactions(Request $request, $store_id)
+    public function listTransactions(Request $request, int $store_id)
     {
         $store = Store::where('id', $store_id)
             ->where('user_id', $request->user()->id)
@@ -104,7 +110,7 @@ class WalletController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'method' => 'required|in:'.implode(',', [
+            'method' => 'required|in:' . implode(',', [
                 'baridimob',
                 'ccp',
                 'bank_transfer',
@@ -145,7 +151,7 @@ class WalletController extends Controller
                 'amount' => $request->amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceAfter,
-                'title' => 'Withdrawal Request ('.ucfirst($request->method).')',
+                'title' => 'Withdrawal Request (' . ucfirst($request->method) . ')',
                 'metadata' => [
                     'method' => $request->method,
                     'payment_details' => $request->payment_details,

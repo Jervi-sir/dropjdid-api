@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\Auth\RegisterController;
 use App\Http\Controllers\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Admin\Drops\ListDropsController;
 use App\Http\Controllers\Admin\Drops\ShowDropController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\Admin\Labels\ListLabelsController;
 use App\Http\Controllers\Admin\Labels\ShowLabelController;
 use App\Http\Controllers\Admin\Labels\UpsertKeywordController;
 use App\Http\Controllers\Admin\Labels\UpsertLabelController;
+use App\Http\Controllers\Admin\Labels\UpsertLabelCategoryController;
 use App\Http\Controllers\Admin\Products\ListProductsController;
 use App\Http\Controllers\Admin\Products\ShowProductController;
 use App\Http\Controllers\Admin\Products\StatsController;
@@ -22,14 +25,26 @@ use App\Http\Controllers\Admin\UserSupportRequest\BecomeCreatorController;
 use App\Http\Controllers\Admin\UserSupportRequest\BecomeSgmController;
 use App\Http\Controllers\Admin\Wallets\ListWalletsController;
 use App\Http\Controllers\Admin\Wallets\ShowWalletController;
+use App\Http\Controllers\Admin\Prize\ListPrizesController;
+use App\Http\Controllers\Admin\Prize\UpsertPrizeController;
+use App\Http\Controllers\Admin\Prize\ShowPrizeController;
+use App\Http\Controllers\Admin\Prize\PickWinnerController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
+    'canRegister' => true,
 ])->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['admin.guest'])->group(function () {
+    Route::get('login', [LoginController::class, 'create'])->name('login');
+    Route::post('login', [LoginController::class, 'store'])->name('login.store');
+    Route::get('register', [RegisterController::class, 'create'])->name('register');
+    Route::post('register', [RegisterController::class, 'store'])->name('register.store');
+});
+
+Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+Route::middleware(['admin.auth'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
     Route::get('admin/dashboard', AdminDashboardController::class)->name('admin.dashboard');
     Route::get('admin/drops', ListDropsController::class)->name('admin.drops.index');
@@ -64,6 +79,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('admin/labels', [UpsertLabelController::class, 'store'])->name('admin.labels.store');
     Route::put('admin/labels/{label}', [UpsertLabelController::class, 'update'])->name('admin.labels.update');
     Route::delete('admin/labels/{label}', [UpsertLabelController::class, 'destroy'])->name('admin.labels.destroy');
+    Route::post('admin/label-categories', [UpsertLabelCategoryController::class, 'store'])->name('admin.label_categories.store');
+    Route::put('admin/label-categories/{label_category}', [UpsertLabelCategoryController::class, 'update'])->name('admin.label_categories.update');
+    Route::delete('admin/label-categories/{label_category}', [UpsertLabelCategoryController::class, 'destroy'])->name('admin.label_categories.destroy');
 
     // Label Keywords Management
     Route::get('admin/labels/{label}/keywords', ShowLabelController::class)->name('admin.labels.show');
@@ -89,6 +107,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('admin/friendships/{friendship}', [ActionFriendshipController::class, 'update'])->name('admin.friendships.update');
     Route::delete('admin/friendships/{friendship}', [ActionFriendshipController::class, 'destroy'])->name('admin.friendships.destroy');
 
+    // Prizes Management
+    Route::get('admin/prizes', ListPrizesController::class)->name('admin.prizes.index');
+    Route::get('admin/prizes/create', [UpsertPrizeController::class, 'create'])->name('admin.prizes.create');
+    Route::post('admin/prizes', [UpsertPrizeController::class, 'store'])->name('admin.prizes.store');
+    Route::get('admin/prizes/{prize}/edit', [UpsertPrizeController::class, 'edit'])->name('admin.prizes.edit');
+    Route::put('admin/prizes/{prize}', [UpsertPrizeController::class, 'update'])->name('admin.prizes.update');
+    Route::get('admin/prizes/{prize}', [ShowPrizeController::class, 'show'])->name('admin.prizes.show');
+    Route::get('admin/prizes/{prize}/pick-winner', [PickWinnerController::class, 'raffleView'])->name('admin.prizes.pick_winner_view');
+    Route::post('admin/prizes/{prize}/pick-winner', [PickWinnerController::class, 'draw'])->name('admin.prizes.pick_winner');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
