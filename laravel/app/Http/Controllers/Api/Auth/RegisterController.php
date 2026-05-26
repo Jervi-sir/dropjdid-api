@@ -23,14 +23,7 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8'],
         ]);
 
-        $role = Role::query()->firstOrCreate(
-            ['code' => 'user'],
-            [
-                'en' => 'User',
-                'fr' => 'Utilisateur',
-                'ar' => 'مستخدم',
-            ]
-        );
+        $role = Role::where('code', Role::CLIENT)->first();
 
         $user = User::query()->create([
             'username' => $validated['username'],

@@ -82,7 +82,7 @@ test('clients can search published products with pagination', function () {
     foreach ([$productOne, $productTwo] as $product) {
         ProductImage::query()->create([
             'product_id' => $product->id,
-            'image' => 'products/' . $product->id . '.jpg',
+            'image' => 'products/'.$product->id.'.jpg',
             'sort_order' => 0,
             'is_main' => true,
         ]);

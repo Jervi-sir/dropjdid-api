@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserSupportRequest extends Model
 {
@@ -38,11 +39,17 @@ class UserSupportRequest extends Model
 
     public const TARGET_CONTACT_SUPPORT = 3;
 
+    public const TARGET_STORE_FORGOT_PASSWORD = 4;
+
+    public const TARGET_DELETE_ACCOUNT = 5;
+
     public const TARGETS = [
         self::TARGET_FORGOT_PASSWORD => 'forgot-password',
         self::TARGET_BECOME_CREATOR => 'become-creator',
         self::TARGET_BECOME_SGM => 'become-sgm',
         self::TARGET_CONTACT_SUPPORT => 'contact-support',
+        self::TARGET_STORE_FORGOT_PASSWORD => 'store-forgot-password',
+        self::TARGET_DELETE_ACCOUNT => 'delete-account',
     ];
 
     protected $fillable = [
@@ -60,5 +67,10 @@ class UserSupportRequest extends Model
         return [
             'reviewed_at' => 'datetime',
         ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

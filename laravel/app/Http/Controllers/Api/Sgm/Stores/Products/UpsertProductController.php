@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class UpsertProductController extends Controller
 {
-    public function __invoke(Request $request, ?Product $product = null)
+    public function __invoke(Request $request, ?int $product = null)
     {
         $validated = $request->validate([
             'store_id' => 'required|exists:stores,id',
@@ -34,8 +34,15 @@ class UpsertProductController extends Controller
             'keywords.*.keyword_id' => 'required|exists:keywords,id',
         ]);
 
+        $product = $product !== null ? Product::find($product) : null;
+
         // Map string status to integer value
         $validated['status'] = array_search($validated['status'], Product::STATUSES);
+
+        // Intercept published status from creators and make it pending approval
+        if ($validated['status'] === Product::STATUS_PUBLISHED) {
+            $validated['status'] = Product::STATUS_PENDING;
+        }
 
         return DB::transaction(function () use ($validated, $product) {
             if ($product) {

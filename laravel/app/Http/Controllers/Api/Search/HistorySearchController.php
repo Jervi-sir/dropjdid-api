@@ -21,7 +21,7 @@ class HistorySearchController extends Controller
 
         $validated = $request->validate([
             'query' => ['required', 'string', 'max:255'],
-            'type' => ['nullable', 'string', 'in:' . implode(',', SearchHistory::TYPES)],
+            'type' => ['nullable', 'string', 'in:'.implode(',', SearchHistory::TYPES)],
         ]);
 
         $query = trim($validated['query']);

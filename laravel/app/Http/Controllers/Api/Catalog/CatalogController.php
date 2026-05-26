@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Gender;
 use App\Models\Keyword;
 use App\Models\Label;
+use App\Models\LabelCategory;
 use App\Models\NotificationType;
 use App\Models\PaymentMethod;
 use App\Models\Quality;
@@ -36,6 +37,7 @@ class CatalogController extends Controller
             'wilayas' => Wilaya::class,
             'labels' => Label::class,
             'keywords' => Keyword::class,
+            'label_categories' => LabelCategory::class,
         ];
 
         $requestedTypes = $request->query('types');
@@ -66,6 +68,26 @@ class CatalogController extends Controller
 
             if ($key === 'labels' && $request->boolean('with_keywords')) {
                 $query->with('keywords');
+            }
+
+            if ($key === 'label_categories') {
+                if ($request->boolean('with_labels')) {
+                    if ($request->boolean('with_keywords')) {
+                        $query->with('labels.keywords');
+                    } else {
+                        $query->with('labels');
+                    }
+                }
+
+                $perPage = $request->integer('per_page', 15);
+                $paginated = $query->paginate($perPage);
+
+                $response[$key] = [
+                    'data' => collect($paginated->items())->map(fn ($item) => method_exists($item, 'format') ? $item->format() : $item->toArray()),
+                    'next_page' => $paginated->currentPage() < $paginated->lastPage() ? $paginated->currentPage() + 1 : null,
+                ];
+
+                continue;
             }
 
             if ($key === 'keywords') {

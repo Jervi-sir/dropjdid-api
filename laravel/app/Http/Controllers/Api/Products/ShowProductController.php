@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\Products;
 
 use App\Http\Controllers\Controller;
+use App\Models\Drop;
 use App\Models\Product;
+use App\Models\SavedLabel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,7 +20,7 @@ class ShowProductController extends Controller
         $product->load([
             'images',
             'drops' => function ($query) {
-                $query->where('status', \App\Models\Drop::STATUS_PUBLISHED);
+                $query->where('status', Drop::STATUS_PUBLISHED);
             },
             'variants.size',
             'store.user',
@@ -47,8 +49,8 @@ class ShowProductController extends Controller
                 'en' => $label->en,
                 'fr' => $label->fr,
                 'ar' => $label->ar,
-                'is_liked' => $userId !== null && \App\Models\SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists(),
-                'nb_likes' => \App\Models\SavedLabel::where('label_id', $label->id)->count(),
+                'is_liked' => $userId !== null && SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists(),
+                'nb_likes' => SavedLabel::where('label_id', $label->id)->count(),
             ])
             ->all();
 

@@ -21,14 +21,14 @@ class MyProfileController extends Controller
 
         $isUser = $user->roles->contains('code', Role::USER);
         $isCreator = $user->roles->contains('code', Role::CREATOR);
-        $isSgm = $user->roles->contains('code', Role::STORE);
+        $isSgm = $user->roles->contains('code', Role::SGM);
 
         $friendsCount = $user->sentFriendships()
             ->where('status', Friendship::STATUS_ACCEPTED)
             ->count()
             + $user->receivedFriendships()
-                ->where('status', Friendship::STATUS_ACCEPTED)
-                ->count();
+            ->where('status', Friendship::STATUS_ACCEPTED)
+            ->count();
 
         $followedCreatorsCount = $user->followedCreators()->count();
 
@@ -36,8 +36,8 @@ class MyProfileController extends Controller
             ->where('user_id', $user->id)
             ->count()
             + SavedDrop::query()
-                ->where('user_id', $user->id)
-                ->count();
+            ->where('user_id', $user->id)
+            ->count();
 
         $followersCount = $user->followers()->count();
         $storesCount = $user->stores()->count();
@@ -97,7 +97,7 @@ class MyProfileController extends Controller
                 'phone_number' => $user->phone_number,
                 'email' => $user->email,
 
-                'roles' => $user->roles->map(fn ($role) => [
+                'roles' => $user->roles->map(fn($role) => [
                     'id' => $role->id,
                     'code' => $role->code,
                     'name' => $role->en,

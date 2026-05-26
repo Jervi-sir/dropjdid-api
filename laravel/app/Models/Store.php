@@ -38,6 +38,32 @@ class Store extends Model
         ];
     }
 
+    public function getStatusDetailsAttribute(): array
+    {
+        $statusVal = $this->status;
+
+        if (is_numeric($statusVal)) {
+            $statusCode = self::STATUSES[(int) $statusVal] ?? 'pending';
+        } else {
+            $statusCode = is_string($statusVal) ? $statusVal : 'pending';
+        }
+
+        return [
+            'code' => $statusCode,
+            'en' => ucfirst($statusCode),
+            'fr' => match ($statusCode) {
+                'active' => 'Actif',
+                'suspended' => 'Suspendu',
+                default => 'En attente',
+            },
+            'ar' => match ($statusCode) {
+                'active' => 'نشط',
+                'suspended' => 'معلق',
+                default => 'قيد الانتظار',
+            },
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

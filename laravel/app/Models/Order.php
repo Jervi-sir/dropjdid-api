@@ -27,6 +27,8 @@ class Order extends Model
 
     public const STATUS_RETURNED = 6;
 
+    public const STATUS_PURCHASED = 7;
+
     public const STATUS = [
         self::STATUS_PENDING => 'pending',
         self::STATUS_CONFIRMED => 'confirmed',
@@ -35,6 +37,8 @@ class Order extends Model
         self::STATUS_DELIVERED => 'delivered',
         self::STATUS_CANCELLED => 'cancelled',
         self::STATUS_RETURNED => 'returned',
+        self::STATUS_PURCHASED => 'purhcased',
+
     ];
 
     public const DELIVERY_METHOD_HOME = 0;

@@ -11,11 +11,15 @@ class Role extends Model
 {
     use FormatsModel, HasFactory;
 
-    public const USER = 'user';
+    public const ADMIN = 'admin';
+
+    public const CLIENT = 'client';
+
+    public const USER = 'client';
 
     public const CREATOR = 'creator';
 
-    public const STORE = 'store';
+    public const SGM = 'sgm';
 
     protected $fillable = ['code', 'description', 'en', 'fr', 'ar'];
 

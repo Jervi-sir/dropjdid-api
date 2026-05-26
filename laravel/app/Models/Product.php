@@ -25,11 +25,47 @@ class Product extends Model
 
     public const STATUS_REJECTED = 3;
 
+    public const STATUS_PENDING = 4;
+
     public const STATUSES = [
         self::STATUS_DRAFT => 'draft',
         self::STATUS_PUBLISHED => 'published',
         self::STATUS_ARCHIVED => 'archived',
         self::STATUS_REJECTED => 'rejected',
+        self::STATUS_PENDING => 'pending',
+    ];
+
+    public const STATUS_DETAILS = [
+        self::STATUS_DRAFT => [
+            'code' => 'draft',
+            'en' => 'Draft',
+            'fr' => 'Brouillon',
+            'ar' => 'مسودة',
+        ],
+        self::STATUS_PUBLISHED => [
+            'code' => 'published',
+            'en' => 'Published',
+            'fr' => 'Publié',
+            'ar' => 'منشور',
+        ],
+        self::STATUS_ARCHIVED => [
+            'code' => 'archived',
+            'en' => 'Archived',
+            'fr' => 'Archivé',
+            'ar' => 'مؤرشف',
+        ],
+        self::STATUS_REJECTED => [
+            'code' => 'rejected',
+            'en' => 'Rejected',
+            'fr' => 'Refusé',
+            'ar' => 'مرفوض',
+        ],
+        self::STATUS_PENDING => [
+            'code' => 'pending',
+            'en' => 'Pending Approval',
+            'fr' => 'En attente d\'approbation',
+            'ar' => 'قيد الانتظار',
+        ],
     ];
 
     protected $fillable = ['store_id', 'category_id', 'quality_id', 'name', 'description', 'payment_method_id', 'original_price', 'show_price', 'store_price', 'gender_id', 'status', 'refreshed_at', 'rejection_reason'];
@@ -65,6 +101,16 @@ class Product extends Model
     public function getStatusTextAttribute(): string
     {
         return self::STATUSES[$this->status] ?? 'unknown';
+    }
+
+    public function getStatusDetailsAttribute(): array
+    {
+        return self::STATUS_DETAILS[$this->status] ?? [
+            'code' => 'unknown',
+            'en' => 'Unknown',
+            'fr' => 'Inconnu',
+            'ar' => 'غير معروف',
+        ];
     }
 
     public function store(): BelongsTo

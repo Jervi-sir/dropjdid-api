@@ -26,7 +26,7 @@ class UpsertDropController extends Controller
 
         $validated['status'] = match ($validated['status']) {
             'draft' => Drop::STATUS_DRAFT,
-            'published' => Drop::STATUS_PUBLISHED,
+            'published' => Drop::STATUS_PENDING,
             'ended' => Drop::STATUS_ENDED,
             'cancelled' => Drop::STATUS_CANCELLED,
         };

@@ -22,16 +22,26 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::query()
+        $user = User::withTrashed()
             ->with('roles')
-            ->where('username', $credentials['username'])
-            ->orWhere('email', $credentials['username'])
+            ->where(function ($query) use ($credentials) {
+                $query->where('username', $credentials['username'])
+                      ->orWhere('email', $credentials['username']);
+            })
             ->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'username' => ['The provided credentials are incorrect.'],
             ]);
+        }
+
+        if ($user->deleted_at !== null) {
+            if ($user->deleted_at->addDays(30)->isPast()) {
+                throw ValidationException::withMessages([
+                    'username' => ['This account has been permanently deleted.'],
+                ]);
+            }
         }
 
         return response()->json([

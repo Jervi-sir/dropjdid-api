@@ -21,7 +21,7 @@ class ListProductsController extends Controller
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'status' => ['nullable', 'string', 'max:255'],
-            'excluded_status' => ['nullable', 'string', 'max:255'],
+            'exclude_status' => ['nullable', 'string', 'max:255'],
         ]);
 
         $perPage = $validated['per_page'] ?? 10;
@@ -31,7 +31,7 @@ class ListProductsController extends Controller
             ->with([
                 'images',
                 'store.user',
-                'savedProducts' => fn ($query) => $query->where('user_id', $user->id),
+                'savedProducts' => fn($query) => $query->where('user_id', $user->id),
             ])
             ->latest('id');
 
@@ -42,8 +42,8 @@ class ListProductsController extends Controller
             }
         }
 
-        if (! empty($validated['excluded_status'])) {
-            $statusInt = array_search($validated['excluded_status'], Product::STATUSES);
+        if (! empty($validated['exclude_status'])) {
+            $statusInt = array_search($validated['exclude_status'], Product::STATUSES);
             if ($statusInt !== false) {
                 $productsQuery->where('status', '!=', $statusInt);
             }
@@ -51,40 +51,19 @@ class ListProductsController extends Controller
 
         $products = $productsQuery->simplePaginate($perPage);
 
-        $pendingBanner = Product::query()
-            ->where('store_id', $store->id)
-            ->where('status', Product::STATUS_DRAFT)
-            ->get(['id', 'name'])
-            ->map(fn (Product $product): array => [
-                'product_id' => $product->id,
-                'title' => $product->name,
-            ]);
-
-        $rejectionBanner = Product::query()
-            ->where('store_id', $store->id)
-            ->where('status', Product::STATUS_REJECTED)
-            ->get(['id', 'name'])
-            ->map(fn (Product $product): array => [
-                'product_id' => $product->id,
-                'title' => $product->name,
-            ]);
-
         return response()->json([
-            'data' => collect($products->items())->map(fn (Product $item): array => [
+            'data' => collect($products->items())->map(fn(Product $item): array => [
                 'id' => $item->id,
                 'price' => (float) ($item->show_price ?? $item->store_price ?? $item->original_price ?? 0),
                 'image' => $item->images->sortBy('sort_order')->first()?->image,
-                'status' => $item->status,
-                'status_text' => $item->status_text,
+                'status' => $item->status_details,
                 'user' => [
                     'id' => $item->store?->user?->id,
                     'name' => $item->store?->user?->username,
                 ],
-                'is_saved' => $item->savedProducts->isNotEmpty(),
+                'is_draft' => $item->status === Product::STATUS_DRAFT,
             ])->values(),
             'next_page' => $products->hasMorePages() ? $products->currentPage() + 1 : null,
-            'pending_banner' => $pendingBanner,
-            'rejection_banner' => $rejectionBanner,
         ]);
     }
 }

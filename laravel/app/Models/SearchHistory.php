@@ -60,4 +60,3 @@ class SearchHistory extends Model
         return ['user'];
     }
 }
-

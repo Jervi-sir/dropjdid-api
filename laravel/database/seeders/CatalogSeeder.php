@@ -25,7 +25,7 @@ class CatalogSeeder extends Seeder
             ['code' => 'admin', 'en' => 'Admin', 'fr' => 'Admin', 'ar' => 'مدير'],
             ['code' => 'client', 'en' => 'Client', 'fr' => 'Client', 'ar' => 'زبون'],
             ['code' => 'creator', 'en' => 'Creator', 'fr' => 'Créateur', 'ar' => 'صانع محتوى'],
-            ['code' => 'store', 'en' => 'Store', 'fr' => 'Boutique', 'ar' => 'متجر'],
+            ['code' => 'sgm', 'en' => 'sgm', 'fr' => 'sgm', 'ar' => 'sgm'],
         ];
 
         $this->upsert('roles', $rows);

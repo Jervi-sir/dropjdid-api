@@ -11,17 +11,20 @@ class PrizeJoining extends Model
 {
     use FormatsModel, HasFactory;
 
-    public const STATUS_JOINED = 0;
+    public const STATUS_PENDING = 0;
 
-    public const STATUS_CANCELLED = 1;
+    public const STATUS_JOINED = 1;
 
-    public const STATUS_REFUNDED = 2;
+    public const STATUS_CANCELLED = 2;
 
-    public const STATUS_WINNER = 3;
+    public const STATUS_REFUNDED = 3;
 
-    public const STATUS_LOST = 4;
+    public const STATUS_WINNER = 4;
+
+    public const STATUS_LOST = 5;
 
     public const STATUS = [
+        self::STATUS_PENDING => 'pending',
         self::STATUS_JOINED => 'joined',
         self::STATUS_CANCELLED => 'cancelled',
         self::STATUS_REFUNDED => 'refunded',

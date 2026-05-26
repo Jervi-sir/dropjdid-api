@@ -10,7 +10,6 @@ use App\Models\Product;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 class LabelFeedController extends Controller
 {
@@ -58,10 +57,13 @@ class LabelFeedController extends Controller
         Product::loadFeedRelations($allProducts, $userId);
 
         $labelSections = $labelPaginator->getCollection()
+            ->filter(function (Label $label) use ($payloads): bool {
+                return !$payloads[$label->id]['paginator']->isEmpty();
+            })
             ->map(function (Label $label) use ($payloads, $user): array {
                 $payload = $payloads[$label->id];
                 $formattedProducts = collect($payload['paginator']->items())
-                    ->map(fn(Product $product): array => $product->formatProduct($product, $user));
+                    ->map(fn (Product $product): array => $product->formatProduct($product, $user));
 
                 return $label->formatFeedSection(
                     [
@@ -103,7 +105,7 @@ class LabelFeedController extends Controller
         Product::loadFeedRelations($payload['paginator'], $userId);
 
         $formattedData = collect($payload['paginator']->items())
-            ->map(fn(Product $product): array => $product->formatProduct($product, $user));
+            ->map(fn (Product $product): array => $product->formatProduct($product, $user));
 
         $adsCount = $validated['ads_count'] ?? 4;
 
@@ -122,7 +124,7 @@ class LabelFeedController extends Controller
     private function productsPayloadForLabel(int $labelId, int $page, int $perPage): array
     {
         $paginator = $this->baseProductsQuery()
-            ->whereHas('productKeywords', fn($query) => $query->where('label_id', $labelId))
+            ->whereHas('productKeywords', fn ($query) => $query->where('label_id', $labelId))
             ->latest('id')
             ->simplePaginate($perPage, ['*'], 'page', $page);
 
@@ -146,7 +148,7 @@ class LabelFeedController extends Controller
 
         return LikedProduct::query()
             ->where('user_id', $userId)
-            ->whereHas('product.productKeywords', fn($query) => $query->where('label_id', $labelId))
+            ->whereHas('product.productKeywords', fn ($query) => $query->where('label_id', $labelId))
             ->count();
     }
 }

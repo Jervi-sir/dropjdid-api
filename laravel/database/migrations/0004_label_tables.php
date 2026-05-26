@@ -11,8 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
+
+        Schema::create('label_categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('code');
+            $table->string('en')->nullable();
+            $table->string('fr')->nullable();
+            $table->string('ar')->nullable();
+            $table->string('icon')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('labels', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('label_category_id')->nullable()->constrained()->nullOnDelete();
             $table->string('code');
             $table->string('en')->nullable();
             $table->string('fr')->nullable();
@@ -26,7 +38,6 @@ return new class extends Migration
             $table->string('code');
             $table->timestamps();
         });
-
     }
 
     /**

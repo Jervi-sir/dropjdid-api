@@ -15,24 +15,26 @@ class DatabaseSeeder extends Seeder
         // $this->call(LookupTableSeeder::class);
         // $this->call(DemoDataSeeder::class);
 
-        foreach ([
-            CatalogSeeder::class,
-            // UserSeeder::class,
-            // StoreSeeder::class,
-            LabelSeeder::class,
-            // ProductSeeder::class,
-            // CreatorSeeder::class,
-            // DropSeeder::class,
-            // SaveSeeder::class,
-            PrizeSeeder::class,
-            // OrderSeeder::class,
-            AdvertisementSeeder::class,
-            // ConversationSeeder::class,
-            // SearchSeeder::class,
-            // WalletSeeder::class,
-            // NotificationSeeder::class,
-            // SupportRequestSeeder::class,
-        ] as $seeder) {
+        foreach (
+            [
+                CatalogSeeder::class,
+                // UserSeeder::class,
+                // StoreSeeder::class,
+                LabelSeeder::class,
+                // ProductSeeder::class,
+                // CreatorSeeder::class,
+                // DropSeeder::class,
+                // SaveSeeder::class,
+                PrizeSeeder::class,
+                // OrderSeeder::class,
+                AdvertisementSeeder::class,
+                // ConversationSeeder::class,
+                // SearchSeeder::class,
+                // WalletSeeder::class,
+                // NotificationSeeder::class,
+                // SupportRequestSeeder::class,
+            ] as $seeder
+        ) {
             DB::transaction(fn () => $this->call($seeder));
         }
 

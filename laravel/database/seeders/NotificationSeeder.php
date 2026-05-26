@@ -73,28 +73,28 @@ class NotificationSeeder extends Seeder
         array $friendshipIds,
         array $followerIds
     ): array {
-        if (($code === 'sales' || $code === 'tracking_order') && !empty($orderIds)) {
+        if (($code === 'sales' || $code === 'tracking_order') && ! empty($orderIds)) {
             return [
                 'App\\Models\\Order',
                 fake()->randomElement($orderIds),
             ];
         }
 
-        if ($code === 'withdraw' && !empty($walletTransactionIds)) {
+        if ($code === 'withdraw' && ! empty($walletTransactionIds)) {
             return [
                 'App\\Models\\WalletTransaction',
                 fake()->randomElement($walletTransactionIds),
             ];
         }
 
-        if ($code === 'friend_request' && !empty($friendshipIds)) {
+        if ($code === 'friend_request' && ! empty($friendshipIds)) {
             return [
                 'App\\Models\\Friendship',
                 fake()->randomElement($friendshipIds),
             ];
         }
 
-        if ($code === 'followers' && !empty($followerIds)) {
+        if ($code === 'followers' && ! empty($followerIds)) {
             return [
                 'App\\Models\\CreatorFollower',
                 fake()->randomElement($followerIds),

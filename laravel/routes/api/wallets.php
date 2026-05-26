@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Wallets\WalletController;
 use App\Http\Controllers\Api\Wallets\RefundWalletController;
+use App\Http\Controllers\Api\Wallets\WalletController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('wallets')->middleware('auth:sanctum')->group(function () {
     // Main Balance Wallet

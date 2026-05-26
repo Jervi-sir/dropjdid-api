@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\Products\PaginatedBy;
 
 use App\Http\Controllers\Controller;
 use App\Models\Label;
-use App\Models\LikedProduct;
 use App\Models\Product;
+use App\Models\SavedLabel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,8 +38,8 @@ class ByLabelProductController extends Controller
                 ->limit(10)
                 ->get();
 
-            $nbLikes = \App\Models\SavedLabel::where('label_id', $label->id)->count();
-            $isLiked = $userId !== null && \App\Models\SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists();
+            $nbLikes = SavedLabel::where('label_id', $label->id)->count();
+            $isLiked = $userId !== null && SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists();
 
             return [
                 'type' => 'label',

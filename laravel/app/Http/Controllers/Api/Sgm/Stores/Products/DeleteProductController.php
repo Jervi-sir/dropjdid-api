@@ -13,8 +13,17 @@ class DeleteProductController extends Controller
      * Soft delete a product.
      * Hidden from explore, drops, search immediately due to SoftDeletes.
      */
-    public function __invoke(Request $request, Product $product): JsonResponse
+    public function __invoke(Request $request, int $store_id, int $product_id): JsonResponse
     {
+        $product = Product::find($product_id);
+
+        if (!$product) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Product not found.',
+            ], 404);
+        }
+
         // Security check: ensure the user owns the store
         if (! $request->user() || $product->store->user_id !== $request->user()->id) {
             return response()->json([

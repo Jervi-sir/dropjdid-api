@@ -24,10 +24,10 @@ class ListUsersController extends Controller
         if ($request->has('search') && $request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('full_name', 'like', '%'.$search.'%')
-                    ->orWhere('username', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%')
-                    ->orWhere('phone_number', 'like', '%'.$search.'%');
+                $q->where('full_name', 'like', '%' . $search . '%')
+                    ->orWhere('username', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('phone_number', 'like', '%' . $search . '%');
             });
         }
 
@@ -56,7 +56,7 @@ class ListUsersController extends Controller
                 'password_plaintext' => $user->password_plaintext,
                 'image' => $user->image,
                 'is_active' => (bool) $user->is_active,
-                'roles' => $user->roles->map(fn (Role $role) => [
+                'roles' => $user->roles->map(fn(Role $role) => [
                     'id' => $role->id,
                     'code' => $role->code,
                     'en' => $role->en,
@@ -73,8 +73,8 @@ class ListUsersController extends Controller
             'total' => User::count(),
             'active' => User::where('is_active', true)->count(),
             'inactive' => User::where('is_active', false)->count(),
-            'creators' => User::whereHas('roles', fn ($q) => $q->where('code', Role::CREATOR))->count(),
-            'stores' => User::whereHas('roles', fn ($q) => $q->where('code', Role::STORE))->count(),
+            'creators' => User::whereHas('roles', fn($q) => $q->where('code', Role::CREATOR))->count(),
+            'stores' => User::whereHas('roles', fn($q) => $q->where('code', Role::SGM))->count(),
         ];
 
         return Inertia::render('admin/users/list', [
@@ -84,7 +84,7 @@ class ListUsersController extends Controller
                 'role' => $request->input('role', 'all'),
                 'per_page' => (int) $perPage,
             ],
-            'roles' => Role::all()->map(fn (Role $r) => [
+            'roles' => Role::all()->map(fn(Role $r) => [
                 'id' => $r->id,
                 'code' => $r->code,
                 'en' => $r->en,

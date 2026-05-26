@@ -31,7 +31,7 @@ class DropSeeder extends Seeder
                         'en' => fake()->sentence(),
                         'fr' => fake()->sentence(),
                         'ar' => fake()->sentence(),
-                    ]
+                    ],
                 ]) : null,
                 'created_at' => now(),
                 'updated_at' => now(),

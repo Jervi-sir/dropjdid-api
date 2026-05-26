@@ -25,12 +25,15 @@ class Drop extends Model
 
     public const STATUS_REJECTED = 4;
 
+    public const STATUS_PENDING = 5;
+
     public const STATUSES = [
         self::STATUS_DRAFT => 'draft',
         self::STATUS_PUBLISHED => 'published',
         self::STATUS_ENDED => 'ended',
         self::STATUS_CANCELLED => 'cancelled',
         self::STATUS_REJECTED => 'rejected',
+        self::STATUS_PENDING => 'pending',
     ];
 
     protected $fillable = ['creator_id', 'title', 'description', 'starts_at', 'ends_at', 'status', 'rejection_reason'];
@@ -133,7 +136,7 @@ class Drop extends Model
                 ->map(fn (Product $product): array => [
                     'type' => 'product',
                     'id' => $product->id,
-                    'title' => '@' . $this->creator?->username,
+                    'title' => '@'.$this->creator?->username,
                     'price' => (float) ($product->pivot->drop_price ?? $product->show_price ?? $product->store_price ?? $product->original_price ?? 0),
                     'image' => $product->images->sortBy('sort_order')->first()?->image,
                     'is_saved' => $user !== null && $product->relationLoaded('savedProducts') && $product->savedProducts->isNotEmpty(),

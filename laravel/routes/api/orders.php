@@ -1,16 +1,18 @@
 <?php
 
-use App\Http\Controllers\Api\Orders\GetOrderStatusController;
-use App\Http\Controllers\Api\Orders\ListOrdersController;
-use App\Http\Controllers\Api\Orders\ShowOrderInfoController;
 use App\Http\Controllers\Api\Orders\ClaimOrderIssueController;
+use App\Http\Controllers\Api\Orders\CreateOrderController;
 use App\Http\Controllers\Api\Orders\DeleteOrderController;
 use App\Http\Controllers\Api\Orders\GetAvailableDeliveriesController;
-use App\Http\Controllers\Api\Orders\CreateOrderController;
+use App\Http\Controllers\Api\Orders\GetOrderStatusController;
+use App\Http\Controllers\Api\Orders\ListOrdersController;
 use App\Http\Controllers\Api\Orders\PurchaseProductController;
+use App\Http\Controllers\Api\Orders\ShowOrderInfoController;
+use App\Http\Controllers\Api\Orders\TermsConditionsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('orders')->middleware('auth:sanctum')->group(function () {
+    Route::get('/terms-conditions', TermsConditionsController::class);
     Route::get('/available-deliveries', GetAvailableDeliveriesController::class);
     Route::get('/products/{productId}', [PurchaseProductController::class, 'getProductInfo']);
     Route::post('/products/{productId}/purchase', CreateOrderController::class);

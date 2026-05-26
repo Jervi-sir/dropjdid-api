@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Wallets;
 use App\Http\Controllers\Controller;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
-use App\Models\WithdrawalRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

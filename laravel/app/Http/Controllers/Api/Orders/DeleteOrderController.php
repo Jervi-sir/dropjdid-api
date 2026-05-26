@@ -20,7 +20,7 @@ class DeleteOrderController extends Controller
         $order->delete();
 
         return response()->json([
-            'message' => 'Order deleted from history successfully.'
+            'message' => 'Order deleted from history successfully.',
         ]);
     }
 }

@@ -31,7 +31,7 @@ export default function Welcome({
                     {auth.user ? (
                         <Link
                             href={AdminDashboardController.url()}
-                            className="text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-250 flex items-center gap-1 bg-muted px-4 py-2 rounded-xl border hover:shadow-xs"
+                            className="flex items-center gap-1 rounded-xl border bg-muted px-4 py-2 text-xs font-bold tracking-wider text-muted-foreground uppercase transition-colors duration-250 hover:text-foreground hover:shadow-xs"
                         >
                             Dashboard <IconArrowUpRight className="size-3" />
                         </Link>
@@ -57,9 +57,8 @@ export default function Welcome({
             </header>
 
             {/* Hero Main Content */}
-            <main className="relative z-10 flex-1 flex flex-col justify-center items-center px-6 py-12 text-center max-w-4xl mx-auto">
-                <div className="flex flex-col gap-6 lg:gap-8 items-center">
-
+            <main className="relative z-10 mx-auto flex max-w-4xl flex-1 flex-col items-center justify-center px-6 py-12 text-center">
+                <div className="flex flex-col items-center gap-6 lg:gap-8">
                     {/* Minimalist Micro Tag */}
                     <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[10px] font-extrabold tracking-widest text-indigo-600 uppercase dark:text-indigo-400">
                         Peer Commerce Drop Engine
@@ -82,7 +81,7 @@ export default function Welcome({
                         {auth.user ? (
                             <Link
                                 href={AdminDashboardController.url()}
-                                className="inline-flex items-center justify-center h-11 px-6 rounded-2xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-500 shadow-lg shadow-indigo-600/10 active:scale-[0.98] transition-all duration-200"
+                                className="inline-flex h-11 items-center justify-center rounded-2xl bg-indigo-600 px-6 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 transition-all duration-200 hover:bg-indigo-500 active:scale-[0.98]"
                             >
                                 Enter Console
                             </Link>

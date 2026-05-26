@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Quality;
 use App\Models\Role;
+use App\Models\Size;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -47,7 +48,7 @@ function createOrdersListFixture(): array
     $category = Category::query()->create(['code' => 'shoes', 'en' => 'Shoes']);
     $gender = Gender::query()->create(['code' => 'women', 'en' => 'Women']);
     $quality = Quality::query()->create(['code' => 'original', 'en' => 'Original']);
-    $size = \App\Models\Size::query()->create(['code' => 'm', 'en' => 'M', 'category_id' => $category->id]);
+    $size = Size::query()->create(['code' => 'm', 'en' => 'M', 'category_id' => $category->id]);
 
     $product = Product::query()->create([
         'store_id' => $store->id,

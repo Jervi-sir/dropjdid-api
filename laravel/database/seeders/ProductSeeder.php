@@ -42,7 +42,7 @@ class ProductSeeder extends Seeder
                     'en' => fake()->sentence(),
                     'fr' => fake()->sentence(),
                     'ar' => fake()->sentence(),
-                ]
+                ],
             ]) : null;
 
             $productId = DB::table('products')->insertGetId([

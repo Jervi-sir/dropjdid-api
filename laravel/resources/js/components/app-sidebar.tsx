@@ -42,7 +42,10 @@ import ListStoreWalletsController from '@/actions/App/Http/Controllers/Admin/Sto
 import ListLabelsController from '@/actions/App/Http/Controllers/Admin/Labels/ListLabelsController';
 import ListWalletsController from '@/actions/App/Http/Controllers/Admin/Wallets/ListWalletsController';
 import AdminDashboardController from '@/actions/App/Http/Controllers/Admin/Dashboard/AdminDashboardController';
+import BecomeCreatorController from '@/actions/App/Http/Controllers/Admin/UserSupportRequest/BecomeCreatorController';
+import BecomeSgmController from '@/actions/App/Http/Controllers/Admin/UserSupportRequest/BecomeSgmController';
 import { Link } from '@inertiajs/react';
+import { IconUserCheck } from '@tabler/icons-react';
 
 const data = {
     user: {
@@ -92,86 +95,23 @@ const data = {
             icon: IconFriends,
         },
     ],
-    navClouds: [
-        {
-            title: 'Capture',
-            icon: IconCamera,
-            isActive: true,
-            url: '#',
-            items: [
-                {
-                    title: 'Active Proposals',
-                    url: '#',
-                },
-                {
-                    title: 'Archived',
-                    url: '#',
-                },
-            ],
-        },
-        {
-            title: 'Proposal',
-            icon: IconFileDescription,
-            url: '#',
-            items: [
-                {
-                    title: 'Active Proposals',
-                    url: '#',
-                },
-                {
-                    title: 'Archived',
-                    url: '#',
-                },
-            ],
-        },
-        {
-            title: 'Prompts',
-            icon: IconFileAi,
-            url: '#',
-            items: [
-                {
-                    title: 'Active Proposals',
-                    url: '#',
-                },
-                {
-                    title: 'Archived',
-                    url: '#',
-                },
-            ],
-        },
-    ],
     navSecondary: [
         {
             title: 'Settings',
             url: '#',
             icon: IconSettings,
         },
-        {
-            title: 'Get Help',
-            url: '#',
-            icon: IconHelp,
-        },
-        {
-            title: 'Search',
-            url: '#',
-            icon: IconSearch,
-        },
     ],
     documents: [
         {
-            name: 'Data Library',
-            url: '#',
-            icon: IconDatabase,
+            name: 'Creator Requests',
+            url: BecomeCreatorController.index.url(),
+            icon: IconUserCheck,
         },
         {
-            name: 'Reports',
-            url: '#',
-            icon: IconReport,
-        },
-        {
-            name: 'Word Assistant',
-            url: '#',
-            icon: IconFileWord,
+            name: 'SGM Requests',
+            url: BecomeSgmController.index.url(),
+            icon: IconUserCheck,
         },
     ],
 };

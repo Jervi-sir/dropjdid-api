@@ -47,16 +47,16 @@ test('authenticated users can list their stores with next page', function () {
     ]);
 
     $this->actingAs($user, 'sanctum')
-        ->getJson('/api/stores/my-stores?per_page=1')
+        ->getJson('/api/sgm/stores?per_page=1')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $latestStore->id)
         ->assertJsonPath('data.0.store_name', 'Store Two')
-        ->assertJsonPath('data.0.status', 'pending')
+        ->assertJsonPath('data.0.status.code', 'pending')
         ->assertJsonPath('next_page', 2);
 
     $this->actingAs($user, 'sanctum')
-        ->getJson('/api/stores/my-stores?per_page=10')
+        ->getJson('/api/sgm/stores?per_page=10')
         ->assertOk()
         ->assertJsonCount(2, 'data')
         ->assertJsonPath('next_page', null);

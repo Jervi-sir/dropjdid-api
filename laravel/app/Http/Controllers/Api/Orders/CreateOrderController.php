@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api\Orders;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +29,7 @@ class CreateOrderController extends Controller
 
         $product = Product::with('store')->find($productId);
 
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
@@ -71,7 +70,7 @@ class CreateOrderController extends Controller
                 'user_id' => $request->user()->id,
                 'store_id' => $product->store_id,
                 'wilaya_id' => $request->wilaya_id,
-                'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+                'order_number' => 'ORD-'.strtoupper(Str::random(10)),
                 'payment_method_id' => $product->payment_method_id,
                 'full_name' => $request->full_name,
                 'phone_number' => $request->phone_number,

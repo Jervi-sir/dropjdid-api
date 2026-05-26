@@ -6,18 +6,16 @@ use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UsernameAvailabilityController;
+use App\Http\Controllers\Api\Settings\AccountRestoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-
-    Route::prefix('forgot-password')->middleware('optional-sanctum')->group(function () {
-        Route::get('/', [ForgotPasswordController::class, 'show']);
-        Route::post('/', [ForgotPasswordController::class, 'store']);
-    });
     Route::post('login', LoginController::class);
     Route::post('register', RegisterController::class);
     Route::get('username-availability', UsernameAvailabilityController::class);
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::post('restore-account', AccountRestoreController::class)->middleware(['resolve-soft-deleted']);
+
+    Route::middleware(['resolve-soft-deleted'])->group(function () {
         Route::post('logout', LogoutController::class);
         Route::get('me', MeController::class);
     });

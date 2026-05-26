@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\StoreWallets\ListStoreWalletsController;
 use App\Http\Controllers\Admin\StoreWallets\ShowStoreWalletController;
 use App\Http\Controllers\Admin\Users\ListUsersController;
 use App\Http\Controllers\Admin\Users\ShowUserController;
+use App\Http\Controllers\Admin\UserSupportRequest\BecomeCreatorController;
+use App\Http\Controllers\Admin\UserSupportRequest\BecomeSgmController;
 use App\Http\Controllers\Admin\Wallets\ListWalletsController;
 use App\Http\Controllers\Admin\Wallets\ShowWalletController;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +44,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/users', ListUsersController::class)->name('admin.users.index');
     Route::get('admin/users/{user}', [ShowUserController::class, 'show'])->name('admin.users.show');
     Route::put('admin/users/{user}', [ShowUserController::class, 'update'])->name('admin.users.update');
+
+    Route::get('admin/creators/list-to-approve', [BecomeCreatorController::class, 'index'])->name('admin.creators.list_to_approve');
+    Route::get('admin/creators/become-creator/{supportRequest}', [BecomeCreatorController::class, 'show'])->name('admin.creators.show');
+    Route::post('admin/creators/become-creator/{supportRequest}/approve', [BecomeCreatorController::class, 'approve'])->name('admin.creators.approve');
+    Route::post('admin/creators/become-creator/{supportRequest}/reject', [BecomeCreatorController::class, 'reject'])->name('admin.creators.reject');
+
+    Route::get('admin/sgms/list-to-approve', [BecomeSgmController::class, 'index'])->name('admin.sgms.list_to_approve');
+    Route::get('admin/sgms/become-sgm/{supportRequest}', [BecomeSgmController::class, 'show'])->name('admin.sgms.show');
+    Route::post('admin/sgms/become-sgm/{supportRequest}/approve', [BecomeSgmController::class, 'approve'])->name('admin.sgms.approve');
+    Route::post('admin/sgms/become-sgm/{supportRequest}/reject', [BecomeSgmController::class, 'reject'])->name('admin.sgms.reject');
 
     Route::get('admin/stores', ListStoresController::class)->name('admin.stores.index');
     Route::get('admin/stores/{store}', [ShowStoreController::class, 'show'])->name('admin.stores.show');

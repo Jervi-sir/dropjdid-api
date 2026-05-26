@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\FormatsModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
@@ -12,7 +13,12 @@ class Label extends Model
 {
     use FormatsModel, HasFactory;
 
-    protected $fillable = ['code', 'en', 'fr', 'ar'];
+    protected $fillable = ['code', 'label_category_id', 'en', 'fr', 'ar'];
+
+    public function labelCategory(): BelongsTo
+    {
+        return $this->belongsTo(LabelCategory::class);
+    }
 
     public function keywords(): HasMany
     {

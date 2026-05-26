@@ -24,6 +24,8 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
+import { useCurrentUrl } from '@/hooks/use-current-url';
+import { Link } from '@inertiajs/react';
 
 export function NavDocuments({
     items,
@@ -35,6 +37,7 @@ export function NavDocuments({
     }[];
 }) {
     const { isMobile } = useSidebar();
+    const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -42,50 +45,17 @@ export function NavDocuments({
             <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={item.name}>
-                        <SidebarMenuButton asChild>
-                            <a href={item.url}>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={isCurrentOrParentUrl(item.url)}
+                        >
+                            <Link href={item.url}>
                                 <item.icon />
                                 <span>{item.name}</span>
-                            </a>
+                            </Link>
                         </SidebarMenuButton>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <SidebarMenuAction
-                                    showOnHover
-                                    className="rounded-sm data-[state=open]:bg-accent"
-                                >
-                                    <IconDots />
-                                    <span className="sr-only">More</span>
-                                </SidebarMenuAction>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                className="w-24 rounded-lg"
-                                side={isMobile ? 'bottom' : 'right'}
-                                align={isMobile ? 'end' : 'start'}
-                            >
-                                <DropdownMenuItem>
-                                    <IconFolder />
-                                    <span>Open</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <IconShare3 />
-                                    <span>Share</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem variant="destructive">
-                                    <IconTrash />
-                                    <span>Delete</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </SidebarMenuItem>
                 ))}
-                <SidebarMenuItem>
-                    <SidebarMenuButton className="text-sidebar-foreground/70">
-                        <IconDots className="text-sidebar-foreground/70" />
-                        <span>More</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
     );

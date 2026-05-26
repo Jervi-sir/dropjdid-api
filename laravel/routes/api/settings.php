@@ -9,10 +9,12 @@ use App\Http\Controllers\Api\Settings\ListSavedItemsController;
 use App\Http\Controllers\Api\Settings\MyProfileController;
 use App\Http\Controllers\Api\Settings\SeekSupportTeamController;
 use App\Http\Controllers\Api\Settings\UpdatePasswordController;
+use App\Http\Controllers\Api\Settings\AccounDeletionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('settings')->middleware('auth:sanctum')->group(function () {
     Route::get('update-password', UpdatePasswordController::class);
+    Route::delete('delete-account', AccounDeletionController::class);
     Route::prefix('contacts')->group(function () {
         Route::get('list', [ContactsController::class, 'getMyContacts']);
         Route::post('upsert', [ContactsController::class, 'upsertContact']);

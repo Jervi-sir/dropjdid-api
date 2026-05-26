@@ -36,10 +36,15 @@ class AffiliateLibraryController extends Controller
                 ->all();
 
         $labelsPaginator = Label::with('keywords')
+            ->whereHas('keywords.products', function ($query) use ($userId, $savedProductIds) {
+                $query->where('status', Product::STATUS_PUBLISHED)
+                    ->when($savedProductIds !== [], fn ($q) => $q->whereNotIn('products.id', $savedProductIds));
+            })
             ->simplePaginate($perPage, ['*'], 'page', $page);
 
         foreach ($labelsPaginator as $label) {
-            $payload = $this->labelProductsPayload($label, 1, 10, $userId, $user, $savedProductIds);
+            $labelPage = (int) $request->query("label_{$label->id}_page", 1);
+            $payload = $this->labelProductsPayload($label, $labelPage, 10, $userId, $user, $savedProductIds);
 
             if ($payload['data']->isNotEmpty()) {
                 $sections[] = [

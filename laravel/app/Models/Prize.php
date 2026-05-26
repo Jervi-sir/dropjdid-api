@@ -58,8 +58,14 @@ class Prize extends Model
             ? null
             : $this->joinings->firstWhere('user_id', $user->id);
 
-        $isJoined = $joining !== null || (bool) ($this->is_joined ?? false);
+        $hasPurchasedOrder = $user !== null && Order::query()
+            ->where('user_id', $user->id)
+            ->where('status', Order::STATUS_PURCHASED)
+            ->when($this->starts_at !== null, fn($query) => $query->where('created_at', '>=', $this->starts_at))
+            ->when($this->ends_at !== null, fn($query) => $query->where('created_at', '<=', $this->ends_at))
+            ->exists();
 
+        $isJoined = $joining !== null || (bool) ($this->is_joined ?? false) || $hasPurchasedOrder;
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -68,16 +74,20 @@ class Prize extends Model
             'starts_at' => $this->starts_at?->toISOString(),
             'ends_at' => $this->ends_at?->toISOString(),
             'date_range' => $this->formatDateRange(),
-            'status' => $this->status,
+            'status' => self::STATUS[$this->status],
             'joinings_count' => $this->joinings_count ?? $this->joinings->count(),
 
             'is_joined' => $isJoined,
 
-            'current_user_joining' => $joining === null ? null : [
+            'current_user_joining' => $joining !== null ? [
                 'id' => $joining->id,
-                'status' => $joining->status,
+                'status' => $hasPurchasedOrder ? 'joined' : (PrizeJoining::STATUS[$joining->status] ?? $joining->status),
                 'amount_paid' => (float) $joining->amount_paid,
-            ],
+            ] : ($hasPurchasedOrder ? [
+                'id' => null,
+                'status' => 'not-joined',
+                'amount_paid' => 0.0,
+            ] : null),
 
             'creator' => [
                 'id' => $this->creator?->id,
@@ -98,7 +108,7 @@ class Prize extends Model
         }
 
         if ($this->starts_at !== null && $this->ends_at !== null) {
-            return $this->starts_at->format('M j').' - '.$this->ends_at->format('M j');
+            return $this->starts_at->format('M j') . ' - ' . $this->ends_at->format('M j');
         }
 
         return $this->starts_at?->format('M j') ?? $this->ends_at?->format('M j');

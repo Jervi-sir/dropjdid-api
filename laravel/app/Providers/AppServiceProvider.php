@@ -5,8 +5,8 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -56,7 +56,7 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function serverHasIpPrefix(string $prefix): bool
     {
-        if (!function_exists('net_get_interfaces')) {
+        if (! function_exists('net_get_interfaces')) {
             return false;
         }
 
@@ -66,7 +66,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         foreach ($interfaces as $details) {
-            if (!empty($details['unicast'])) {
+            if (! empty($details['unicast'])) {
                 foreach ($details['unicast'] as $unicast) {
                     if (isset($unicast['address']) && str_starts_with($unicast['address'], $prefix)) {
                         return true;

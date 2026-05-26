@@ -26,6 +26,16 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use FormatsModel, HasApiTokens, HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
+    protected $appends = ['account_status'];
+
+    public function getAccountStatusAttribute(): array
+    {
+        return [
+            'delete_requested' => $this->deleted_at !== null,
+            'deletion_date' => $this->deleted_at?->toIso8601String(),
+        ];
+    }
+
     public const STATUS_PENDING = 0;
 
     public const STATUS_ACCEPTED = 1;

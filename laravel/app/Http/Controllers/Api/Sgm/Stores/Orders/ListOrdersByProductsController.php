@@ -54,6 +54,7 @@ class ListOrdersByProductsController extends Controller
                 $formatted = $product->formatProduct($product, $user);
                 $formatted['total_orders'] = $product->total_orders;
                 $formatted['status'] = $product->status == Product::STATUS_PUBLISHED ? 'available' : 'out of stock';
+
                 return $formatted;
             });
 
@@ -82,9 +83,9 @@ class ListOrdersByProductsController extends Controller
         $orders = Order::where('store_id', $storeId)
             ->whereHas('items', function ($query) use ($product_id, $storeId) {
                 $query->where('product_id', $product_id)
-                      ->whereHas('product', function ($productQuery) use ($storeId) {
-                          $productQuery->where('store_id', $storeId);
-                      });
+                    ->whereHas('product', function ($productQuery) use ($storeId) {
+                        $productQuery->where('store_id', $storeId);
+                    });
             })
             ->when($status !== null, function ($query) use ($status) {
                 $query->where('status', $status);

@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'optional-sanctum' => OptionalSanctumAuth::class,
+            'resolve-soft-deleted' => \App\Http\Middleware\ResolveSoftDeletedUser::class,
         ]);
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);

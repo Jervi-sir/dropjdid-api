@@ -124,7 +124,7 @@ class WalletController extends Controller
             return response()->json(['message' => 'Insufficient balance'], 422);
         }
 
-        return DB::transaction(function () use ($request, $wallet, $store, $user) {
+        return DB::transaction(function () use ($request, $wallet, $store) {
             $balanceBefore = $wallet->balance;
             $wallet->decrement('balance', $request->amount);
             $balanceAfter = $wallet->balance;

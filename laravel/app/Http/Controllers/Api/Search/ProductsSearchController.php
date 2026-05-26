@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Advertisement;
 use App\Models\Label;
 use App\Models\Product;
+use App\Models\SavedLabel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -56,31 +57,31 @@ class ProductsSearchController extends Controller
             $q->when($qualities, function ($q) use ($qualities) {
                 $q->whereIn('quality_id', (array) $qualities);
             })
-            ->when($genders, function ($q) use ($genders) {
-                $q->whereIn('gender_id', (array) $genders);
-            })
-            ->when($categories, function ($q) use ($categories) {
-                $q->whereIn('category_id', (array) $categories);
-            })
-            ->when($sizes, function ($q) use ($sizes) {
-                $q->whereHas('variants', fn($qv) => $qv->whereIn('size_id', (array) $sizes));
-            })
-            ->when($priceMin, function ($q) use ($priceMin) {
-                $q->where(function ($sub) use ($priceMin) {
-                    $sub->where('show_price', '>=', $priceMin)
-                        ->orWhere(function ($sub2) use ($priceMin) {
-                            $sub2->whereNull('show_price')->where('store_price', '>=', $priceMin);
-                        });
+                ->when($genders, function ($q) use ($genders) {
+                    $q->whereIn('gender_id', (array) $genders);
+                })
+                ->when($categories, function ($q) use ($categories) {
+                    $q->whereIn('category_id', (array) $categories);
+                })
+                ->when($sizes, function ($q) use ($sizes) {
+                    $q->whereHas('variants', fn ($qv) => $qv->whereIn('size_id', (array) $sizes));
+                })
+                ->when($priceMin, function ($q) use ($priceMin) {
+                    $q->where(function ($sub) use ($priceMin) {
+                        $sub->where('show_price', '>=', $priceMin)
+                            ->orWhere(function ($sub2) use ($priceMin) {
+                                $sub2->whereNull('show_price')->where('store_price', '>=', $priceMin);
+                            });
+                    });
+                })
+                ->when($priceMax, function ($q) use ($priceMax) {
+                    $q->where(function ($sub) use ($priceMax) {
+                        $sub->where('show_price', '<=', $priceMax)
+                            ->orWhere(function ($sub2) use ($priceMax) {
+                                $sub2->whereNull('show_price')->where('store_price', '<=', $priceMax);
+                            });
+                    });
                 });
-            })
-            ->when($priceMax, function ($q) use ($priceMax) {
-                $q->where(function ($sub) use ($priceMax) {
-                    $sub->where('show_price', '<=', $priceMax)
-                        ->orWhere(function ($sub2) use ($priceMax) {
-                            $sub2->whereNull('show_price')->where('store_price', '<=', $priceMax);
-                        });
-                });
-            });
         };
 
         $sections = collect();
@@ -90,10 +91,10 @@ class ProductsSearchController extends Controller
                 ->where('status', Product::STATUS_PUBLISHED)
                 ->where(function ($q) use ($query) {
                     $q->where('name', 'ilike', "%$query%")
-                        ->orWhereHas('keywords', fn($qk) => $qk->where('code', 'ilike', "%$query%"))
-                        ->orWhereHas('productKeywords.label', fn($ql) => $ql->where('en', 'ilike', "%$query%"))
-                        ->orWhereHas('productKeywords.label', fn($ql) => $ql->where('fr', 'ilike', "%$query%"))
-                        ->orWhereHas('productKeywords.label', fn($ql) => $ql->where('ar', 'ilike', "%$query%"));
+                        ->orWhereHas('keywords', fn ($qk) => $qk->where('code', 'ilike', "%$query%"))
+                        ->orWhereHas('productKeywords.label', fn ($ql) => $ql->where('en', 'ilike', "%$query%"))
+                        ->orWhereHas('productKeywords.label', fn ($ql) => $ql->where('fr', 'ilike', "%$query%"))
+                        ->orWhereHas('productKeywords.label', fn ($ql) => $ql->where('ar', 'ilike', "%$query%"));
                 });
 
             $applyFilters($similarProductsQuery);
@@ -122,7 +123,7 @@ class ProductsSearchController extends Controller
                         'fr' => 'Similaire',
                         'ar' => 'مشابه',
                     ],
-                    'products' => $similarProducts->map(fn(Product $p) => $p->formatProduct($p, $user))->values(),
+                    'products' => $similarProducts->map(fn (Product $p) => $p->formatProduct($p, $user))->values(),
                     'next_page' => null,
                     'nb_likes' => 0,
                 ]);
@@ -161,8 +162,8 @@ class ProductsSearchController extends Controller
             $productsQuery = Product::query()
                 ->where('status', Product::STATUS_PUBLISHED)
                 ->where(function ($q) use ($label) {
-                    $q->whereHas('productKeywords', fn($qk) => $qk->where('product_keywords.label_id', $label->id))
-                        ->orWhereHas('keywords', fn($k) => $k->where('keywords.label_id', $label->id));
+                    $q->whereHas('productKeywords', fn ($qk) => $qk->where('product_keywords.label_id', $label->id))
+                        ->orWhereHas('keywords', fn ($k) => $k->where('keywords.label_id', $label->id));
                 })
                 ->when(! $labelMatchesQuery, function ($q) use ($query) {
                     $q->where('name', 'ilike', "%$query%");
@@ -195,11 +196,11 @@ class ProductsSearchController extends Controller
                     'en' => $label->en,
                     'fr' => $label->fr,
                     'ar' => $label->ar,
-                    'is_liked' => $userId !== null && \App\Models\SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists(),
+                    'is_liked' => $userId !== null && SavedLabel::where('label_id', $label->id)->where('user_id', $userId)->exists(),
                 ],
-                'products' => collect($productsPaginator->items())->map(fn(Product $p) => $p->formatProduct($p, $user))->values(),
+                'products' => collect($productsPaginator->items())->map(fn (Product $p) => $p->formatProduct($p, $user))->values(),
                 'next_page' => $productsPaginator->hasMorePages() ? 2 : null,
-                'nb_likes' => \App\Models\SavedLabel::where('label_id', $label->id)->count(),
+                'nb_likes' => SavedLabel::where('label_id', $label->id)->count(),
             ];
         })->filter();
 

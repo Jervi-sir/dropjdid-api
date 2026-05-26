@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api\Orders;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +15,7 @@ class PurchaseProductController extends Controller
     {
         $product = Product::with(['images', 'quality', 'category', 'variants.size', 'paymentMethod'])->find($productId);
 
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
@@ -77,7 +76,7 @@ class PurchaseProductController extends Controller
         ]);
 
         $product = Product::find($productId);
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
@@ -100,15 +99,15 @@ class PurchaseProductController extends Controller
                 ];
             }
 
-            $deliveryFees = 350; 
+            $deliveryFees = 350;
             $otherFees = 40;
             $total = $subtotal + $deliveryFees + $otherFees;
 
             $order = Order::create([
                 'user_id' => $request->user()->id,
                 'store_id' => $product->store_id,
-                'order_number' => 'ORD-' . strtoupper(uniqid()),
-                'payment_method_id' => $product->payment_method_id ?? 1, 
+                'order_number' => 'ORD-'.strtoupper(uniqid()),
+                'payment_method_id' => $product->payment_method_id ?? 1,
                 'full_name' => $request->full_name,
                 'phone_number' => $request->phone_number,
                 'wilaya' => $request->wilaya,
@@ -127,7 +126,7 @@ class PurchaseProductController extends Controller
 
             return response()->json([
                 'message' => 'Order placed successfully',
-                'data' => $order->load('items')
+                'data' => $order->load('items'),
             ], 201);
         });
     }

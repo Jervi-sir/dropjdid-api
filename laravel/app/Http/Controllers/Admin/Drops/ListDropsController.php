@@ -82,6 +82,7 @@ class ListDropsController extends Controller
             'ended' => Drop::where('status', Drop::STATUS_ENDED)->count(),
             'cancelled' => Drop::where('status', Drop::STATUS_CANCELLED)->count(),
             'rejected' => Drop::where('status', Drop::STATUS_REJECTED)->count(),
+            'pending' => Drop::where('status', Drop::STATUS_PENDING)->count(),
         ];
 
         return Inertia::render('admin/drops/list', [

@@ -100,6 +100,7 @@ class ListProductsController extends Controller
             'published' => Product::where('status', Product::STATUS_PUBLISHED)->count(),
             'archived' => Product::where('status', Product::STATUS_ARCHIVED)->count(),
             'rejected' => Product::where('status', Product::STATUS_REJECTED)->count(),
+            'pending' => Product::where('status', Product::STATUS_PENDING)->count(),
         ];
 
         return Inertia::render('admin/products/list', [

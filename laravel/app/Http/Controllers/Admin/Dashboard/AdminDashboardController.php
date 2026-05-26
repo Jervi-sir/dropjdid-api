@@ -34,7 +34,7 @@ class AdminDashboardController extends Controller
 
         // 3. Product Catalog Audit Queue
         $totalProducts = Product::count();
-        $pendingProducts = Product::where('status', Product::STATUS_DRAFT)->count();
+        $pendingProducts = Product::where('status', Product::STATUS_PENDING)->count();
 
         // 4. Publishing Drops & Distribution
         $totalDrops = Drop::count();
