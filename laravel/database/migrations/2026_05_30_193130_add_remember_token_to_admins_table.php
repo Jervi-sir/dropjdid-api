@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('admins', 'is_approved')) {
-            Schema::table('admins', function (Blueprint $table) {
-                $table->boolean('is_approved')->default(false);
-            });
-        }
+        Schema::table('admins', function (Blueprint $table) {
+            if (!Schema::hasColumn('admins', 'remember_token')) {
+                $table->rememberToken();
+            }
+        });
     }
 
     /**
@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('admins', function (Blueprint $table) {
-            //
+            $table->dropColumn('remember_token');
         });
     }
 };

@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { edit } from '@/routes/security';
-import { disable, enable } from '@/routes/two-factor';
 
 type Props = {
     canManageTwoFactor?: boolean;
@@ -165,7 +164,7 @@ export default function Security({
                             </p>
 
                             <div className="relative inline">
-                                <Form {...disable.form()}>
+                                <Form >
                                     {({ processing }) => (
                                         <Button
                                             variant="destructive"
@@ -203,7 +202,6 @@ export default function Security({
                                     </Button>
                                 ) : (
                                     <Form
-                                        {...enable.form()}
                                         onSuccess={() =>
                                             setShowSetupModal(true)
                                         }

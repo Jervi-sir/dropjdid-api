@@ -18,16 +18,17 @@ class DatabaseSeeder extends Seeder
         foreach (
             [
                 CatalogSeeder::class,
+                LabelSeeder::class,
+                PrizeSeeder::class,
+                AdvertisementSeeder::class,
+                // 
                 // UserSeeder::class,
                 // StoreSeeder::class,
-                LabelSeeder::class,
                 // ProductSeeder::class,
                 // CreatorSeeder::class,
                 // DropSeeder::class,
                 // SaveSeeder::class,
-                PrizeSeeder::class,
                 // OrderSeeder::class,
-                AdvertisementSeeder::class,
                 // ConversationSeeder::class,
                 // SearchSeeder::class,
                 // WalletSeeder::class,
@@ -35,7 +36,7 @@ class DatabaseSeeder extends Seeder
                 // SupportRequestSeeder::class,
             ] as $seeder
         ) {
-            DB::transaction(fn () => $this->call($seeder));
+            DB::transaction(fn() => $this->call($seeder));
         }
 
         // User::factory()->create([
