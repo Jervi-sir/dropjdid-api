@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 
 class WalletController extends Controller
 {
-    public function show(Request $request, $store_id)
+    public function show(Request $request, int $store_id)
     {
         $store = Store::where('id', $store_id)
             ->where('user_id', $request->user()->id)
@@ -69,6 +69,24 @@ class WalletController extends Controller
             'message' => 'Identity verification request submitted',
             'wallet' => $wallet,
         ]);
+    }
+
+    public function verifyPassword(Request $request, $store_id)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $store = Store::where('id', $store_id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        if (! Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Invalid password'], 422);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function listTransactions(Request $request, int $store_id)

@@ -58,6 +58,6 @@ class StoreWallet extends Model
 
     public function transactions(): HasMany
     {
-        return $this->hasMany(StoreWalletTransaction::class, 'wallet_id');
+        return $this->hasMany(StoreWalletTransaction::class, 'store_wallet_id');
     }
 }

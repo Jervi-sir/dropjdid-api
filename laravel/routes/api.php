@@ -32,4 +32,5 @@ require __DIR__ . '/api/search.php'; // []
 require __DIR__ . '/api/settings.php'; // []
 require __DIR__ . '/api/sgm.php'; // []
 require __DIR__ . '/api/stores.php'; // []
+require __DIR__ . '/api/updates.php';
 require __DIR__ . '/api/wallets.php'; // []

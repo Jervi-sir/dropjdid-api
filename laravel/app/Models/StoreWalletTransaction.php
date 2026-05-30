@@ -49,7 +49,7 @@ class StoreWalletTransaction extends Model
     ];
 
     protected $fillable = [
-        'wallet_id',
+        'store_wallet_id',
         'store_id',
         'direction',
         'type',
@@ -118,7 +118,7 @@ class StoreWalletTransaction extends Model
 
     public function storeWallet(): BelongsTo
     {
-        return $this->belongsTo(StoreWallet::class, 'wallet_id');
+        return $this->belongsTo(StoreWallet::class, 'store_wallet_id');
     }
 
     public function store(): BelongsTo

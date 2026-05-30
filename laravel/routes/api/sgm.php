@@ -33,6 +33,7 @@ Route::prefix('sgm')->middleware('auth:sanctum')->group(function () {
         Route::prefix('{store_id}/wallet')->group(function () {
             Route::get('/', [WalletController::class, 'show']);
             Route::post('verify-identity', [WalletController::class, 'verifyIdentity']);
+            Route::post('verify-password', [WalletController::class, 'verifyPassword']);
             Route::get('transactions', [WalletController::class, 'listTransactions']);
             Route::get('check-identity', [WalletController::class, 'checkIdentity']);
             Route::post('withdrawal-request', [WalletController::class, 'storeWithdrawalRequest']);
