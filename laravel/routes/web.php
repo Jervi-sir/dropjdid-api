@@ -44,7 +44,7 @@ Route::middleware(['admin.guest'])->group(function () {
 
 Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
 
-Route::middleware(['admin.auth'])->group(function () {
+Route::middleware(['admin.auth', 'admin.approved'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
     Route::get('admin/dashboard', AdminDashboardController::class)->name('admin.dashboard');
     Route::get('admin/drops', ListDropsController::class)->name('admin.drops.index');
