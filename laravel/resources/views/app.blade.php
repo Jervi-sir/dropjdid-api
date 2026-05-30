@@ -45,14 +45,14 @@
     <meta property="og:url" content="https://dropjdid.com">
     <meta property="og:title" content="Dropjdid - Modern Drop Fashion Collections & Logistics Platform">
     <meta property="og:description" content="Streamline your e-commerce fulfillment and operations with Dropjdid's professional drop, shipping and logistics platform.">
-    <meta property="og:image" content="https://dropjdid.com/og-image.png">
+    <meta property="og:image" content="{{ asset('wallpaper.png') }}">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://dropjdid.com">
     <meta property="twitter:title" content="Dropjdid - Drop Fashion Collections & Logistics Platform">
     <meta property="twitter:description" content="Streamline your e-commerce fulfillment and operations with Dropjdid's professional drop, shipping and logistics platform.">
-    <meta property="twitter:image" content="https://dropjdid.com/og-image.png">
+    <meta property="twitter:image" content="{{ asset('wallpaper.png') }}">
 
     @fonts
 
