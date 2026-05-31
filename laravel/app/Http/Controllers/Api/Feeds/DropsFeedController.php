@@ -35,9 +35,9 @@ class DropsFeedController extends Controller
         Drop::loadFeedRelations($drops, $userId);
 
         $formattedDrops = collect($drops->items())
-            ->map(fn (Drop $drop): array => $drop->formatDrop($user));
+            ->map(fn(Drop $drop): array => $drop->formatDrop($user));
 
-        $data = Advertisement::injectIntoFeed($formattedDrops, interval: 10, adsCount: $adsCount)->values();
+        $data = Advertisement::injectIntoFeed($formattedDrops, interval: 2, adsCount: $adsCount)->values();
 
         return response()->json([
             'data' => $data,
@@ -64,13 +64,13 @@ class DropsFeedController extends Controller
             ])
             ->when($userId, function ($query) use ($userId) {
                 $query->with([
-                    'savedProducts' => fn ($saveQuery) => $saveQuery->where('user_id', $userId),
+                    'savedProducts' => fn($saveQuery) => $saveQuery->where('user_id', $userId),
                 ]);
             })
             ->simplePaginate($perPage);
 
         $formattedProducts = collect($products->items())
-            ->map(fn (Product $product): array => $drop->formatProduct($product, $user));
+            ->map(fn(Product $product): array => $drop->formatProduct($product, $user));
 
         $data = Advertisement::injectIntoFeed($formattedProducts, adsCount: $adsCount)->values();
 

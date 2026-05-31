@@ -20,8 +20,8 @@ class ByLabelIdController extends Controller
             ->where('status', Product::STATUS_PUBLISHED)
             // ->whereHas('paymentMethod', fn ($query) => $query->where('code', PaymentMethod::ONLINE))
             ->where(function ($q) use ($label_id) {
-                $q->whereHas('productKeywords', fn (Builder $qk) => $qk->where('product_keywords.label_id', $label_id))
-                    ->orWhereHas('keywords', fn ($k) => $k->where('keywords.label_id', $label_id));
+                $q->whereHas('productKeywords', fn(Builder $qk) => $qk->where('product_keywords.label_id', $label_id))
+                    ->orWhereHas('keywords', fn($k) => $k->where('keywords.label_id', $label_id));
             })
             ->when($query, function (Builder $q) use ($query) {
                 $q->where('name', 'ilike', "%$query%");
@@ -39,7 +39,7 @@ class ByLabelIdController extends Controller
             ->simplePaginate($request->integer('per_page', 10));
 
         return response()->json([
-            'data' => collect($products->items())->map(fn (Product $product) => $product->formatProduct($product, $user)),
+            'data' => collect($products->items())->map(fn(Product $product) => $product->formatProduct($product, $user)),
             'next_page' => $products->hasMorePages() ? $products->currentPage() + 1 : null,
         ]);
     }

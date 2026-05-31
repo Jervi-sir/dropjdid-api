@@ -34,7 +34,7 @@ class RequestFriendController extends Controller
 
         $friendship = $this->findFriendship($authUser->id, $user->id);
 
-        abort_if($friendship === null || $friendship->status !== 'pending' || $friendship->sender_id !== $authUser->id, 422, 'No outgoing request to cancel.');
+        abort_if($friendship === null || $friendship->status !== Friendship::STATUS_PENDING || $friendship->sender_id !== $authUser->id, 422, 'No outgoing request to cancel.');
 
         $friendship->delete();
 
@@ -64,7 +64,7 @@ class RequestFriendController extends Controller
 
         $friendship = $this->findFriendship($authUser->id, $user->id);
 
-        abort_if($friendship === null || $friendship->status !== 'pending' || $friendship->receiver_id !== $authUser->id, 422, 'No incoming request to reject.');
+        abort_if($friendship === null || $friendship->status !== Friendship::STATUS_PENDING || $friendship->receiver_id !== $authUser->id, 422, 'No incoming request to reject.');
 
         $friendship->delete();
 
@@ -80,7 +80,7 @@ class RequestFriendController extends Controller
 
         $friendship = $this->findFriendship($authUser->id, $user->id);
 
-        abort_if($friendship === null || $friendship->status !== 'accepted', 422, 'No friendship to remove.');
+        abort_if($friendship === null || $friendship->status !== Friendship::STATUS_ACCEPTED, 422, 'No friendship to remove.');
         $friendship->delete();
 
         return $this->buildFriendshipResponse($authUser, $user);
@@ -128,16 +128,16 @@ class RequestFriendController extends Controller
         Friendship::query()->create([
             'sender_id' => $authUserId,
             'receiver_id' => $profileUserId,
-            'status' => 'pending',
+            'status' => Friendship::STATUS_PENDING,
         ]);
     }
 
     private function acceptRequest(?Friendship $friendship, int $authUserId): void
     {
-        abort_if($friendship === null || $friendship->status !== 'pending' || $friendship->receiver_id !== $authUserId, 422, 'No incoming request to accept.');
+        abort_if($friendship === null || $friendship->status !== Friendship::STATUS_PENDING || $friendship->receiver_id !== $authUserId, 422, 'No incoming request to accept.');
 
         $friendship->update([
-            'status' => 'accepted',
+            'status' => Friendship::STATUS_ACCEPTED,
             'accepted_at' => now(),
             'rejected_at' => null,
         ]);
@@ -150,16 +150,16 @@ class RequestFriendController extends Controller
         }
 
         return match ($friendship->status) {
-            'accepted' => 'friends',
-            'pending' => $friendship->sender_id === $authUserId ? 'requested' : 'request_received',
-            'blocked' => 'blocked',
+            Friendship::STATUS_ACCEPTED => 'friends',
+            Friendship::STATUS_PENDING => $friendship->sender_id === $authUserId ? 'requested' : 'request_received',
+            Friendship::STATUS_BLOCKED => 'blocked',
             default => 'none',
         };
     }
 
     private function formatFriendRequest(?Friendship $friendship, int $authUserId, int $profileUserId): ?array
     {
-        if ($authUserId === $profileUserId || $friendship === null || $friendship->status !== 'pending') {
+        if ($authUserId === $profileUserId || $friendship === null || $friendship->status !== Friendship::STATUS_PENDING) {
             return null;
         }
 

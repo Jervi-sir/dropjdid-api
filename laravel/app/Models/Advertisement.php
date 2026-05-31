@@ -14,7 +14,7 @@ class Advertisement extends Model
 {
     use FormatsModel, HasFactory;
 
-    private const FEED_INSERT_INTERVAL = 4;
+    private const FEED_INSERT_INTERVAL = 1;
 
     public const STATUS_DRAFT = 0;
 
@@ -88,7 +88,7 @@ class Advertisement extends Model
         $advertisements = self::query()
             ->activeForFeed()
             ->get()
-            ->map(fn (Advertisement $advertisement): array => $advertisement->toFeedArray())
+            ->map(fn(Advertisement $advertisement): array => $advertisement->toFeedArray())
             ->values();
 
         if ($items->isEmpty() || $advertisements->isEmpty() || $adsCount < 1) {
@@ -108,7 +108,7 @@ class Advertisement extends Model
             $feed->push([
                 'type' => 'advertisements',
                 'data' => collect(range(0, $adsCount - 1))
-                    ->map(fn (int $offset): array => $advertisements[($advertisementIndex + $offset) % $advertisements->count()])
+                    ->map(fn(int $offset): array => $advertisements[($advertisementIndex + $offset) % $advertisements->count()])
                     ->values()
                     ->all(),
             ]);

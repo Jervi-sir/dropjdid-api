@@ -46,8 +46,26 @@ class LabelFeedController extends Controller
         $payloads = [];
         $allProducts = collect();
 
-        foreach ($labelPaginator->getCollection() as $label) {
-            $payload = $this->productsPayloadForLabel($label->id, $validated['products_page'] ?? 1, $productsPerPage);
+        $originalCollection = $labelPaginator->getCollection();
+        $repeatedCollection = collect();
+        if ($originalCollection->isNotEmpty()) {
+            $count = 0;
+            while ($repeatedCollection->count() < 10) {
+                foreach ($originalCollection as $item) {
+                    if ($repeatedCollection->count() >= 10) {
+                        break;
+                    }
+                    $cloned = clone $item;
+                    $cloned->original_id = $item->id;
+                    $cloned->id = $item->id * 1000 + $count;
+                    $repeatedCollection->push($cloned);
+                    $count++;
+                }
+            }
+        }
+
+        foreach ($repeatedCollection as $label) {
+            $payload = $this->productsPayloadForLabel($label->original_id, $validated['products_page'] ?? 1, $productsPerPage);
             $payloads[$label->id] = $payload;
             foreach ($payload['paginator']->items() as $product) {
                 $allProducts->push($product);
@@ -56,28 +74,28 @@ class LabelFeedController extends Controller
 
         Product::loadFeedRelations($allProducts, $userId);
 
-        $labelSections = $labelPaginator->getCollection()
+        $labelSections = $repeatedCollection
             ->filter(function (Label $label) use ($payloads): bool {
                 return !$payloads[$label->id]['paginator']->isEmpty();
             })
             ->map(function (Label $label) use ($payloads, $user): array {
                 $payload = $payloads[$label->id];
                 $formattedProducts = collect($payload['paginator']->items())
-                    ->map(fn (Product $product): array => $product->formatProduct($product, $user));
+                    ->map(fn(Product $product): array => $product->formatProduct($product, $user));
 
                 return $label->formatFeedSection(
                     [
                         'data' => $formattedProducts,
                         'next_page' => $payload['next_page'],
                     ],
-                    $label->saved_labels_count,
+                    $label->saved_labels_count ?? 0,
                     (bool) $label->is_liked,
                 );
             })
             ->values();
 
         $adsCount = $validated['ads_count'] ?? 4;
-        $data = Advertisement::injectIntoFeed($labelSections, adsCount: $adsCount)->values();
+        $data = Advertisement::injectIntoFeed($labelSections, interval: 2, adsCount: $adsCount)->values();
 
         return response()->json([
             'data' => $data,
@@ -105,11 +123,11 @@ class LabelFeedController extends Controller
         Product::loadFeedRelations($payload['paginator'], $userId);
 
         $formattedData = collect($payload['paginator']->items())
-            ->map(fn (Product $product): array => $product->formatProduct($product, $user));
+            ->map(fn(Product $product): array => $product->formatProduct($product, $user));
 
         $adsCount = $validated['ads_count'] ?? 4;
 
-        $data = Advertisement::injectIntoFeed($formattedData, adsCount: $adsCount)->values();
+        $data = Advertisement::injectIntoFeed($formattedData, interval: 2, adsCount: $adsCount)->values();
 
         return response()->json([
             'data' => $data,
@@ -124,7 +142,7 @@ class LabelFeedController extends Controller
     private function productsPayloadForLabel(int $labelId, int $page, int $perPage): array
     {
         $paginator = $this->baseProductsQuery()
-            ->whereHas('productKeywords', fn ($query) => $query->where('label_id', $labelId))
+            ->whereHas('productKeywords', fn($query) => $query->where('label_id', $labelId))
             ->latest('id')
             ->simplePaginate($perPage, ['*'], 'page', $page);
 
@@ -148,7 +166,7 @@ class LabelFeedController extends Controller
 
         return LikedProduct::query()
             ->where('user_id', $userId)
-            ->whereHas('product.productKeywords', fn ($query) => $query->where('label_id', $labelId))
+            ->whereHas('product.productKeywords', fn($query) => $query->where('label_id', $labelId))
             ->count();
     }
 }
