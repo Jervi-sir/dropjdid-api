@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Products\PaginatedBy;
 
 use App\Http\Controllers\Controller;
+use App\Models\Advertisement;
 use App\Models\Label;
 use App\Models\Product;
 use App\Models\SavedLabel;
@@ -15,6 +16,7 @@ class ByLabelProductController extends Controller
     public function __invoke(Request $request, int $product_id): JsonResponse
     {
         $userId = $request->user()?->id;
+        $startWithAds = $request->boolean('start_with_ads', false);
 
         $labelIds = Product::findOrFail($product_id)
             ->productKeywords()
@@ -67,8 +69,10 @@ class ByLabelProductController extends Controller
             ];
         });
 
+        $feed = Advertisement::injectIntoFeed($data, 2, 1, $startWithAds);
+
         return response()->json([
-            'data' => $data,
+            'data' => $feed,
             'next_page' => $labels->hasMorePages() ? $labels->currentPage() + 1 : null,
         ]);
     }

@@ -50,10 +50,6 @@ class RefundWalletController extends Controller
             return response()->json(['message' => 'Wallet not found'], 404);
         }
 
-        $wallet->update([
-            'status' => Wallet::STATUS_PENDING,
-        ]);
-
         return response()->json([
             'message' => 'Identity verification request submitted',
             'wallet' => $wallet,
@@ -89,7 +85,7 @@ class RefundWalletController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'method' => 'required|in:'.implode(',', [
+            'method' => 'required|in:' . implode(',', [
                 'baridimob',
                 'ccp',
                 'bank_transfer',
@@ -118,7 +114,7 @@ class RefundWalletController extends Controller
                 'amount' => $request->amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceAfter,
-                'title' => 'Withdrawal Request ('.ucfirst($request->method).')',
+                'title' => 'Withdrawal Request (' . ucfirst($request->method) . ')',
                 'metadata' => [
                     'method' => $request->method,
                     'payment_details' => $request->payment_details,

@@ -9,6 +9,28 @@ use Illuminate\Support\Facades\DB;
 
 class UpsertDropController extends Controller
 {
+    public function checkAvailability(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'exclude_id' => 'nullable|integer',
+        ]);
+
+        $titleLower = strtolower($request->title);
+        $query = Drop::whereRaw('LOWER(title) = ?', [$titleLower]);
+
+        if ($request->exclude_id) {
+            $query->where('id', '!=', $request->exclude_id);
+        }
+
+        $isAvailable = !$query->exists();
+
+        return response()->json([
+            'available' => $isAvailable,
+            'message' => $isAvailable ? 'Name is available.' : 'The drop name is already taken.',
+        ]);
+    }
+
     public function upsertDrop(Request $request, ?Drop $drop = null)
     {
         $validated = $request->validate([
@@ -23,6 +45,20 @@ class UpsertDropController extends Controller
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.drop_price' => 'required|numeric',
         ]);
+
+        $titleLower = strtolower($request->title);
+        $existsQuery = Drop::whereRaw('LOWER(title) = ?', [$titleLower]);
+        if ($drop) {
+            $existsQuery->where('id', '!=', $drop->id);
+        }
+        if ($existsQuery->exists()) {
+            return response()->json([
+                'message' => 'The drop name is already taken.',
+                'errors' => [
+                    'title' => ['The drop name is already taken.']
+                ]
+            ], 422);
+        }
 
         $validated['status'] = match ($validated['status']) {
             'draft' => Drop::STATUS_DRAFT,

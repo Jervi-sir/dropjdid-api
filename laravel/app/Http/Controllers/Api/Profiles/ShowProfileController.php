@@ -48,10 +48,11 @@ class ShowProfileController extends Controller
                 'username' => $user->username,
                 'image' => $user->image,
                 'is_me' => $authUser?->id === $user->id,
+                'is_creator' => $user->hasRole('creator'),
                 'friend_status' => $this->resolveFriendStatus($friendship, $authUser?->id, $user->id),
                 'friend_request' => $this->formatFriendRequest($friendship, $authUser?->id, $user->id),
                 'is_following' => $isFollowing,
-                'contacts' => $user->contacts->map(fn ($contact): array => [
+                'contacts' => $user->contacts->map(fn($contact): array => [
                     'id' => $contact->id,
                     'url' => $contact->url,
                     'platform' => [
@@ -70,16 +71,16 @@ class ShowProfileController extends Controller
         }
 
         return match ($friendship->status) {
-            'accepted' => 'friends',
-            'pending' => $friendship->sender_id === $authUserId ? 'requested' : 'request_received',
-            'blocked' => 'blocked',
+            Friendship::STATUS_ACCEPTED => 'friends',
+            Friendship::STATUS_PENDING => $friendship->sender_id === $authUserId ? 'requested' : 'request_received',
+            Friendship::STATUS_BLOCKED => Friendship::STATUS_BLOCKED,
             default => 'none',
         };
     }
 
     private function formatFriendRequest(?Friendship $friendship, ?int $authUserId, int $profileUserId): ?array
     {
-        if ($authUserId === null || $authUserId === $profileUserId || $friendship === null || $friendship->status !== 'pending') {
+        if ($authUserId === null || $authUserId === $profileUserId || $friendship === null || $friendship->status !== Friendship::STATUS_PENDING) {
             return null;
         }
 

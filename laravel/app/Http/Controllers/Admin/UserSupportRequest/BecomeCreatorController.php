@@ -149,6 +149,7 @@ class BecomeCreatorController extends Controller
             $role = Role::where('code', Role::CREATOR)->first();
             if ($role) {
                 $user->roles()->syncWithoutDetaching([$role->id]);
+                $user->createWallets();
             }
         }
 

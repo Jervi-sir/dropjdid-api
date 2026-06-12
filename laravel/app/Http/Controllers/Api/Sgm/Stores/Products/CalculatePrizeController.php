@@ -24,20 +24,20 @@ class CalculatePrizeController extends Controller
             $hasCreator = true;
         }
 
-        $showPrice = $originalPrice * 1.30;
-        $storePrice = $originalPrice;
-        $octaprizeShare = $originalPrice * 0.30;
+        $showPrice = (int) round($originalPrice * 1.30);
+        $storePrice = (int) round($originalPrice);
+        $octaprizeShare = (int) round($originalPrice * 0.30);
 
         if ($hasCreator) {
-            $creatorShare = $originalPrice * 0.15;
-            $octaprizeAfterCreator = $originalPrice * 0.15;
+            $creatorShare = (int) round($originalPrice * 0.15);
+            $octaprizeAfterCreator = (int) round($originalPrice * 0.15);
         } else {
-            $creatorShare = 0.0;
-            $octaprizeAfterCreator = $originalPrice * 0.30;
+            $creatorShare = 0;
+            $octaprizeAfterCreator = (int) round($originalPrice * 0.30);
         }
 
         return response()->json([
-            'original_price' => $originalPrice,
+            'original_price' => (int) round($originalPrice),
             'show_price' => $showPrice,
             'store_price' => $storePrice,
             'octaprize_share' => $octaprizeShare,

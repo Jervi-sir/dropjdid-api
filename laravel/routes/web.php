@@ -33,7 +33,10 @@ use Illuminate\Support\Facades\Route;
 
 $mainDomain = env('MAIN_DOMAIN', preg_replace('/^(admin\.|api\.|www\.)/', '', parse_url(config('app.url'), PHP_URL_HOST)));
 
-Route::domain($mainDomain)->group(function () {
+$shouldUseDomain = false; // !app()->environment('local');
+
+$mainGroup = $shouldUseDomain ? Route::domain($mainDomain) : Route::prefix('');
+$mainGroup->group(function () {
     Route::inertia('/', 'welcome', [
         'canRegister' => true,
     ])->name('home');
@@ -41,7 +44,9 @@ Route::domain($mainDomain)->group(function () {
     require __DIR__ . '/settings.php';
 });
 
-Route::domain(env('ADMIN_DOMAIN', 'admin.' . preg_replace('/^(admin\.|api\.|www\.)/', '', parse_url(config('app.url'), PHP_URL_HOST))))->group(function () {
+$adminDomain = env('ADMIN_DOMAIN', 'admin.' . preg_replace('/^(admin\.|api\.|www\.)/', '', parse_url(config('app.url'), PHP_URL_HOST)));
+$adminGroup = $shouldUseDomain ? Route::domain($adminDomain) : Route::prefix('');
+$adminGroup->group(function () {
     Route::middleware(['admin.guest'])->group(function () {
         Route::get('login', [LoginController::class, 'create'])->name('login');
         Route::post('login', [LoginController::class, 'store'])->name('login.store');

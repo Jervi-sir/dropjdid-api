@@ -152,7 +152,7 @@ class RequestFriendController extends Controller
         return match ($friendship->status) {
             Friendship::STATUS_ACCEPTED => 'friends',
             Friendship::STATUS_PENDING => $friendship->sender_id === $authUserId ? 'requested' : 'request_received',
-            Friendship::STATUS_BLOCKED => 'blocked',
+            Friendship::STATUS_BLOCKED => Friendship::STATUS_BLOCKED,
             default => 'none',
         };
     }

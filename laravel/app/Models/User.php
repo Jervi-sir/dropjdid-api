@@ -71,7 +71,7 @@ class User extends Authenticatable
     protected function username(): Attribute
     {
         return Attribute::make(
-            set: fn (?string $value): ?string => $value === null ? null : strtolower($value),
+            set: fn(?string $value): ?string => $value === null ? null : strtolower($value),
         );
     }
 
@@ -207,6 +207,28 @@ class User extends Authenticatable
     public function withdrawalRequests(): HasMany
     {
         return $this->hasMany(WithdrawalRequest::class);
+    }
+
+    public function createWallets(): void
+    {
+        $this->wallets()->firstOrCreate(
+            ['type' => Wallet::TYPE_BALANCE],
+            [
+                'balance' => 0,
+                'pending_balance' => 0,
+                'currency' => 'DZD',
+                'status' => Wallet::STATUS_VERIFIED
+            ]
+        );
+
+        // $this->wallets()->firstOrCreate(
+        //     ['type' => Wallet::TYPE_REFUND],
+        //     [
+        //         'balance' => 0,
+        //         'pending_balance' => 0,
+        //         'currency' => 'DZD',
+        //     ]
+        // );
     }
 
     protected function formatterRelations(): array

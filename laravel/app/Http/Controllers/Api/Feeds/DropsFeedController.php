@@ -21,7 +21,7 @@ class DropsFeedController extends Controller
         ]);
 
         $perPage = $validated['per_page'] ?? 4;
-        $adsCount = $validated['ads_count'] ?? 4;
+        $adsCount = 1; // $validated['ads_count'] ?? 4;
         $user = $request->user();
         $userId = $user?->getAuthIdentifier();
 

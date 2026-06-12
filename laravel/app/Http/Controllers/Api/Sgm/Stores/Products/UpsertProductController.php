@@ -9,10 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 class UpsertProductController extends Controller
 {
-    public function __invoke(Request $request, ?int $product = null)
+    public function __invoke(Request $request, ?int $store_id, ?int $product_id = null)
     {
         $validated = $request->validate([
-            'store_id' => 'required|exists:stores,id',
             'category_id' => 'nullable|exists:categories,id', // Make nullable if not selected
             'gender_id' => 'nullable|exists:genders,id',
             'quality_id' => 'nullable|exists:qualities,id',
@@ -34,7 +33,7 @@ class UpsertProductController extends Controller
             'keywords.*.keyword_id' => 'required|exists:keywords,id',
         ]);
 
-        $product = $product !== null ? Product::find($product) : null;
+        $product = $product_id !== null ? Product::find($product_id) : null;
 
         // Map string status to integer value
         $validated['status'] = array_search($validated['status'], Product::STATUSES);
@@ -43,6 +42,8 @@ class UpsertProductController extends Controller
         if ($validated['status'] === Product::STATUS_PUBLISHED) {
             $validated['status'] = Product::STATUS_PENDING;
         }
+
+        $validated['store_id'] = $store_id;
 
         return DB::transaction(function () use ($validated, $product) {
             if ($product) {

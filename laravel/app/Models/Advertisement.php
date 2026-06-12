@@ -83,7 +83,7 @@ class Advertisement extends Model
             ->orderByDesc('id');
     }
 
-    public static function injectIntoFeed(Collection $items, int $interval = self::FEED_INSERT_INTERVAL, int $adsCount = 1): Collection
+    public static function injectIntoFeed(Collection $items, int $interval = self::FEED_INSERT_INTERVAL, int $adsCount = 1, bool $startWithAds = false): Collection
     {
         $advertisements = self::query()
             ->activeForFeed()
@@ -97,6 +97,18 @@ class Advertisement extends Model
 
         $feed = collect();
         $advertisementIndex = 0;
+
+        if ($startWithAds) {
+            $feed->push([
+                'type' => 'advertisements',
+                'data' => collect(range(0, $adsCount - 1))
+                    ->map(fn (int $offset): array => $advertisements[($advertisementIndex + $offset) % $advertisements->count()])
+                    ->values()
+                    ->all(),
+            ]);
+
+            $advertisementIndex = ($advertisementIndex + $adsCount) % $advertisements->count();
+        }
 
         foreach ($items->values() as $index => $item) {
             $feed->push($item);

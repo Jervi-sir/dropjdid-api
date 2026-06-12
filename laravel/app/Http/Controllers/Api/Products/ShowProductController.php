@@ -17,6 +17,19 @@ class ShowProductController extends Controller
 
         $product = Product::find((int) $product_id);
 
+        $dropId = $request->input('drop_id');
+        $userPayload = null;
+
+        if ($dropId) {
+            $drop = Drop::with('creator')->find((int) $dropId);
+            if ($drop && $drop->creator) {
+                $userPayload = [
+                    'id' => $drop->creator->id,
+                    'username' => $drop->creator->username,
+                ];
+            }
+        }
+
         $product->load([
             'images',
             'drops' => function ($query) {
@@ -39,11 +52,11 @@ class ShowProductController extends Controller
         ]);
 
         $labels = $product->keywords
-            ->map(fn ($keyword) => $keyword->label)
+            ->map(fn($keyword) => $keyword->label)
             ->filter()
             ->unique('id')
             ->values()
-            ->map(fn ($label) => [
+            ->map(fn($label) => [
                 'id' => $label->id,
                 'code' => $label->code,
                 'en' => $label->en,
@@ -63,12 +76,12 @@ class ShowProductController extends Controller
                 'nb_likes' => $product->likedProducts()->count(),
                 'is_liked' => $request->user() !== null && $product->likedProducts->isNotEmpty(),
                 'available_sizes' => $product->variants
-                    ->map(fn ($variant) => $variant->size?->code)
+                    ->map(fn($variant) => $variant->size?->code)
                     ->filter()
                     ->unique()
                     ->values()
                     ->all(),
-                'search_code' => strtolower('sam'.$product->id),
+                'search_code' => strtolower('sam' . $product->id),
                 'description' => $product->description,
                 'is_saved' => $request->user() !== null && $product->savedProducts->isNotEmpty(),
                 'nb_drops' => $product->drops->count(),
@@ -80,10 +93,7 @@ class ShowProductController extends Controller
                     'fr' => $product->paymentMethod->fr,
                     'ar' => $product->paymentMethod->ar,
                 ] : null,
-                'user' => [
-                    'id' => $product->store?->user?->id,
-                    'name' => $product->store?->user?->username,
-                ],
+                'user' => $userPayload,
             ],
         ]);
     }
