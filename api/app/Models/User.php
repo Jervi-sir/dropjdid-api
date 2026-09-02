@@ -35,7 +35,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['wilaya_id', 'full_name', 'username', 'email', 'phone_number', 'password', 'image_url', 'is_active', 'user_status'])]
+#[Fillable(['name', 'wilaya_id', 'full_name', 'username', 'email', 'phone_number', 'password', 'image_url', 'is_active', 'user_status'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'password_plaintext'])]
 class User extends Authenticatable
 {
@@ -55,6 +55,14 @@ class User extends Authenticatable
     public function getNameAttribute(): string
     {
         return (string) ($this->full_name ?: $this->username ?: $this->email);
+    }
+
+    /**
+     * Set the user's display name.
+     */
+    public function setNameAttribute(?string $value): void
+    {
+        $this->attributes['full_name'] = $value;
     }
 
     /**

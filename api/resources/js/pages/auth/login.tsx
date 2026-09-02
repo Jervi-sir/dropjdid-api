@@ -8,11 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
-    canResetPassword: boolean;
+    canResetPassword?: boolean;
 };
 
 export default function Login({ status, canResetPassword }: Props) {
@@ -48,7 +47,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     <Label htmlFor="password">Password</Label>
                                     {canResetPassword && (
                                         <TextLink
-                                            href={request()}
+                                            href="/forgot-password"
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
@@ -86,6 +85,13 @@ export default function Login({ status, canResetPassword }: Props) {
                                 {processing && <Spinner />}
                                 Log in
                             </Button>
+                        </div>
+
+                        <div className="text-center text-sm text-muted-foreground">
+                            Don&apos;t have an account?{' '}
+                            <TextLink href="/register" tabIndex={6}>
+                                Sign up
+                            </TextLink>
                         </div>
                     </>
                 )}
