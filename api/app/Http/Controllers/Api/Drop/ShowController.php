@@ -102,7 +102,6 @@ class ShowController extends Controller
 
         return response()->json([
             'data' => $data,
-            ...$data,
         ], 200);
     }
 }

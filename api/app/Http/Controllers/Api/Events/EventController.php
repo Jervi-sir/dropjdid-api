@@ -82,7 +82,6 @@ class EventController extends Controller
 
         return response()->json([
             'data' => $data,
-            ...$data,
         ], 200);
     }
 
