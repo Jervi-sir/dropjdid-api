@@ -34,7 +34,7 @@ class DropsFeedController extends Controller
         // Filter out drafts and rejected drops
         $query->where(function ($q) {
             $q->where('drop_status', 'published')
-              ->orWhereNull('drop_status');
+                ->orWhereNull('drop_status');
         });
 
         // Search query support
@@ -43,12 +43,26 @@ class DropsFeedController extends Controller
             $term = '%' . strtolower($search) . '%';
             $query->where(function ($q) use ($term) {
                 $q->where('title', 'ILIKE', $term)
-                  ->orWhere('description', 'ILIKE', $term)
-                  ->orWhereHas('creator', function ($creatorQuery) use ($term) {
-                      $creatorQuery->where('username', 'ILIKE', $term)
-                                   ->orWhere('full_name', 'ILIKE', $term);
-                  });
+                    ->orWhere('description', 'ILIKE', $term)
+                    ->orWhereHas('creator', function ($creatorQuery) use ($term) {
+                        $creatorQuery->where('username', 'ILIKE', $term)
+                            ->orWhere('full_name', 'ILIKE', $term);
+                    });
             });
+        }
+
+        // Filter / suggest drops related to a specific drop (e.g. sharing products)
+        $dropId = $request->query('drop_id') ?? $request->query('dropId');
+        if ($dropId) {
+            $sourceDrop = Drop::with('products')->find($dropId);
+            $query->where('id', '!=', $dropId);
+
+            if ($sourceDrop && $sourceDrop->products->isNotEmpty()) {
+                $productIds = $sourceDrop->products->pluck('id')->all();
+                $query->whereHas('products', function ($pq) use ($productIds) {
+                    $pq->whereIn('products.id', $productIds);
+                });
+            }
         }
 
         // Apply target / filter logic

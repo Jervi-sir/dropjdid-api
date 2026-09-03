@@ -6,7 +6,7 @@
  * Endpoint: GET /api/feeds/drops
  */
 
-import api from "@/utils/api";
+import api from "@/api/api";
 
 export interface DropType {
   id: number;
@@ -27,6 +27,7 @@ export interface ResponseType {
 export interface GetDropsFeedParams {
   target?: DropsFeedTarget;
   filter?: DropsFeedTarget | string;
+  drop_id?: number | string;
   search?: string;
   query?: string;
   q?: string;
