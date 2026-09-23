@@ -30,7 +30,7 @@ class AdminSeeder extends Seeder
             [
                 'username' => 'admin',
                 'full_name' => 'System Administrator',
-                'phone_number' => '0555000000',
+                'phone_number' => '0558054300',
                 'wilaya_id' => Wilaya::inRandomOrder()->value('id'),
                 'password' => Hash::make('password'),
                 'password_plaintext' => 'password',

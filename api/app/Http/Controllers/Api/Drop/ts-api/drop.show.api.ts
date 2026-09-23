@@ -15,6 +15,8 @@ import api from "@/utils/api";
 
 export interface DropType {
   id: number;
+  creator_id?: number | null;
+  user_id?: number | null;
   image_urls: string[];
   text1: string;
   text2: string;
@@ -23,9 +25,19 @@ export interface DropType {
     nb_saved: number;
     nb_products: number;
     nb_shares: number;
+    nb_reposted?: number;
+    nb_reposts?: number;
+    nb_followers?: number;
+    nb_follower?: number;
   };
   is_saved: boolean;
   is_liked: boolean;
+  is_reposted?: boolean;
+  is_following_creator?: boolean;
+  nb_reposted?: number;
+  nb_reposts?: number;
+  nb_followers?: number;
+  nb_follower?: number;
 }
 
 export interface ProductType {
@@ -49,6 +61,9 @@ export interface GetDropResponse {
 
 export interface GetDropProductsResponse {
   data: ProductType[];
+  current_page?: number;
+  next_page?: number | null;
+  total?: number;
 }
 
 /**

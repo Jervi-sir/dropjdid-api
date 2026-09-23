@@ -105,6 +105,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Creator followers (pivot relation).
+     */
+    public function creatorFollowers(): HasMany
+    {
+        return $this->hasMany(CreatorFollower::class, 'creator_id');
+    }
+
+    /**
+     * Followers of this creator user.
+     */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'creator_followers', 'creator_id', 'user_id')->withTimestamps();
+    }
+
+    /**
      * Friend requests sent by this user.
      */
     public function sentFriendRequests(): HasMany

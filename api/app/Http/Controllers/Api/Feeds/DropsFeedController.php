@@ -101,7 +101,8 @@ class DropsFeedController extends Controller
                 $imageUrl = url($imageUrl);
             }
 
-            $text1 = $drop->title ?? 'Drop: #' . $drop->id;
+            $dropName = $drop->title ?: ('#' . $drop->id);
+            $text1 = 'drop:' . $dropName;
             $text2 = $drop->creator ? '@' . $drop->creator->username : ($drop->description ?? '');
 
             return [

@@ -103,7 +103,11 @@ class ConversationService
         }
 
         // Broadcast to the other user that messages in this conversation were seen
-        broadcast(new MessagesSeen($conversation->id, $userId, now()->toIso8601String()))->toOthers();
+        try {
+            broadcast(new MessagesSeen($conversation->id, $userId, now()->toIso8601String()))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast failed for MessagesSeen: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -181,8 +185,12 @@ class ConversationService
         ]);
         $conversation->touch();
 
-        // Broadcast to participants via Reverb WebSockets
-        broadcast(new MessageSent($message, $conversation))->toOthers();
+        // Broadcast to participants via WebSockets (if configured)
+        try {
+            broadcast(new MessageSent($message, $conversation))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast failed for MessageSent: ' . $e->getMessage());
+        }
 
         return $message;
     }
@@ -205,7 +213,11 @@ class ConversationService
         $message->delete();
 
         // Broadcast deletion event
-        broadcast(new MessageDeleted($conversation->id, $messageId))->toOthers();
+        try {
+            broadcast(new MessageDeleted($conversation->id, $messageId))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast failed for MessageDeleted: ' . $e->getMessage());
+        }
 
         return true;
     }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\MyAccount\ListSavedProductsController;
 use App\Http\Controllers\Api\MyAccount\MyAccountController;
 use App\Http\Controllers\Api\MyAccount\PasswordController;
 use App\Http\Controllers\Api\MyAccount\UserContactController;
+use App\Http\Controllers\Api\MyAccount\UsernameController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('my-account')->group(function () {
@@ -17,6 +18,9 @@ Route::prefix('my-account')->group(function () {
     Route::post('/edit-profile', [EditMyAccountController::class, 'update'])->name('api.my-account.edit-profile.update');
     Route::post('/change-password', [PasswordController::class, 'update'])->name('api.my-account.change-password');
     Route::match(['post', 'put'], '/password', [PasswordController::class, 'update'])->name('api.my-account.password');
+    Route::get('/username', [UsernameController::class, 'show'])->name('api.my-account.username.show');
+    Route::post('/change-username', [UsernameController::class, 'update'])->name('api.my-account.change-username');
+    Route::match(['post', 'put', 'patch'], '/username', [UsernameController::class, 'update'])->name('api.my-account.username');
     Route::get('/friends', ListMyFriendsController::class)->name('api.my-account.friends');
     Route::get('/followed-creators', ListFollowedCreatorsController::class)->name('api.my-account.followed-creators');
     Route::get('/saved-products', ListSavedProductsController::class)->name('api.my-account.saved-products');
@@ -29,6 +33,3 @@ Route::prefix('my-account')->group(function () {
     Route::put('/contacts/{id}', [UserContactController::class, 'update'])->name('api.my-account.contacts.update');
     Route::delete('/contacts/{id}', [UserContactController::class, 'destroy'])->name('api.my-account.contacts.destroy');
 });
-
-
-

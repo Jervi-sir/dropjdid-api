@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\Drop;
 
 use App\Http\Controllers\Controller;
+use App\Models\CreatorFollower;
 use App\Models\Drop;
+use App\Models\UserInteraction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -56,32 +58,49 @@ class ShowController extends Controller
         $isLiked = false;
         $isSaved = false;
         $isReposted = false;
+        $isFollowing = false;
 
         if ($userId) {
             $isLiked = $drop->likedUsers->contains('id', $userId);
             $isSaved = $drop->savedUsers->contains('id', $userId);
-            $isReposted = \App\Models\UserInteraction::query()
+            $isReposted = UserInteraction::query()
                 ->where('user_id', $userId)
-                ->where('type', \App\Models\UserInteraction::TYPE_REPOST)
-                ->where('target_type', \App\Models\UserInteraction::TARGET_DROP)
+                ->where('type', UserInteraction::TYPE_REPOST)
+                ->where('target_type', UserInteraction::TARGET_DROP)
                 ->where('target_id', $drop->id)
                 ->exists();
+
+            if ($drop->creator_id) {
+                $isFollowing = CreatorFollower::query()
+                    ->where('user_id', $userId)
+                    ->where('creator_id', $drop->creator_id)
+                    ->exists();
+            }
         }
 
-        $nbShares = \App\Models\UserInteraction::query()
-            ->where('type', \App\Models\UserInteraction::TYPE_SHARE)
-            ->where('target_type', \App\Models\UserInteraction::TARGET_DROP)
+        $nbShares = UserInteraction::query()
+            ->where('type', UserInteraction::TYPE_SHARE)
+            ->where('target_type', UserInteraction::TARGET_DROP)
             ->where('target_id', $drop->id)
             ->count();
 
-        $nbReposts = \App\Models\UserInteraction::query()
-            ->where('type', \App\Models\UserInteraction::TYPE_REPOST)
-            ->where('target_type', \App\Models\UserInteraction::TARGET_DROP)
+        $nbReposts = UserInteraction::query()
+            ->where('type', UserInteraction::TYPE_REPOST)
+            ->where('target_type', UserInteraction::TARGET_DROP)
             ->where('target_id', $drop->id)
             ->count();
+
+        $nbFollowers = 0;
+        if ($drop->creator_id) {
+            $nbFollowers = CreatorFollower::query()
+                ->where('creator_id', $drop->creator_id)
+                ->count();
+        }
 
         $data = [
             'id' => (int) $drop->id,
+            'creator_id' => $drop->creator_id ? (int) $drop->creator_id : null,
+            'user_id' => $drop->creator_id ? (int) $drop->creator_id : null,
             'image_urls' => $imageUrls,
             'text1' => $text1,
             'text2' => $text2,
@@ -92,12 +111,17 @@ class ShowController extends Controller
                 'nb_shares' => (int) $nbShares,
                 'nb_reposted' => (int) $nbReposts,
                 'nb_reposts' => (int) $nbReposts,
+                'nb_followers' => (int) $nbFollowers,
+                'nb_follower' => (int) $nbFollowers,
             ],
             'is_saved' => (bool) $isSaved,
             'is_liked' => (bool) $isLiked,
             'is_reposted' => (bool) $isReposted,
+            'is_following_creator' => (bool) $isFollowing,
             'nb_reposted' => (int) $nbReposts,
             'nb_reposts' => (int) $nbReposts,
+            'nb_followers' => (int) $nbFollowers,
+            'nb_follower' => (int) $nbFollowers,
         ];
 
         return response()->json([
