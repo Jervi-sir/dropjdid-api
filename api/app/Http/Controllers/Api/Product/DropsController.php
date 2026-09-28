@@ -49,8 +49,9 @@ class DropsController extends Controller
                 $imageUrl = url($imageUrl);
             }
 
-            $text1 = $drop->title ?? 'Drop: #' . $drop->id;
-            $text2 = $drop->creator ? '@' . $drop->creator->username : ($drop->description ?? '');
+            $title = (string) ($drop->title ?? '#' . $drop->id);
+            $text1 = str_starts_with(strtolower($title), 'drop:') ? $title : 'drop: ' . $title;
+            $text2 = $drop->creator ? '@' . ltrim($drop->creator->username, '@') : ($drop->description ?? '');
 
             return [
                 'id' => (int) $drop->id,

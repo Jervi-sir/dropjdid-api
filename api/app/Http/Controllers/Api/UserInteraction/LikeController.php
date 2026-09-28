@@ -40,8 +40,7 @@ class LikeController extends Controller
             targetId: (int) $id,
             modelClass: Drop::class,
             counterColumn: null,
-            resourceName: 'Drop',
-            pivotRelation: 'likedUsers'
+            resourceName: 'Drop'
         );
     }
 
@@ -57,8 +56,7 @@ class LikeController extends Controller
             targetId: (int) $id,
             modelClass: Product::class,
             counterColumn: null,
-            resourceName: 'Product',
-            pivotRelation: 'likedUsers'
+            resourceName: 'Product'
         );
     }
 
@@ -71,8 +69,7 @@ class LikeController extends Controller
         int $targetId,
         string $modelClass,
         ?string $counterColumn = null,
-        string $resourceName = 'Item',
-        ?string $pivotRelation = null
+        string $resourceName = 'Item'
     ): JsonResponse {
         $user = $request->user('sanctum') ?? $request->user();
         $userId = $user?->id ?? $request->input('user_id');
@@ -98,9 +95,6 @@ class LikeController extends Controller
             if ($counterColumn && \Illuminate\Support\Facades\Schema::hasColumn($item->getTable(), $counterColumn)) {
                 $item->decrement($counterColumn);
             }
-            if ($pivotRelation && $userId && method_exists($item, $pivotRelation)) {
-                $item->{$pivotRelation}()->detach($userId);
-            }
             $isLiked = false;
         } else {
             UserInteraction::create([
@@ -111,9 +105,6 @@ class LikeController extends Controller
             ]);
             if ($counterColumn && \Illuminate\Support\Facades\Schema::hasColumn($item->getTable(), $counterColumn)) {
                 $item->increment($counterColumn);
-            }
-            if ($pivotRelation && $userId && method_exists($item, $pivotRelation)) {
-                $item->{$pivotRelation}()->syncWithoutDetaching([$userId]);
             }
             $isLiked = true;
         }

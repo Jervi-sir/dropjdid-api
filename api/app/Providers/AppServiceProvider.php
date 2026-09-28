@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
-            URL::forceScheme('https');
+        // URL::forceScheme('https');
 
         if (class_exists(\Illuminate\Foundation\DevCommands::class)) {
             \Illuminate\Foundation\DevCommands::artisan('reverb:start --debug', 'reverb');
@@ -43,14 +43,15 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
+        Password::defaults(
+            fn(): ?Password => app()->isProduction()
+                ? Password::min(12)
                 ->mixedCase()
                 ->letters()
                 ->numbers()
                 ->symbols()
                 ->uncompromised()
-            : null,
+                : null,
         );
     }
 }

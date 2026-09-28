@@ -78,7 +78,7 @@ class DropsFeedController extends Controller
             }
             $query->latest();
         } elseif ($target === 'trending') {
-            $query->withCount('likedUsers')
+            $query->withCount(['likes as liked_users_count'])
                 ->orderByDesc('liked_users_count')
                 ->orderByDesc('created_at');
         } else {

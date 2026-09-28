@@ -22,6 +22,22 @@ return new class extends Migration
             $table->decimal('price_original', 12, 2)->nullable();
             $table->decimal('price_shown', 12, 2)->nullable();
             $table->decimal('price_store', 12, 2)->nullable();
+            $table->decimal('price_selling', 12, 2)->nullable();
+
+            // Promotion / Discounts
+            $table->decimal('discount_price', 12, 2)->nullable();
+            $table->decimal('discount_percentage', 5, 2)->nullable();
+
+            // Creator & Platform Commissions
+            $table->string('creator_earning_type')->default('fixed');
+            $table->decimal('creator_earning_value', 12, 2)->nullable();
+            $table->decimal('platform_earning', 12, 2)->nullable();
+
+            // Event-related Pricing (Flash sale, Campaign, etc.)
+            $table->string('event_name')->nullable();
+            $table->decimal('event_price', 12, 2)->nullable();
+            $table->timestamp('event_start_at')->nullable();
+            $table->timestamp('event_end_at')->nullable();
 
             $table->string('product_status')->nullable('draft'); // draft, published, archived, rejected,
             $table->json('rejection_reason')->nullable();

@@ -46,34 +46,35 @@ class AuthController extends Controller
      */
     public function showRegister(): Response
     {
-        return Inertia::render('auth/register');
+        return Inertia::render('auth/login');
     }
 
     /**
      * Handle an incoming registration request.
      */
-    public function register(RegisterRequest $request): RedirectResponse
+    public function register(RegisterRequest $request): Response
     {
-        $validated = $request->validated();
+        return Inertia::render('auth/login');
+        // $validated = $request->validated();
 
-        $fullName = $validated['full_name'] ?? $validated['name'] ?? null;
-        $username = $validated['username'] ?? null;
+        // $fullName = $validated['full_name'] ?? $validated['name'] ?? null;
+        // $username = $validated['username'] ?? null;
 
-        $user = User::create([
-            'name' => $fullName,
-            'full_name' => $fullName,
-            'username' => $username,
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'is_active' => true,
-            'user_status' => 'approved',
-        ]);
+        // $user = User::create([
+        //     'name' => $fullName,
+        //     'full_name' => $fullName,
+        //     'username' => $username,
+        //     'email' => $validated['email'],
+        //     'password' => Hash::make($validated['password']),
+        //     'is_active' => true,
+        //     'user_status' => 'approved',
+        // ]);
 
-        event(new Registered($user));
+        // event(new Registered($user));
 
-        Auth::login($user);
+        // Auth::login($user);
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**

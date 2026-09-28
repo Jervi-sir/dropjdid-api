@@ -73,8 +73,8 @@ class ListController extends Controller
 
         foreach ($labels as $label) {
             $productsQuery = $label->products()
-                ->with(['mainImage', 'images', 'savedUsers'])
-                ->withCount('savedUsers');
+                ->with(['mainImage', 'images'])
+                ->withCount(['saves as saved_users_count']);
 
             $this->applyProductFilters($productsQuery, $request, $search);
 
@@ -141,8 +141,8 @@ class ListController extends Controller
         $this->applyProductFilters($productsQuery, $request, $search);
 
         $paginated = $productsQuery
-            ->with(['mainImage', 'images', 'savedUsers'])
-            ->withCount('savedUsers')
+            ->with(['mainImage', 'images'])
+            ->withCount(['saves as saved_users_count'])
             ->latest('products.created_at')
             ->paginate($perPage);
 
@@ -294,7 +294,12 @@ class ListController extends Controller
 
         $isSaved = false;
         if ($userId) {
-            $isSaved = $product->savedUsers->contains('id', $userId);
+            $isSaved = \App\Models\UserInteraction::query()
+                ->where('user_id', $userId)
+                ->where('target_type', \App\Models\UserInteraction::TARGET_PRODUCT)
+                ->where('target_id', $product->id)
+                ->where('type', \App\Models\UserInteraction::TYPE_SAVE)
+                ->exists();
         }
 
         return [
@@ -308,7 +313,7 @@ class ListController extends Controller
             'text' => (string) ($product->name ?? 'Product #'.$product->id),
             'save' => [
                 'is_saved' => (bool) $isSaved,
-                'nb_save' => (int) ($product->saved_users_count ?? $product->savedUsers->count()),
+                'nb_save' => (int) ($product->saved_users_count ?? 0),
             ],
         ];
     }

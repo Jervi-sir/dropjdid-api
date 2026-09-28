@@ -49,8 +49,8 @@ class RepostedProductsController extends Controller
         $products = ! empty($productIds)
             ? Product::query()
                 ->whereIn('id', $productIds)
-                ->with(['mainImage', 'images', 'store', 'savedUsers', 'likedUsers'])
-                ->withCount(['savedUsers', 'likedUsers'])
+                ->with(['mainImage', 'images', 'store'])
+                ->withCount(['saves as saved_users_count', 'likes as liked_users_count'])
                 ->get()
                 ->keyBy('id')
             : collect();
@@ -85,14 +85,16 @@ class RepostedProductsController extends Controller
             $isReposted = false;
 
             if ($currentUserId) {
-                $isSaved = $product->savedUsers ? $product->savedUsers->contains('id', $currentUserId) : false;
-                $isLiked = $product->likedUsers ? $product->likedUsers->contains('id', $currentUserId) : false;
-                $isReposted = UserInteraction::query()
+                $userInteractions = UserInteraction::query()
                     ->where('user_id', $currentUserId)
-                    ->where('type', UserInteraction::TYPE_REPOST)
                     ->where('target_type', UserInteraction::TARGET_PRODUCT)
                     ->where('target_id', $product->id)
-                    ->exists();
+                    ->pluck('type')
+                    ->all();
+
+                $isSaved = in_array(UserInteraction::TYPE_SAVE, $userInteractions, true);
+                $isLiked = in_array(UserInteraction::TYPE_LIKE, $userInteractions, true);
+                $isReposted = in_array(UserInteraction::TYPE_REPOST, $userInteractions, true);
             }
 
             return [

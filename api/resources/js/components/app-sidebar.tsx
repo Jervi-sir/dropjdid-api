@@ -1,5 +1,14 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Calendar, FolderGit2, LayoutGrid, Package, Store, Truck, Users } from 'lucide-react';
+import {
+    BookOpen,
+    Calendar,
+    FolderGit2,
+    LayoutGrid,
+    Package,
+    Store,
+    Truck,
+    Users,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -44,7 +53,12 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
-        title: 'Store Requests',
+        title: 'Creator Drops',
+        href: '/admin/creators/drops',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Sgm Requests',
         href: admin.sgm.requests.index(),
         icon: Store,
     },
@@ -60,18 +74,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
     return (

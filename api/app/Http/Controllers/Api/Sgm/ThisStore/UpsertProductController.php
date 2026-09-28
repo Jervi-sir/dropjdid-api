@@ -256,7 +256,7 @@ class UpsertProductController extends Controller
             'admin_feedback' => $adminFeedback,
             'rejection_reason' => $formattedRejectionReason,
             'product_status' => (string) ($product->product_status ?? 'draft'),
-            'name' => (string) ($product->name ?? ''),
+            'name' => (string) ($product->description ?? ''),
             'description' => (string) ($product->description ?? ''),
             'expires_at' => $product->expires_at ? $product->expires_at->toIso8601String() : null,
             'id' => (int) $product->id,

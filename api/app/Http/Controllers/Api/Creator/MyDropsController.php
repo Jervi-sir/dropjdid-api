@@ -103,6 +103,9 @@ class MyDropsController extends Controller
                 'image_url' => (string) ($imageUrl ?? ''),
                 'text1' => (string) ($drop->title ?? ('Drop #'.$drop->id)),
                 'text2' => (string) $creatorName,
+                'status' => (string) ($drop->drop_status ?? 'draft'),
+                'drop_status' => (string) ($drop->drop_status ?? 'draft'),
+                'is_draft' => ($drop->drop_status === 'draft'),
             ];
         })->values()->all();
 

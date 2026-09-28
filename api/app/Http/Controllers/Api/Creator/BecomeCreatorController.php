@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class BecomeCreatorController extends Controller
 {
@@ -87,7 +86,7 @@ class BecomeCreatorController extends Controller
         $phoneNumber = trim($request->input('phone_number'));
         $note = $request->input('note');
 
-        // Resolve authenticated user or find/create guest user
+        // Resolve authenticated user or requested user
         $user = $request->user('sanctum') ?? $request->user();
 
         if (! $user) {
@@ -99,50 +98,60 @@ class BecomeCreatorController extends Controller
 
         if (! $user) {
             $user = User::where('phone_number', $phoneNumber)->first();
+        }
 
-            if (! $user) {
-                $randomStr = Str::lower(Str::random(6));
-                $user = User::create([
-                    'phone_number' => $phoneNumber,
-                    'username' => 'user_' . $randomStr,
-                    'full_name' => 'Creator Applicant',
-                    'email' => 'creator_' . preg_replace('/[^0-9]/', '', $phoneNumber) . '@djapp.local',
-                    'password' => bcrypt(Str::random(16)),
-                    'is_active' => true,
-                ]);
+        if (! $user) {
+            return response()->json([
+                'message' => 'User not found. Please log in to submit a creator request.',
+            ], 401);
+        }
+
+        try {
+            // Update phone number on user only if it is not already taken by another account
+            if ($user->phone_number !== $phoneNumber) {
+                $phoneExistsOnOtherUser = User::where('phone_number', $phoneNumber)
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+
+                if (! $phoneExistsOnOtherUser) {
+                    $user->phone_number = $phoneNumber;
+                    $user->save();
+                }
             }
-        }
 
-        // Update phone number on user if missing
-        if ($user && ! $user->phone_number) {
-            $user->phone_number = $phoneNumber;
-            $user->save();
-        }
+            // Create or update pending creator request
+            $creatorRequest = CreatorRequest::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                ],
+                [
+                    'phone_number' => $phoneNumber,
+                    'request_status' => 'pending',
+                    'note' => $note,
+                ]
+            );
 
-        // Create or update pending creator request
-        $creatorRequest = CreatorRequest::updateOrCreate(
-            [
-                'user_id' => $user->id,
-            ],
-            [
-                'phone_number' => $phoneNumber,
-                'request_status' => 'pending',
-                'note' => $note,
-            ]
-        );
-
-        return response()->json([
-            'message' => 'Your request to become a creator has been submitted successfully! Our team will contact you soon.',
-            'has_applied' => true,
-            'phone_number' => (string) $creatorRequest->phone_number,
-            'request_status' => (string) ($creatorRequest->request_status ?? 'pending'),
-            'request' => [
-                'id' => (int) $creatorRequest->id,
-                'user_id' => (int) $user->id,
+            return response()->json([
+                'message' => 'Your request to become a creator has been submitted successfully! Our team will contact you soon.',
+                'has_applied' => true,
                 'phone_number' => (string) $creatorRequest->phone_number,
                 'request_status' => (string) ($creatorRequest->request_status ?? 'pending'),
-                'created_at' => $creatorRequest->created_at,
-            ],
-        ], 200);
+                'request' => [
+                    'id' => (int) $creatorRequest->id,
+                    'user_id' => (int) $user->id,
+                    'phone_number' => (string) $creatorRequest->phone_number,
+                    'request_status' => (string) ($creatorRequest->request_status ?? 'pending'),
+                    'created_at' => $creatorRequest->created_at,
+                ],
+            ], 200);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json([
+                'message' => 'An error occurred while submitting your request. Please try again.',
+            ], 500);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'An error occurred while submitting your request. Please try again.',
+            ], 500);
+        }
     }
 }

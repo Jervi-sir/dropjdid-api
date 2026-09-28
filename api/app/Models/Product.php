@@ -225,9 +225,19 @@ class Product extends Model
         'quality_id',
         'name',
         'description',
+        'price_store',
+        'price_selling',
         'price_original',
         'price_shown',
-        'price_store',
+        'discount_price',
+        'discount_percentage',
+        'creator_earning_type',
+        'creator_earning_value',
+        'platform_earning',
+        'event_name',
+        'event_price',
+        'event_start_at',
+        'event_end_at',
         'product_status',
         'rejection_reason',
         'is_affiliate',
@@ -238,14 +248,54 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'price_store' => 'decimal:2',
+            'price_selling' => 'decimal:2',
             'price_original' => 'decimal:2',
             'price_shown' => 'decimal:2',
-            'price_store' => 'decimal:2',
+            'discount_price' => 'decimal:2',
+            'discount_percentage' => 'decimal:2',
+            'creator_earning_value' => 'decimal:2',
+            'platform_earning' => 'decimal:2',
+            'event_price' => 'decimal:2',
+            'event_start_at' => 'datetime',
+            'event_end_at' => 'datetime',
             'is_affiliate' => 'boolean',
             'rejection_reason' => 'array',
             'refreshed_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the active effective selling price considering events, discounts, and regular selling price.
+     */
+    public function getEffectivePriceAttribute(): float
+    {
+        $now = now();
+
+        // 1. Check if event is active
+        if (
+            $this->event_price &&
+            $this->event_start_at &&
+            $this->event_end_at &&
+            $now->between($this->event_start_at, $this->event_end_at)
+        ) {
+            return (float) $this->event_price;
+        }
+
+        // 2. Check fixed promotion price
+        if ($this->discount_price) {
+            return (float) $this->discount_price;
+        }
+
+        // 3. Check percentage promotion
+        $basePrice = $this->price_selling ?? $this->price_shown ?? $this->price_store;
+        if ($this->discount_percentage && $basePrice) {
+            return (float) round($basePrice * (1 - ($this->discount_percentage / 100)), 2);
+        }
+
+        // 4. Fallback to selling or shown price
+        return (float) ($this->price_selling ?? $this->price_shown ?? $this->price_store ?? 0);
     }
 
 
@@ -259,19 +309,23 @@ class Product extends Model
         return $this->hasOne(ProductImage::class)->where('is_main', true);
     }
 
-    public function savedUsers(): BelongsToMany
+    public function interactions(): HasMany
     {
-        return $this->belongsToMany(User::class, 'saved_products', 'product_id', 'user_id')->withTimestamps();
+        return $this->hasMany(UserInteraction::class, 'target_id')->where('target_type', UserInteraction::TARGET_PRODUCT);
     }
 
-    public function likedUsers(): BelongsToMany
+    public function likes(): HasMany
     {
-        return $this->belongsToMany(User::class, 'liked_products', 'product_id', 'user_id')->withTimestamps();
+        return $this->hasMany(UserInteraction::class, 'target_id')
+            ->where('target_type', UserInteraction::TARGET_PRODUCT)
+            ->where('type', UserInteraction::TYPE_LIKE);
     }
 
     public function saves(): HasMany
     {
-        return $this->hasMany(SavedProduct::class);
+        return $this->hasMany(UserInteraction::class, 'target_id')
+            ->where('target_type', UserInteraction::TARGET_PRODUCT)
+            ->where('type', UserInteraction::TYPE_SAVE);
     }
 
     public function store(): BelongsTo

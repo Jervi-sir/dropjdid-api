@@ -82,16 +82,23 @@ interface SupplyRequestData {
     id: number;
     reference_code: string;
     store_id: number;
+    product_id?: number | null;
+    product_name?: string | null;
+    total_requested_quantity?: number;
+    total_fulfilled_quantity?: number;
+    total_received_quantity?: number;
     status: string;
     tracking_number: string | null;
     courier_name: string | null;
     notes: string | null;
+    approved_at?: string | null;
     sent_at: string | null;
     shipped_at: string | null;
     received_at: string | null;
     items_count?: number;
     order_items_count?: number;
     store: StoreItem;
+    product?: ProductItem | null;
     items: SupplyRequestItemData[];
 }
 
@@ -287,21 +294,60 @@ export default function IndexSupplyRequestsPage({
         if (!selectedStoreDemand || selectedItemIds.length === 0) return;
         setIsSubmitting(true);
 
-        router.post(
-            '/admin/supply-requests',
-            {
-                store_id: selectedStoreDemand.store.id,
-                order_item_ids: selectedItemIds,
-                notes: requestNotes,
-            },
-            {
-                onSuccess: () => {
-                    setSelectedStoreDemand(null);
-                    setActiveTab('requests');
+        // Find products corresponding to selected items
+        const selectedProducts = selectedStoreDemand.products?.filter((prod) =>
+            prod.order_item_ids.some((id) => selectedItemIds.includes(id)),
+        ) || [];
+
+        // If specific products found, create for the first or loop
+        if (selectedProducts.length > 0) {
+            const prod = selectedProducts[0];
+            const productItemIds = prod.order_item_ids.filter((id) =>
+                selectedItemIds.includes(id),
+            );
+
+            router.post(
+                '/admin/supply-requests',
+                {
+                    product_id: prod.product_id,
+                    order_item_ids: productItemIds,
+                    notes: requestNotes,
+                    auto_approve: true,
                 },
-                onFinish: () => setIsSubmitting(false),
-            },
-        );
+                {
+                    onSuccess: () => {
+                        setSelectedStoreDemand(null);
+                        setActiveTab('requests');
+                    },
+                    onFinish: () => setIsSubmitting(false),
+                },
+            );
+        } else {
+            const firstItem = selectedStoreDemand.order_items.find((i) =>
+                selectedItemIds.includes(i.id),
+            );
+            if (!firstItem) {
+                setIsSubmitting(false);
+                return;
+            }
+
+            router.post(
+                '/admin/supply-requests',
+                {
+                    product_id: firstItem.product_id,
+                    order_item_ids: selectedItemIds,
+                    notes: requestNotes,
+                    auto_approve: true,
+                },
+                {
+                    onSuccess: () => {
+                        setSelectedStoreDemand(null);
+                        setActiveTab('requests');
+                    },
+                    onFinish: () => setIsSubmitting(false),
+                },
+            );
+        }
     };
 
     // Open Receive Modal
@@ -593,6 +639,11 @@ export default function IndexSupplyRequestsPage({
                                                     <span className="font-mono text-base font-bold text-foreground">
                                                         {req.reference_code}
                                                     </span>
+                                                    {req.product_name && (
+                                                        <span className="text-sm font-semibold text-foreground">
+                                                            {req.product_name}
+                                                        </span>
+                                                    )}
                                                     {getStatusBadge(req.status)}
                                                 </div>
                                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -601,15 +652,19 @@ export default function IndexSupplyRequestsPage({
                                                         {req.store?.name}
                                                     </span>
                                                     <span>•</span>
+                                                    <span className="font-mono font-bold text-foreground">
+                                                        {req.total_requested_quantity || req.items?.reduce((acc, i) => acc + i.requested_quantity, 0) || 0} pcs
+                                                    </span>
+                                                    <span>•</span>
                                                     <span>
                                                         {req.items?.length || 0}{' '}
-                                                        variant line(s)
+                                                        sizes
                                                     </span>
                                                     <span>•</span>
                                                     <span>
                                                         {req.order_items_count ||
                                                             0}{' '}
-                                                        customer orders linked
+                                                        orders linked
                                                     </span>
                                                     {req.courier_name && (
                                                         <>

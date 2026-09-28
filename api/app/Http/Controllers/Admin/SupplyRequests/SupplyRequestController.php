@@ -35,7 +35,7 @@ class SupplyRequestController extends Controller
 
         // 1. Supply Requests Query
         $requestsQuery = SupplyRequest::query()
-            ->with(['store', 'items.product.mainImage', 'items.size'])
+            ->with(['product.store', 'product.mainImage', 'items.product.mainImage', 'items.size'])
             ->withCount(['items', 'orderItems'])
             ->latest();
 
@@ -44,16 +44,22 @@ class SupplyRequestController extends Controller
         }
 
         if ($storeId !== 'all') {
-            $requestsQuery->where('store_id', $storeId);
+            $requestsQuery->whereHas('product', function ($pq) use ($storeId) {
+                $pq->where('store_id', $storeId);
+            });
         }
 
         if ($search !== '') {
             $requestsQuery->where(function ($q) use ($search) {
                 $q->where('reference_code', 'like', "%{$search}%")
+                    ->orWhere('product_name', 'like', "%{$search}%")
                     ->orWhere('tracking_number', 'like', "%{$search}%")
                     ->orWhere('courier_name', 'like', "%{$search}%")
-                    ->orWhereHas('store', function ($sq) use ($search) {
-                        $sq->where('name', 'like', "%{$search}%");
+                    ->orWhereHas('product', function ($pq) use ($search) {
+                        $pq->where('name', 'like', "%{$search}%")
+                            ->orWhereHas('store', function ($sq) use ($search) {
+                                $sq->where('name', 'like', "%{$search}%");
+                            });
                     });
             });
         }
@@ -148,30 +154,28 @@ class SupplyRequestController extends Controller
     }
 
     /**
-     * Create and dispatch a new Supply Request batch.
+     * Create and dispatch a new Supply Request batch for a specific product.
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'store_id' => ['required', 'exists:stores,id'],
+            'product_id' => ['required', 'exists:products,id'],
             'order_item_ids' => ['required', 'array', 'min:1'],
             'order_item_ids.*' => ['required', 'exists:order_items,id'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'auto_approve' => ['nullable', 'boolean'],
         ]);
 
-        $supplyRequest = $this->aggregationService->createSupplyRequestForStore(
-            (int) $validated['store_id'],
+        $autoApprove = filter_var($request->input('auto_approve', true), FILTER_VALIDATE_BOOLEAN);
+
+        $supplyRequest = $this->aggregationService->createSupplyRequestForProduct(
+            (int) $validated['product_id'],
             $validated['order_item_ids'],
-            $validated['notes'] ?? null
+            $validated['notes'] ?? null,
+            $autoApprove
         );
 
-        // Update status to sent immediately if created
-        $supplyRequest->update([
-            'status' => SupplyRequest::STATUS_SENT,
-            'sent_at' => now(),
-        ]);
-
-        return redirect()->back()->with('success', "Supply Request {$supplyRequest->reference_code} generated and sent to store.");
+        return redirect()->back()->with('success', "Supply Request {$supplyRequest->reference_code} generated for {$supplyRequest->product_name} and sent to store.");
     }
 
     /**

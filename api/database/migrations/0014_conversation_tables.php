@@ -42,6 +42,7 @@ return new class extends Migration
             $table->nullableMorphs('attachable');
             // product, profile, store, drop, prize, etc.
 
+            $table->softDeletes();
             $table->timestamps();
         });
     }

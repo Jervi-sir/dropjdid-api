@@ -118,41 +118,71 @@ class BecomeSgmController extends Controller
             }
         }
 
-        // Update phone number on user if missing
-        if ($user && ! $user->phone_number) {
-            $user->phone_number = $phoneNumber;
-            $user->save();
-        }
+        // Check if phone number is taken by another account
+        // $phoneExistsOnOtherUser = User::where('phone_number', $phoneNumber)
+        //     ->where('id', '!=', $user->id)
+        //     ->exists();
 
-        // Create or update pending SGM support request
-        $sgmRequest = SupportRequest::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'target' => 'become-sgm',
-            ],
-            [
-                'contact' => $phoneNumber,
-                'type' => 'phone_number',
-                'status' => 'pending',
-                'note' => $note,
-            ]
-        );
+        // if ($phoneExistsOnOtherUser) {
+        //     return response()->json([
+        //         'message' => 'This phone number is already associated with another account.',
+        //         'errors' => [
+        //             'phone_number' => ['This phone number is already associated with another account.'],
+        //         ],
+        //     ], 422);
+        // }
 
-        return response()->json([
-            'message' => 'Your request to open a store / become an SGM has been submitted successfully! Our team will contact you soon.',
-            'has_applied' => true,
-            'phone_number' => (string) $sgmRequest->contact,
-            'request_status' => (string) ($sgmRequest->status ?? 'pending'),
-            'request' => [
-                'id' => (int) $sgmRequest->id,
-                'user_id' => (int) $user->id,
-                'contact' => (string) $sgmRequest->contact,
+        try {
+            // Update phone number on user only if it is not already taken by another account
+            if ($user->phone_number !== $phoneNumber) {
+                $phoneExistsOnOtherUser = User::where('phone_number', $phoneNumber)
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+
+                if (! $phoneExistsOnOtherUser) {
+                    $user->phone_number = $phoneNumber;
+                    $user->save();
+                }
+            }
+
+            // Create or update pending SGM support request
+            $sgmRequest = SupportRequest::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'target' => 'become-sgm',
+                ],
+                [
+                    'contact' => $phoneNumber,
+                    'type' => 'phone_number',
+                    'status' => 'pending',
+                    'note' => $note,
+                ]
+            );
+
+            return response()->json([
+                'message' => 'Your request to open a store / become an SGM has been submitted successfully! Our team will contact you soon.',
+                'has_applied' => true,
                 'phone_number' => (string) $sgmRequest->contact,
-                'status' => (string) ($sgmRequest->status ?? 'pending'),
                 'request_status' => (string) ($sgmRequest->status ?? 'pending'),
-                'target' => 'become-sgm',
-                'created_at' => $sgmRequest->created_at,
-            ],
-        ], 200);
+                'request' => [
+                    'id' => (int) $sgmRequest->id,
+                    'user_id' => (int) $user->id,
+                    'contact' => (string) $sgmRequest->contact,
+                    'phone_number' => (string) $sgmRequest->contact,
+                    'status' => (string) ($sgmRequest->status ?? 'pending'),
+                    'request_status' => (string) ($sgmRequest->status ?? 'pending'),
+                    'target' => 'become-sgm',
+                    'created_at' => $sgmRequest->created_at,
+                ],
+            ], 200);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json([
+                'message' => 'An error occurred while submitting your request. Please try again.',
+            ], 500);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'An error occurred while submitting your request. Please try again.',
+            ], 500);
+        }
     }
 }

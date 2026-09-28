@@ -19,6 +19,7 @@ return new class extends Migration
 
             $table->string('password');
             $table->string('password_plaintext')->nullable();
+            $table->boolean('is_approved')->default(false);
 
             $table->rememberToken();
             $table->timestamps();

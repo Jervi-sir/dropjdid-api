@@ -18,6 +18,7 @@ class UserInteraction extends Model
     public const TARGET_ADVERTISEMENT = 'advertisement';
     public const TARGET_DROP = 'drop';
     public const TARGET_PRODUCT = 'product';
+    public const TARGET_LABEL = 'label';
     public const TARGET_PROFILE = 'profile';
     public const TARGET_USER = 'user';
 

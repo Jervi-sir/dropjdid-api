@@ -62,12 +62,6 @@ class TestController extends Controller
             return response()->json(['message' => 'No user found in database.'], 404);
         }
 
-        // Get or create notification type
-        $type = NotificationType::firstOrCreate(
-            ['code' => 'sale'],
-            ['en' => 'Sale', 'fr' => 'Vente', 'ar' => 'مبيعات']
-        );
-
         $amount = rand(1500, 9500);
         $notificationData = [
             'target' => 'product',
@@ -79,7 +73,7 @@ class TestController extends Controller
         ];
 
         $notification = Notification::create([
-            'notification_type_id' => $type->id,
+            'type' => Notification::TYPE_SALE,
             'user_id' => $targetUser->id,
             'notifiable_type' => User::class,
             'notifiable_id' => $targetUser->id,

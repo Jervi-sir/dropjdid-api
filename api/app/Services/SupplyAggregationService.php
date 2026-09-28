@@ -27,58 +27,73 @@ class SupplyAggregationService
     }
 
     /**
-     * Create a supply request draft for a specific store from a collection of order item IDs.
+     * Create a supply request for a specific product from a collection of order item IDs.
      *
-     * @param int $storeId
+     * @param int $productId
      * @param array<int> $orderItemIds
      * @param string|null $notes
+     * @param bool $autoApprove
      * @return SupplyRequest
      */
-    public function createSupplyRequestForStore(int $storeId, array $orderItemIds, ?string $notes = null): SupplyRequest
+    public function createSupplyRequestForProduct(int $productId, array $orderItemIds, ?string $notes = null, bool $autoApprove = true): SupplyRequest
     {
-        return DB::transaction(function () use ($storeId, $orderItemIds, $notes) {
-            $store = Store::findOrFail($storeId);
-
-            // 1. Fetch the target unassigned order items
+        return DB::transaction(function () use ($productId, $orderItemIds, $notes, $autoApprove) {
+            // 1. Fetch target unassigned order items for this product
             $orderItems = OrderItem::whereIn('id', $orderItemIds)
+                ->where('product_id', $productId)
                 ->where('fulfillment_status', 'awaiting_supply')
                 ->whereNull('supply_request_id')
-                ->with(['product', 'size', 'drop'])
+                ->with(['product.store', 'size', 'drop'])
                 ->get();
 
             if ($orderItems->isEmpty()) {
-                throw new \InvalidArgumentException('No valid pending order items found for supply request.');
+                throw new \InvalidArgumentException('No valid pending order items found for this product.');
             }
 
-            // 2. Generate Unique Reference Code (e.g. SR-20260830-AB12)
+            $firstItem = $orderItems->first();
+            $storeId = $firstItem->product?->store_id ?? $firstItem->order?->store_id ?? 1;
+            $productName = (string) ($firstItem->product_name ?? $firstItem->product?->name ?? "Product #{$productId}");
+            $totalQuantity = (int) $orderItems->sum('quantity');
+
+            // 2. Generate Unique Reference Code (e.g. SR-20260925-AB12)
             $refCode = 'SR-' . date('Ymd') . '-' . strtoupper(Str::random(4));
 
-            // 3. Create parent Supply Request
+            $initialStatus = $autoApprove ? SupplyRequest::STATUS_APPROVED : SupplyRequest::STATUS_DRAFT;
+
+            // 3. Create product-specific Supply Request
             $supplyRequest = SupplyRequest::create([
                 'reference_code' => $refCode,
-                'store_id' => $store->id,
-                'status' => SupplyRequest::STATUS_DRAFT,
+                'product_id' => $productId,
+                'product_name' => $productName,
+                'total_requested_quantity' => $totalQuantity,
+                'total_fulfilled_quantity' => 0,
+                'total_received_quantity' => 0,
+                'status' => $initialStatus,
+                'approved_at' => $autoApprove ? now() : null,
+                'sent_at' => $autoApprove ? now() : null,
                 'notes' => $notes,
             ]);
 
-            // 4. Group items by product_id + size_id + drop_id to calculate aggregated batch quantities
+            // 4. Group items by size & drop to create size-breakdown line items
             $groupedByVariant = $orderItems->groupBy(function (OrderItem $item) {
-                return "{$item->product_id}_{$item->size_id}_{$item->drop_id}";
+                return "{$item->size_id}_{$item->drop_id}";
             });
 
             foreach ($groupedByVariant as $group) {
                 /** @var Collection<int, OrderItem> $group */
                 $first = $group->first();
-                $totalQuantity = $group->sum('quantity');
+                $variantQuantity = (int) $group->sum('quantity');
+                $sizeCode = (string) ($first->size?->code ?? $first->size?->en ?? 'Standard');
 
-                // Create batched supply request line item
+                // Create size breakdown item
                 $supplyRequestItem = SupplyRequestItem::create([
                     'supply_request_id' => $supplyRequest->id,
-                    'product_id' => $first->product_id,
+                    'product_id' => $productId,
                     'size_id' => $first->size_id,
+                    'size_code' => $sizeCode,
                     'drop_id' => $first->drop_id,
-                    'product_name' => $first->product_name ?? $first->product?->name ?? 'Product',
-                    'requested_quantity' => $totalQuantity,
+                    'product_name' => $productName,
+                    'requested_quantity' => $variantQuantity,
                     'fulfilled_quantity' => 0,
                     'received_quantity' => 0,
                 ]);
@@ -88,12 +103,12 @@ class SupplyAggregationService
                     $orderItem->update([
                         'supply_request_id' => $supplyRequest->id,
                         'supply_request_item_id' => $supplyRequestItem->id,
-                        'fulfillment_status' => 'supply_requested',
+                        'fulfillment_status' => $autoApprove ? 'supply_requested' : 'awaiting_supply',
                     ]);
                 }
             }
 
-            return $supplyRequest->load(['items.product', 'items.size', 'orderItems.order']);
+            return $supplyRequest->load(['product.mainImage', 'store', 'items.size', 'orderItems.order']);
         });
     }
 

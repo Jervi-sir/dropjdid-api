@@ -11,19 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Supply Requests Table (Dispatches sent to stores)
+        // 1. Supply Requests Table (Targeting a specific product with batched sizes for warehouse supply)
         Schema::create('supply_requests', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_code')->unique(); // e.g. SR-20260830-XXXX
-            $table->foreignId('store_id')->constrained()->cascadeOnDelete();
+            $table->string('reference_code')->unique(); // e.g. SR-20260925-XXXX
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->string('product_name');
+            $table->integer('total_requested_quantity')->default(0);
+            $table->integer('total_fulfilled_quantity')->default(0);
+            $table->integer('total_received_quantity')->default(0);
             
-            // draft, sent, preparing, shipped_to_hub, received_at_hub, completed, cancelled
+            // draft, approved (sent_to_store), preparing, shipped_to_hub, received_at_hub, completed, cancelled
             $table->string('status')->default('draft');
             
             $table->string('tracking_number')->nullable();
             $table->string('courier_name')->nullable();
             $table->text('notes')->nullable();
             
+            $table->timestamp('approved_at')->nullable();
             $table->timestamp('sent_at')->nullable();
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('received_at')->nullable();
@@ -32,7 +37,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 2. Supply Request Items Table (Batched quantities requested per product & variant)
+        // 2. Supply Request Items Table (Breakdown per size & variant for this product supply request)
         Schema::create('supply_request_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('supply_request_id')->constrained()->cascadeOnDelete();
@@ -41,6 +46,7 @@ return new class extends Migration
             $table->foreignId('drop_id')->nullable()->constrained()->nullOnDelete();
 
             $table->string('product_name');
+            $table->string('size_code')->nullable(); // e.g. 38, 39, L, XL
             $table->integer('requested_quantity')->default(1);
             $table->integer('fulfilled_quantity')->default(0);
             $table->integer('received_quantity')->default(0);

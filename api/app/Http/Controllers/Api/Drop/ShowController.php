@@ -24,8 +24,8 @@ class ShowController extends Controller
 
         $drop = Drop::query()
             ->where('id', $id)
-            ->with(['creator', 'images', 'mainImage', 'likedUsers', 'savedUsers'])
-            ->withCount(['likedUsers', 'savedUsers', 'products'])
+            ->with(['creator', 'images', 'mainImage'])
+            ->withCount(['likes as liked_users_count', 'saves as saved_users_count', 'products'])
             ->first();
 
         if (! $drop) {
@@ -52,7 +52,8 @@ class ShowController extends Controller
             }
         }
 
-        $text1 = (string) ($drop->title ?? 'Drop #' . $drop->id);
+        $title = (string) ($drop->title ?? '#' . $drop->id);
+        $text1 = str_starts_with(strtolower($title), 'drop:') ? $title : 'drop: ' . $title;
         $text2 = (string) ($drop->creator ? '@' . ltrim($drop->creator->username, '@') : ($drop->description ?? ''));
 
         $isLiked = false;
@@ -61,14 +62,16 @@ class ShowController extends Controller
         $isFollowing = false;
 
         if ($userId) {
-            $isLiked = $drop->likedUsers->contains('id', $userId);
-            $isSaved = $drop->savedUsers->contains('id', $userId);
-            $isReposted = UserInteraction::query()
+            $userInteractions = UserInteraction::query()
                 ->where('user_id', $userId)
-                ->where('type', UserInteraction::TYPE_REPOST)
                 ->where('target_type', UserInteraction::TARGET_DROP)
                 ->where('target_id', $drop->id)
-                ->exists();
+                ->pluck('type')
+                ->all();
+
+            $isLiked = in_array(UserInteraction::TYPE_LIKE, $userInteractions, true);
+            $isSaved = in_array(UserInteraction::TYPE_SAVE, $userInteractions, true);
+            $isReposted = in_array(UserInteraction::TYPE_REPOST, $userInteractions, true);
 
             if ($drop->creator_id) {
                 $isFollowing = CreatorFollower::query()
@@ -97,6 +100,11 @@ class ShowController extends Controller
                 ->count();
         }
 
+        $rejectionReasonData = $drop->rejection_reason;
+        $rejectionReasonText = is_array($rejectionReasonData)
+            ? ($rejectionReasonData['reason'] ?? '')
+            : (is_string($rejectionReasonData) ? $rejectionReasonData : '');
+
         $data = [
             'id' => (int) $drop->id,
             'creator_id' => $drop->creator_id ? (int) $drop->creator_id : null,
@@ -104,6 +112,9 @@ class ShowController extends Controller
             'image_urls' => $imageUrls,
             'text1' => $text1,
             'text2' => $text2,
+            'drop_status' => (string) ($drop->drop_status ?? 'published'),
+            'rejection_reason' => $rejectionReasonData,
+            'rejection_message' => $rejectionReasonText,
             'stats' => [
                 'nb_liked' => (int) ($drop->liked_users_count ?? 0),
                 'nb_saved' => (int) ($drop->saved_users_count ?? 0),

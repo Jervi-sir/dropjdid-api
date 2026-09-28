@@ -22,8 +22,8 @@ class ShowController extends Controller
 
         $product = Product::query()
             ->where('id', $id)
-            ->with(['mainImage', 'images', 'savedUsers', 'likedUsers', 'store', 'category', 'labels'])
-            ->withCount(['savedUsers', 'likedUsers', 'drops'])
+            ->with(['mainImage', 'images', 'store', 'category', 'labels'])
+            ->withCount(['saves as saved_users_count', 'likes as liked_users_count', 'drops'])
             ->first();
 
         if (! $product) {
@@ -54,18 +54,16 @@ class ShowController extends Controller
         $isReposted = false;
 
         if ($userId) {
-            if ($product->relationLoaded('savedUsers')) {
-                $isSaved = $product->savedUsers->contains('id', $userId);
-            }
-            if ($product->relationLoaded('likedUsers')) {
-                $isLiked = $product->likedUsers->contains('id', $userId);
-            }
-            $isReposted = \App\Models\UserInteraction::query()
+            $userInteractions = \App\Models\UserInteraction::query()
                 ->where('user_id', $userId)
-                ->where('type', \App\Models\UserInteraction::TYPE_REPOST)
                 ->where('target_type', \App\Models\UserInteraction::TARGET_PRODUCT)
                 ->where('target_id', $product->id)
-                ->exists();
+                ->pluck('type')
+                ->all();
+
+            $isLiked = in_array(\App\Models\UserInteraction::TYPE_LIKE, $userInteractions, true);
+            $isSaved = in_array(\App\Models\UserInteraction::TYPE_SAVE, $userInteractions, true);
+            $isReposted = in_array(\App\Models\UserInteraction::TYPE_REPOST, $userInteractions, true);
         }
 
         $nbSaved = (int) ($product->saved_users_count ?? 0);
@@ -91,9 +89,22 @@ class ShowController extends Controller
             'nb_reposts' => $nbReposts,
         ];
 
+        $images = $product->images->map(function ($img) {
+            $url = $img->image_url;
+            if ($url && ! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+                $url = url($url);
+            }
+            return $url;
+        })->filter()->values()->all();
+
+        if (empty($images) && $imageUrl) {
+            $images = [$imageUrl];
+        }
+
         $data = [
             'id' => (int) $product->id,
             'image_url' => (string) $imageUrl,
+            'images' => $images,
             'prices' => [
                 'price1' => $priceShown !== null ? number_format((float) $priceShown, 0, '.', ' ') . ' DZD' : '',
                 'price2' => $priceOriginal !== null ? number_format((float) $priceOriginal, 0, '.', ' ') . ' DZD' : '',

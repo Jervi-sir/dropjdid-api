@@ -13,6 +13,23 @@ class Drop extends Model
 {
     use HasFactory;
 
+    // Available drop statuses
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_NEW = 'new';
+    public const STATUS_UNDER_REVIEW = 'under-review';
+    public const STATUS_PUBLISHED = 'published';
+    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_PAUSED = 'paused';
+
+    public const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_NEW,
+        self::STATUS_UNDER_REVIEW,
+        self::STATUS_PUBLISHED,
+        self::STATUS_REJECTED,
+        self::STATUS_PAUSED,
+    ];
+
     protected $fillable = [
         'creator_id',
         'title',
@@ -20,6 +37,36 @@ class Drop extends Model
         'drop_status',
         'rejection_reason',
     ];
+
+    public function isDraft(): bool
+    {
+        return $this->drop_status === self::STATUS_DRAFT;
+    }
+
+    public function isNew(): bool
+    {
+        return $this->drop_status === self::STATUS_NEW;
+    }
+
+    public function isUnderReview(): bool
+    {
+        return $this->drop_status === self::STATUS_UNDER_REVIEW;
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->drop_status === self::STATUS_PUBLISHED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->drop_status === self::STATUS_REJECTED;
+    }
+
+    public function isPaused(): bool
+    {
+        return $this->drop_status === self::STATUS_PAUSED;
+    }
 
     protected function casts(): array
     {
@@ -43,14 +90,23 @@ class Drop extends Model
         return $this->hasOne(DropImage::class)->where('is_main', true);
     }
 
-    public function likedUsers(): BelongsToMany
+    public function interactions(): HasMany
     {
-        return $this->belongsToMany(User::class, 'liked_drops', 'drop_id', 'user_id')->withTimestamps();
+        return $this->hasMany(UserInteraction::class, 'target_id')->where('target_type', UserInteraction::TARGET_DROP);
     }
 
-    public function savedUsers(): BelongsToMany
+    public function likes(): HasMany
     {
-        return $this->belongsToMany(User::class, 'saved_drops', 'drop_id', 'user_id')->withTimestamps();
+        return $this->hasMany(UserInteraction::class, 'target_id')
+            ->where('target_type', UserInteraction::TARGET_DROP)
+            ->where('type', UserInteraction::TYPE_LIKE);
+    }
+
+    public function saves(): HasMany
+    {
+        return $this->hasMany(UserInteraction::class, 'target_id')
+            ->where('target_type', UserInteraction::TARGET_DROP)
+            ->where('type', UserInteraction::TYPE_SAVE);
     }
 
     public function dropProducts(): HasMany
@@ -63,5 +119,10 @@ class Drop extends Model
         return $this->belongsToMany(Product::class, 'drop_products', 'drop_id', 'product_id')
             ->withPivot('drop_price')
             ->withTimestamps();
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(DropHistory::class)->latest('id');
     }
 }

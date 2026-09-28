@@ -21,6 +21,10 @@ export interface DropsType {
   text1: string;
   /** Creator username handle (e.g. "@username") */
   text2: string;
+  /** Drop status: "draft" | "published" | "ended" | "cancelled" | "rejected" | string */
+  status?: string;
+  drop_status?: string;
+  is_draft?: boolean;
 }
 
 export interface ResponseType {

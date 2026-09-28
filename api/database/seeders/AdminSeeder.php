@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserRole;
@@ -16,6 +17,19 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Seed Admin Model (admins table)
+        Admin::firstOrCreate(
+            ['email' => 'admin@dropjdid.com'],
+            [
+                'username' => 'admin',
+                'phone_number' => '0558054300',
+                'password' => Hash::make('password'),
+                'password_plaintext' => 'password',
+                'is_approved' => true,
+            ]
+        );
+
+        // 2. Seed Admin User & Role (users table)
         $adminRole = Role::firstOrCreate(
             ['code' => 'admin'],
             [

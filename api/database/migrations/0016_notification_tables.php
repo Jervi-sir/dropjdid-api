@@ -11,19 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notification_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('code');
-            $table->string('en')->nullable();
-            $table->string('fr')->nullable();
-            $table->string('ar')->nullable();
-            $table->timestamps();
-        });
-
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('notification_type_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('type'); // 'sale', 'withdraw', 'order', 'friend-request', 'follower'
             $table->morphs('notifiable');
             $table->text('data');
             $table->timestamp('read_at')->nullable();
@@ -36,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('notification_types');
+        Schema::dropIfExists('notifications');
     }
 };

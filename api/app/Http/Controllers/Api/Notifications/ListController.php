@@ -27,7 +27,7 @@ class ListController extends Controller
         $userId = $request->user('sanctum')?->id ?? $request->user()?->id ?? $request->query('user_id');
 
         $query = Notification::query()
-            ->with(['type', 'notifiable'])
+            ->with(['notifiable'])
             ->latest();
 
         if ($userId) {
@@ -37,13 +37,9 @@ class ListController extends Controller
         // Tab filter support (e.g. 'all', 'orders', 'requests')
         $tab = $request->query('tab');
         if ($tab === 'orders') {
-            $query->whereHas('type', function ($q) {
-                $q->whereIn('code', ['order', 'sale', 'withdraw']);
-            });
+            $query->whereIn('type', [Notification::TYPE_ORDER, Notification::TYPE_SALE, Notification::TYPE_WITHDRAW]);
         } elseif ($tab === 'requests') {
-            $query->whereHas('type', function ($q) {
-                $q->whereIn('code', ['friend-request', 'follower']);
-            });
+            $query->whereIn('type', [Notification::TYPE_FRIEND_REQUEST, Notification::TYPE_FOLLOWER]);
         }
 
         $perPage = max(1, min(100, (int) $request->query('per_page', 20)));
@@ -74,7 +70,7 @@ class ListController extends Controller
      */
     protected function formatNotification(Notification $notification): array
     {
-        $typeCode = $notification->type?->code ?? 'order';
+        $typeCode = $notification->type ?? Notification::TYPE_ORDER;
         $metaData = is_array($notification->data) ? $notification->data : (json_decode($notification->data ?? '[]', true) ?: []);
         $notifiable = $notification->notifiable;
 

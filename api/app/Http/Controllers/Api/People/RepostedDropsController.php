@@ -50,7 +50,7 @@ class RepostedDropsController extends Controller
         $drops = ! empty($dropIds)
             ? Drop::query()
                 ->whereIn('id', $dropIds)
-                ->with(['creator', 'images', 'mainImage', 'likedUsers', 'savedUsers'])
+                ->with(['creator', 'images', 'mainImage'])
                 ->get()
                 ->keyBy('id')
             : collect();
@@ -83,14 +83,16 @@ class RepostedDropsController extends Controller
             $isFollowingCreator = false;
 
             if ($currentUserId) {
-                $isLiked = $drop->likedUsers ? $drop->likedUsers->contains('id', $currentUserId) : false;
-                $isSaved = $drop->savedUsers ? $drop->savedUsers->contains('id', $currentUserId) : false;
-                $isReposted = UserInteraction::query()
+                $userInteractions = UserInteraction::query()
                     ->where('user_id', $currentUserId)
-                    ->where('type', UserInteraction::TYPE_REPOST)
                     ->where('target_type', UserInteraction::TARGET_DROP)
                     ->where('target_id', $drop->id)
-                    ->exists();
+                    ->pluck('type')
+                    ->all();
+
+                $isLiked = in_array(UserInteraction::TYPE_LIKE, $userInteractions, true);
+                $isSaved = in_array(UserInteraction::TYPE_SAVE, $userInteractions, true);
+                $isReposted = in_array(UserInteraction::TYPE_REPOST, $userInteractions, true);
 
                 if ($drop->creator_id) {
                     $isFollowingCreator = CreatorFollower::query()

@@ -30,8 +30,8 @@ class ShowProductsController extends Controller
         }
 
         $query = $drop->products()
-            ->with(['mainImage', 'images', 'savedUsers'])
-            ->withCount('savedUsers');
+            ->with(['mainImage', 'images'])
+            ->withCount(['saves as saved_users_count']);
 
         $page = $request->query('page');
         $perPage = $request->query('per_page');
@@ -72,8 +72,13 @@ class ShowProductsController extends Controller
             }
 
             $isSaved = false;
-            if ($userId && $product->relationLoaded('savedUsers')) {
-                $isSaved = $product->savedUsers->contains('id', $userId);
+            if ($userId) {
+                $isSaved = \App\Models\UserInteraction::query()
+                    ->where('user_id', $userId)
+                    ->where('target_type', \App\Models\UserInteraction::TARGET_PRODUCT)
+                    ->where('target_id', $product->id)
+                    ->where('type', \App\Models\UserInteraction::TYPE_SAVE)
+                    ->exists();
             }
 
             return [

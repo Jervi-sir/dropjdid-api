@@ -19,5 +19,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin/sgm')->name('admin.sgm.')
     Route::post('/products/{product}/reject', [ListProductController::class, 'reject'])->name('products.reject');
     Route::post('/products/{product}/archive', [ListProductController::class, 'archive'])->name('products.archive');
     Route::post('/products/{product}/status', [ListProductController::class, 'updateStatus'])->name('products.status');
+    Route::post('/products/{product}/prices', [ListProductController::class, 'updatePrices'])->name('products.prices');
 });
 

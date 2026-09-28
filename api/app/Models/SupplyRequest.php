@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 class SupplyRequest extends Model
 {
     public const STATUS_DRAFT = 'draft';
+    public const STATUS_APPROVED = 'approved';
     public const STATUS_SENT = 'sent';
     public const STATUS_PREPARING = 'preparing';
     public const STATUS_SHIPPED_TO_HUB = 'shipped_to_hub';
@@ -20,11 +21,17 @@ class SupplyRequest extends Model
     protected $guarded = [];
 
     protected $casts = [
+        'approved_at' => 'datetime',
         'sent_at' => 'datetime',
         'shipped_at' => 'datetime',
         'received_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 
     public function store(): BelongsTo
     {

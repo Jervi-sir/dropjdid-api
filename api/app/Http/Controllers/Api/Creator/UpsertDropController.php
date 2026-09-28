@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Creator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Drop;
+use App\Models\DropHistory;
 use App\Models\DropImage;
 use App\Models\Product;
 use App\Models\User;
@@ -18,13 +19,26 @@ use Illuminate\Support\Str;
 class UpsertDropController extends Controller
 {
     /**
-     * Check if a drop title is available.
+     * Check if a drop title / username is available.
      */
     public function checkTitleAvailability(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'title' => ['required', 'string', 'max:255'],
-            'drop_id' => ['nullable', 'integer'],
+        $rawTitle = (string) ($request->input('title') ?? $request->input('drop_name') ?? '');
+        $sanitizedTitle = strtolower(preg_replace('/_+/', '_', preg_replace('/\s+/', '_', trim($rawTitle))));
+
+        $validator = Validator::make(['title' => $sanitizedTitle], [
+            'title' => [
+                'required',
+                'string',
+                'min:3',
+                'max:40',
+                'regex:/^[a-z0-9_.-]+$/',
+            ],
+        ], [
+            'title.required' => 'Drop name is required.',
+            'title.min' => 'Drop name must be at least 3 characters.',
+            'title.max' => 'Drop name cannot exceed 40 characters.',
+            'title.regex' => 'Drop name can only contain lowercase letters, numbers, dots, dashes, and underscores (no spaces).',
         ]);
 
         if ($validator->fails()) {
@@ -32,13 +46,13 @@ class UpsertDropController extends Controller
                 'available' => false,
                 'message' => $validator->errors()->first('title'),
                 'errors' => $validator->errors(),
+                'suggestions' => [],
             ], 422);
         }
 
-        $title = trim((string) $request->input('title'));
         $dropId = $request->input('drop_id');
 
-        $query = Drop::whereRaw('LOWER(TRIM(title)) = ?', [strtolower($title)]);
+        $query = Drop::whereRaw('LOWER(TRIM(title)) = ?', [$sanitizedTitle]);
 
         // Exclude the current drop if updating
         if ($dropId) {
@@ -48,15 +62,48 @@ class UpsertDropController extends Controller
         $isTaken = $query->exists();
 
         if ($isTaken) {
+            $faker = class_exists(\Faker\Factory::class) ? \Faker\Factory::create() : null;
+
+            $words = $faker ? [
+                strtolower($faker->word()),
+                strtolower($faker->colorName()),
+                $faker->numberBetween(10, 99),
+            ] : [rand(1, 99), 'drop', 'official'];
+
+            $candidates = [
+                $sanitizedTitle . '_' . rand(10, 99),
+                $sanitizedTitle . '.' . ($words[0] ?? 'drop'),
+                $sanitizedTitle . '_' . ($words[1] ?? 'official'),
+                'the_' . $sanitizedTitle,
+                $sanitizedTitle . rand(1, 99),
+                ($words[0] ?? 'real') . '_' . $sanitizedTitle,
+                $sanitizedTitle . '_drop',
+                $sanitizedTitle . rand(100, 999),
+            ];
+
+            $suggestions = [];
+            foreach ($candidates as $rawCandidate) {
+                $candidate = strtolower(preg_replace('/_+/', '_', preg_replace('/\s+/', '_', trim((string) $rawCandidate))));
+                $exists = Drop::whereRaw('LOWER(TRIM(title)) = ?', [$candidate])->exists();
+                if (! $exists && ! in_array($candidate, $suggestions, true)) {
+                    $suggestions[] = $candidate;
+                }
+                if (count($suggestions) >= 4) {
+                    break;
+                }
+            }
+
             return response()->json([
                 'available' => false,
-                'message' => 'Drop title is already taken.',
+                'message' => 'Drop name is already taken.',
+                'suggestions' => $suggestions,
             ], 200);
         }
 
         return response()->json([
             'available' => true,
-            'message' => 'Drop title is available.',
+            'message' => 'Drop name is available.',
+            'suggestions' => [],
         ], 200);
     }
 
@@ -116,6 +163,11 @@ class UpsertDropController extends Controller
             ];
         })->values()->all();
 
+        $rejectionReasonData = $drop->rejection_reason;
+        $rejectionReasonText = is_array($rejectionReasonData)
+            ? ($rejectionReasonData['reason'] ?? '')
+            : (is_string($rejectionReasonData) ? $rejectionReasonData : '');
+
         return response()->json([
             'data' => [
                 'id' => (int) $drop->id,
@@ -124,6 +176,8 @@ class UpsertDropController extends Controller
                 'description' => (string) ($drop->description ?? ''),
                 'drop_status' => (string) ($drop->drop_status ?? 'published'),
                 'is_draft' => ($drop->drop_status === 'draft'),
+                'rejection_reason' => $rejectionReasonData,
+                'rejection_message' => $rejectionReasonText,
                 'images' => $images,
                 'product_ids' => $drop->products->pluck('id')->values()->all(),
                 'products' => $products,
@@ -162,9 +216,10 @@ class UpsertDropController extends Controller
             ], 422);
         }
 
-        $title = trim((string) ($request->input('drop_name') ?? $request->input('title') ?? ''));
+        $rawTitle = (string) ($request->input('drop_name') ?? $request->input('title') ?? '');
+        $title = strtolower(preg_replace('/_+/', '_', preg_replace('/\s+/', '_', trim($rawTitle))));
         if ($title === '') {
-            $title = 'Drop #'.($dropId ? $dropId : (Drop::max('id') + 1));
+            $title = 'drop_'.($dropId ? $dropId : (Drop::max('id') + 1));
         }
 
         $description = trim((string) ($request->input('description') ?? ''));
@@ -194,6 +249,9 @@ class UpsertDropController extends Controller
                 $drop = Drop::find($dropId);
             }
 
+            $isNewDrop = ! $drop;
+            $oldStatus = $drop ? $drop->drop_status : null;
+
             if (! $drop) {
                 $drop = new Drop;
                 $drop->creator_id = $user->id;
@@ -201,8 +259,41 @@ class UpsertDropController extends Controller
 
             $drop->title = $title;
             $drop->description = $description;
-            $drop->drop_status = $isDraft ? 'draft' : 'published';
+
+            if ($isDraft) {
+                $drop->drop_status = Drop::STATUS_DRAFT;
+            } else {
+                if ($isNewDrop) {
+                    $drop->drop_status = Drop::STATUS_NEW;
+                } elseif ($oldStatus === Drop::STATUS_DRAFT) {
+                    // Moving from draft to submitted
+                    $drop->drop_status = Drop::STATUS_NEW;
+                } else {
+                    // Existing drop updated: move to under-review for admin check
+                    $drop->drop_status = Drop::STATUS_UNDER_REVIEW;
+                }
+                // Clear rejection reason once resubmitted/updated by creator
+                $drop->rejection_reason = null;
+            }
+
             $drop->save();
+
+            // Record history
+            DropHistory::record(
+                drop: $drop,
+                action: $isNewDrop ? 'created' : ($isDraft ? 'saved_draft' : 'updated_submitted'),
+                userId: $user->id,
+                fromStatus: $oldStatus,
+                toStatus: $drop->drop_status,
+                note: $isNewDrop
+                    ? 'Drop created by creator'
+                    : ($isDraft ? 'Drop saved as draft' : 'Drop updated and resubmitted for review'),
+                metadata: [
+                    'is_draft' => $isDraft,
+                    'title' => $title,
+                    'product_ids_count' => count($productIds),
+                ]
+            );
 
             // 3. Process Images
             // Ensure storage directory exists

@@ -150,4 +150,35 @@ class ListProductController extends Controller
 
         return back()->with('success', "Product '{$product->name}' status updated to {$status}.");
     }
+
+    /**
+     * Update product pricing configuration directly.
+     */
+    public function updatePrices(Request $request, Product $product): RedirectResponse
+    {
+        $validated = $request->validate([
+            'price_store' => ['nullable', 'numeric', 'min:0'],
+            'price_selling' => ['nullable', 'numeric', 'min:0'],
+            'price_original' => ['nullable', 'numeric', 'min:0'],
+            'discount_price' => ['nullable', 'numeric', 'min:0'],
+            'discount_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'creator_earning_type' => ['nullable', 'string', 'in:fixed,percentage'],
+            'creator_earning_value' => ['nullable', 'numeric', 'min:0'],
+            'platform_earning' => ['nullable', 'numeric', 'min:0'],
+            'event_name' => ['nullable', 'string', 'max:255'],
+            'event_price' => ['nullable', 'numeric', 'min:0'],
+            'event_start_at' => ['nullable', 'date'],
+            'event_end_at' => ['nullable', 'date'],
+        ]);
+
+        // Keep price_shown synced with price_selling if provided
+        if (isset($validated['price_selling'])) {
+            $validated['price_shown'] = $validated['price_selling'];
+        }
+
+        $product->update($validated);
+
+        return back()->with('success', "Pricing for '{$product->name}' updated successfully.");
+    }
 }
+

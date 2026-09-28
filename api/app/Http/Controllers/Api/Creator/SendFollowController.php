@@ -87,23 +87,16 @@ class SendFollowController extends Controller
 
             // Create in-app notification for the creator
             try {
-                $followerType = NotificationType::where('code', 'follower')->first();
-                if ($followerType) {
-                    $currentUser = User::find($userId);
-                    $followerName = $currentUser?->full_name ?? $currentUser?->username ?? 'Someone';
+                $currentUser = User::find($userId);
+                $followerName = $currentUser?->full_name ?? $currentUser?->username ?? 'Someone';
 
-                    Notification::create([
-                        'notification_type_id' => $followerType->id,
-                        'user_id' => $creatorId,
-                        'notifiable_type' => CreatorFollower::class,
-                        'notifiable_id' => $followRecord->id,
-                        'data' => [
-                            'text1' => $followerName,
-                            'text2' => 'started following you',
-                            'image_url' => $currentUser?->image_url,
-                        ],
-                    ]);
-                }
+                Notification::createFollowerNotification(
+                    userId: $creatorId,
+                    notifiable: $followRecord,
+                    followerName: $followerName,
+                    imageUrl: $currentUser?->image_url ?? '',
+                    text2: 'started following you'
+                );
             } catch (\Throwable $e) {
                 // Ignore notification creation failure to avoid blocking follow action
             }

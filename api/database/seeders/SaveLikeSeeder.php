@@ -6,13 +6,9 @@ use App\Models\CreatorFollower;
 use App\Models\CreatorRequest;
 use App\Models\Drop;
 use App\Models\Label;
-use App\Models\LikedDrop;
-use App\Models\LikedProduct;
 use App\Models\Product;
-use App\Models\SavedDrop;
-use App\Models\SavedLabel;
-use App\Models\SavedProduct;
 use App\Models\User;
+use App\Models\UserInteraction;
 use Illuminate\Database\Seeder;
 
 class SaveLikeSeeder extends Seeder
@@ -36,14 +32,18 @@ class SaveLikeSeeder extends Seeder
             if ($products->isNotEmpty()) {
                 $randomProducts = $products->random(min(rand(2, 4), $products->count()));
                 foreach ($randomProducts as $product) {
-                    SavedProduct::firstOrCreate([
+                    UserInteraction::firstOrCreate([
                         'user_id' => $user->id,
-                        'product_id' => $product->id,
+                        'type' => UserInteraction::TYPE_SAVE,
+                        'target_type' => UserInteraction::TARGET_PRODUCT,
+                        'target_id' => $product->id,
                     ]);
 
-                    LikedProduct::firstOrCreate([
+                    UserInteraction::firstOrCreate([
                         'user_id' => $user->id,
-                        'product_id' => $product->id,
+                        'type' => UserInteraction::TYPE_LIKE,
+                        'target_type' => UserInteraction::TARGET_PRODUCT,
+                        'target_id' => $product->id,
                     ]);
                 }
             }
@@ -52,14 +52,18 @@ class SaveLikeSeeder extends Seeder
             if ($drops->isNotEmpty()) {
                 $randomDrops = $drops->random(min(rand(2, 3), $drops->count()));
                 foreach ($randomDrops as $drop) {
-                    SavedDrop::firstOrCreate([
+                    UserInteraction::firstOrCreate([
                         'user_id' => $user->id,
-                        'drop_id' => $drop->id,
+                        'type' => UserInteraction::TYPE_SAVE,
+                        'target_type' => UserInteraction::TARGET_DROP,
+                        'target_id' => $drop->id,
                     ]);
 
-                    LikedDrop::firstOrCreate([
+                    UserInteraction::firstOrCreate([
                         'user_id' => $user->id,
-                        'drop_id' => $drop->id,
+                        'type' => UserInteraction::TYPE_LIKE,
+                        'target_type' => UserInteraction::TARGET_DROP,
+                        'target_id' => $drop->id,
                     ]);
                 }
             }
@@ -68,9 +72,11 @@ class SaveLikeSeeder extends Seeder
             if ($labels->isNotEmpty()) {
                 $randomLabels = $labels->random(min(rand(2, 3), $labels->count()));
                 foreach ($randomLabels as $label) {
-                    SavedLabel::firstOrCreate([
+                    UserInteraction::firstOrCreate([
                         'user_id' => $user->id,
-                        'label_id' => $label->id,
+                        'type' => UserInteraction::TYPE_SAVE,
+                        'target_type' => UserInteraction::TARGET_LABEL,
+                        'target_id' => $label->id,
                     ]);
                 }
             }

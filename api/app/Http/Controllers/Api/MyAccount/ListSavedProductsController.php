@@ -32,11 +32,15 @@ class ListSavedProductsController extends Controller
         $search = trim((string) ($request->query('search') ?? $request->query('query') ?? $request->query('q') ?? $request->query('keyword') ?? ''));
 
         $query = Product::query()
-            ->join('saved_products', 'products.id', '=', 'saved_products.product_id')
-            ->where('saved_products.user_id', $userId)
+            ->join('user_interactions', function ($join) use ($userId) {
+                $join->on('products.id', '=', 'user_interactions.target_id')
+                     ->where('user_interactions.target_type', '=', \App\Models\UserInteraction::TARGET_PRODUCT)
+                     ->where('user_interactions.type', '=', \App\Models\UserInteraction::TYPE_SAVE)
+                     ->where('user_interactions.user_id', '=', $userId);
+            })
             ->select('products.*')
-            ->with(['mainImage', 'images', 'savedUsers'])
-            ->withCount('savedUsers');
+            ->with(['mainImage', 'images'])
+            ->withCount(['saves as saved_users_count']);
 
         // Published / active products only
         $query->where(function ($q) {
@@ -119,9 +123,6 @@ class ListSavedProductsController extends Controller
         }
 
         $isSaved = true;
-        if ($userId) {
-            $isSaved = $product->savedUsers->contains('id', $userId);
-        }
 
         return [
             'id' => (int) $product->id,
@@ -134,7 +135,7 @@ class ListSavedProductsController extends Controller
             'text' => (string) ($product->name ?? 'Product #' . $product->id),
             'save' => [
                 'is_saved' => (bool) $isSaved,
-                'nb_save' => (int) ($product->saved_users_count ?? $product->savedUsers->count()),
+                'nb_save' => (int) ($product->saved_users_count ?? 1),
             ],
         ];
     }

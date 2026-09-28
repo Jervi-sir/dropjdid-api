@@ -7,10 +7,8 @@ use App\Models\CreatorFollower;
 use App\Models\Friendship;
 use App\Models\Product;
 use App\Models\Role;
-use App\Models\SavedDrop;
-use App\Models\SavedLabel;
-use App\Models\SavedProduct;
 use App\Models\User;
+use App\Models\UserInteraction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -69,11 +67,10 @@ class MyAccountController extends Controller
             // Followed creators count
             $nbFollowedCreators = CreatorFollower::where('user_id', $user->id)->count();
 
-            // Saved count (saved products + saved drops + saved labels)
-            $savedProductsCount = SavedProduct::where('user_id', $user->id)->count();
-            $savedDropsCount = SavedDrop::where('user_id', $user->id)->count();
-            $savedLabelsCount = SavedLabel::where('user_id', $user->id)->count();
-            $nbSaved = $savedProductsCount + $savedDropsCount + $savedLabelsCount;
+            // Saved count (all saved items for this user)
+            $nbSaved = UserInteraction::where('user_id', $user->id)
+                ->where('type', UserInteraction::TYPE_SAVE)
+                ->count();
         }
 
         // 3. Creator land statistics

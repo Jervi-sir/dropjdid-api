@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('support_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('store_id')->nullable()->constrained('stores')->nullOnDelete();
             $table->string('contact');
             $table->string('type')->nullable()->default('phone_number'); // phone_number, username, email
             $table->string('status')->nullable()->default('pending'); // pending, approved, rejected

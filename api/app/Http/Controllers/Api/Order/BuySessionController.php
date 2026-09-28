@@ -162,7 +162,7 @@ class BuySessionController extends Controller
             'wilaya_id' => 'nullable|integer',
             'wilaya' => 'nullable|string|max:255',
             'baladiya' => 'nullable|string|max:255',
-            'home_address' => 'required|string',
+            'home_address' => 'nullable|string',
             'delivery_method' => 'nullable|string|in:home,desk,domicile,stopdesk',
             'coupon_code' => 'nullable|string|max:50',
             'sizes' => 'nullable|array', // e.g. [{"size_id": 8, "quantity": 1}] or {"shoes": {"38": 1}}
@@ -201,6 +201,10 @@ class BuySessionController extends Controller
         // Delivery method normalization
         $rawDeliveryMethod = strtolower($validated['delivery_method'] ?? 'home');
         $deliveryMethod = in_array($rawDeliveryMethod, ['desk', 'stopdesk'], true) ? 'desk' : 'home';
+
+        $homeAddress = ! empty($validated['home_address'])
+            ? $validated['home_address']
+            : ($deliveryMethod === 'desk' ? 'Bureau de livraison Stop Desk (' . $baladiyaName . ')' : '');
 
         // Calculate delivery fees
         $deliveryCostRecord = null;
@@ -253,6 +257,8 @@ class BuySessionController extends Controller
                     $itemTotal = $unitPrice * $qty;
                     $subtotal += $itemTotal;
 
+                    $creatorEarning = ! empty($validated['drop_id']) ? (200.00 * $qty) : 0.00;
+
                     $itemsToCreate[] = [
                         'product_id' => $product->id,
                         'drop_id' => $validated['drop_id'] ?? null,
@@ -261,6 +267,7 @@ class BuySessionController extends Controller
                         'quantity' => $qty,
                         'unit_price' => $unitPrice,
                         'total_price' => $itemTotal,
+                        'creator_earning' => $creatorEarning,
                     ];
                 }
             } else {
@@ -275,6 +282,7 @@ class BuySessionController extends Controller
 
                             $itemTotal = $unitPrice * $qtyInt;
                             $subtotal += $itemTotal;
+                            $creatorEarning = ! empty($validated['drop_id']) ? (200.00 * $qtyInt) : 0.00;
 
                             $itemsToCreate[] = [
                                 'product_id' => $product->id,
@@ -284,6 +292,7 @@ class BuySessionController extends Controller
                                 'quantity' => $qtyInt,
                                 'unit_price' => $unitPrice,
                                 'total_price' => $itemTotal,
+                                'creator_earning' => $creatorEarning,
                             ];
                         }
                     }
@@ -296,6 +305,7 @@ class BuySessionController extends Controller
             $defaultSize = Size::first();
             $itemTotal = $unitPrice * 1;
             $subtotal = $itemTotal;
+            $creatorEarning = ! empty($validated['drop_id']) ? 200.00 : 0.00;
 
             $itemsToCreate[] = [
                 'product_id' => $product->id,
@@ -305,6 +315,7 @@ class BuySessionController extends Controller
                 'quantity' => 1,
                 'unit_price' => $unitPrice,
                 'total_price' => $itemTotal,
+                'creator_earning' => $creatorEarning,
             ];
         }
 
@@ -340,6 +351,7 @@ class BuySessionController extends Controller
             $validated,
             $wilayaName,
             $baladiyaName,
+            $homeAddress,
             $deliveryMethod,
             $deliveryFees,
             $subtotal,
@@ -355,7 +367,7 @@ class BuySessionController extends Controller
                 'phone_number' => $validated['phone_number'],
                 'wilaya' => $wilayaName,
                 'baladiya' => $baladiyaName,
-                'home_address' => $validated['home_address'],
+                'home_address' => $homeAddress,
                 'delivery_method' => $deliveryMethod,
                 'delivery_fees' => $deliveryFees,
                 'subtotal' => $subtotal,

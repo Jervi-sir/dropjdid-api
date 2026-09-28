@@ -71,6 +71,7 @@ return new class extends Migration
             $table->integer('quantity')->default(1);
             $table->decimal('unit_price', 12, 2);
             $table->decimal('total_price', 12, 2);
+            $table->decimal('creator_earning', 12, 2)->default(200.00);
 
             $table->timestamps();
         });
@@ -81,6 +82,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('order_items');
         Schema::dropIfExists('orders');
+        Schema::dropIfExists('order_statuses');
     }
 };

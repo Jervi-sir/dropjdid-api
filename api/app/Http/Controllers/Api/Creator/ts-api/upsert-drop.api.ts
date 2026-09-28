@@ -39,6 +39,8 @@ export interface CheckDropTitleParams {
 export interface CheckDropTitleResponse {
   available: boolean;
   message: string;
+  suggestions?: string[];
+  errors?: Record<string, string[]>;
 }
 
 export interface DropDetailsData {

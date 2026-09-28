@@ -24,7 +24,9 @@ Route::prefix('creators')->group(function () {
     Route::get('/drops/{drop}/liked-by', [DropStatsController::class, 'likedBy'])->name('api.creators.drops.liked-by');
     Route::get('/drops/{drop}/saved-by', [DropStatsController::class, 'savedBy'])->name('api.creators.drops.saved-by');
     Route::get('/drops/{drop}/shared-by', [DropStatsController::class, 'sharedBy'])->name('api.creators.drops.shared-by');
+    Route::get('/drops/{drop}/followers', [DropStatsController::class, 'followers'])->name('api.creators.drops.followers');
     Route::get('/drops/{drop}/products', [DropStatsController::class, 'products'])->name('api.creators.drops.products');
+    Route::get('/drops/{drop}/sales', [DropStatsController::class, 'sales'])->name('api.creators.drops.sales');
     Route::post('/wallet/check-identity', CheckIdentityController::class)->name('api.creators.wallet.check-identity');
     Route::get('/wallet/preview', [TransactionsController::class, 'preview'])->name('api.creators.wallet.preview');
     Route::get('/wallet/transactions', [TransactionsController::class, 'index'])->name('api.creators.wallet.transactions');

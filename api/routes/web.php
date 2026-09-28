@@ -22,6 +22,7 @@ Route::get('/account-deletion/{target?}', function (\Illuminate\Http\Request $re
 
 require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
+require __DIR__.'/admin/auth.php';
 require __DIR__.'/admin/creators.php';
 require __DIR__.'/admin/sgm.php';
 require __DIR__.'/admin/orders.php';

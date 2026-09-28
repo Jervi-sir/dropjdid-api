@@ -36,6 +36,19 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['drop_id', 'product_id']);
         });
+        Schema::create('drop_histories', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('drop_id')->constrained('drops')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('action'); // created, updated, status_changed, submitted_for_review, published, rejected, paused, etc.
+            $table->string('from_status')->nullable();
+            $table->string('to_status')->nullable();
+            $table->text('note')->nullable(); // e.g. rejection reason or change note
+            $table->json('metadata')->nullable(); // extra context like changes, IP, user_agent
+            $table->timestamps();
+
+            $table->index(['drop_id', 'created_at']);
+        });
     }
 
     /**
@@ -43,6 +56,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('drop_histories');
+        Schema::dropIfExists('drop_products');
+        Schema::dropIfExists('drop_images');
         Schema::dropIfExists('drops');
     }
 };
