@@ -370,7 +370,7 @@ class UpsertProductController extends Controller
             }
 
             // 1. Basic Fields & Prices
-            $product->name = $input['name'] ?? $product->name ?? '';
+            $product->name = $input['description'] ?? $product->description ?? '';
             $product->description = $input['description'] ?? $product->description ?? '';
 
             if (isset($prices['price1']) && $prices['price1'] !== '' && $prices['price1'] !== null) {
