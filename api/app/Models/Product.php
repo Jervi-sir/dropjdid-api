@@ -223,6 +223,7 @@ class Product extends Model
         'category_id',
         'gender_id',
         'quality_id',
+        'classification_code',
         'name',
         'description',
         'price_store',
@@ -358,6 +359,11 @@ class Product extends Model
     public function quality(): BelongsTo
     {
         return $this->belongsTo(Quality::class);
+    }
+
+    public function classification(): BelongsTo
+    {
+        return $this->belongsTo(ProductClassification::class, 'classification_code', 'code');
     }
 
     public function gender(): BelongsTo

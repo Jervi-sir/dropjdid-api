@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import {
     AlertCircle,
     Archive,
+    Award,
     Calendar,
     CheckCircle2,
     Clock,
@@ -17,6 +18,7 @@ import {
     ShieldAlert,
     Sparkles,
     Tag,
+    TrendingUp,
     UserCheck,
     X,
     XCircle,
@@ -117,12 +119,21 @@ interface GenderItem {
     ar?: string;
 }
 
+interface ClassificationItem {
+    id: number;
+    code: string;
+    en?: string;
+    fr?: string;
+    ar?: string;
+}
+
 interface ProductItem {
     id: number;
     store_id: number;
     category_id: number | null;
     gender_id: number | null;
     quality_id: number | null;
+    classification_code?: string | null;
     name: string;
     description: string | null;
     price_store: string | number | null;
@@ -150,6 +161,7 @@ interface ProductItem {
     category?: CategoryItem | null;
     gender?: GenderItem | null;
     quality?: QualityItem | null;
+    classification?: ClassificationItem | null;
     images?: ImageItem[];
     variants?: VariantItem[];
     labels?: LabelItem[];
@@ -179,6 +191,7 @@ interface PaginatedData<T> {
 
 interface Props {
     products: PaginatedData<ProductItem>;
+    classifications?: ClassificationItem[];
     filters: {
         status: string;
         search: string;
@@ -208,7 +221,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ListProducts({ products, filters, counts }: Props) {
+export default function ListProducts({
+    products,
+    classifications = [],
+    filters,
+    counts,
+}: Props) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [activeStatus, setActiveStatus] = useState(filters.status || 'all');
     const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(
@@ -228,8 +246,9 @@ export default function ListProducts({ products, filters, counts }: Props) {
     const [targetStatus, setTargetStatus] = useState<string>('');
     const [inlineReason, setInlineReason] = useState<string>('');
 
-    // Price editing form state
+    // Price & classification editing form state
     const [priceForm, setPriceForm] = useState({
+        classification_code: '',
         price_store: '',
         price_selling: '',
         price_original: '',
@@ -265,16 +284,55 @@ export default function ListProducts({ products, filters, counts }: Props) {
             };
 
             setPriceForm({
-                price_store: product.price_store !== null && product.price_store !== undefined ? String(product.price_store) : '',
-                price_selling: product.price_selling !== null && product.price_selling !== undefined ? String(product.price_selling) : (product.price_shown !== null && product.price_shown !== undefined ? String(product.price_shown) : ''),
-                price_original: product.price_original !== null && product.price_original !== undefined ? String(product.price_original) : '',
-                discount_price: product.discount_price !== null && product.discount_price !== undefined ? String(product.discount_price) : '',
-                discount_percentage: product.discount_percentage !== null && product.discount_percentage !== undefined ? String(product.discount_percentage) : '',
-                creator_earning_type: (product.creator_earning_type as string) || 'fixed',
-                creator_earning_value: product.creator_earning_value !== null && product.creator_earning_value !== undefined ? String(product.creator_earning_value) : '',
-                platform_earning: product.platform_earning !== null && product.platform_earning !== undefined ? String(product.platform_earning) : '',
+                classification_code:
+                    product.classification_code ||
+                    (product.classification?.code ?? ''),
+                price_store:
+                    product.price_store !== null &&
+                    product.price_store !== undefined
+                        ? String(product.price_store)
+                        : '',
+                price_selling:
+                    product.price_selling !== null &&
+                    product.price_selling !== undefined
+                        ? String(product.price_selling)
+                        : product.price_shown !== null &&
+                            product.price_shown !== undefined
+                          ? String(product.price_shown)
+                          : '',
+                price_original:
+                    product.price_original !== null &&
+                    product.price_original !== undefined
+                        ? String(product.price_original)
+                        : '',
+                discount_price:
+                    product.discount_price !== null &&
+                    product.discount_price !== undefined
+                        ? String(product.discount_price)
+                        : '',
+                discount_percentage:
+                    product.discount_percentage !== null &&
+                    product.discount_percentage !== undefined
+                        ? String(product.discount_percentage)
+                        : '',
+                creator_earning_type:
+                    (product.creator_earning_type as string) || 'fixed',
+                creator_earning_value:
+                    product.creator_earning_value !== null &&
+                    product.creator_earning_value !== undefined
+                        ? String(product.creator_earning_value)
+                        : '',
+                platform_earning:
+                    product.platform_earning !== null &&
+                    product.platform_earning !== undefined
+                        ? String(product.platform_earning)
+                        : '',
                 event_name: product.event_name || '',
-                event_price: product.event_price !== null && product.event_price !== undefined ? String(product.event_price) : '',
+                event_price:
+                    product.event_price !== null &&
+                    product.event_price !== undefined
+                        ? String(product.event_price)
+                        : '',
                 event_start_at: formatDateForInput(product.event_start_at),
                 event_end_at: formatDateForInput(product.event_end_at),
             });
@@ -423,18 +481,48 @@ export default function ListProducts({ products, filters, counts }: Props) {
         router.post(
             `/admin/sgm/products/${selectedProduct.id}/prices`,
             {
-                price_store: priceForm.price_store !== '' ? parseFloat(priceForm.price_store) : null,
-                price_selling: priceForm.price_selling !== '' ? parseFloat(priceForm.price_selling) : null,
-                price_original: priceForm.price_original !== '' ? parseFloat(priceForm.price_original) : null,
-                discount_price: priceForm.discount_price !== '' ? parseFloat(priceForm.discount_price) : null,
-                discount_percentage: priceForm.discount_percentage !== '' ? parseFloat(priceForm.discount_percentage) : null,
+                classification_code:
+                    priceForm.classification_code.trim() || null,
+                price_store:
+                    priceForm.price_store !== ''
+                        ? parseFloat(priceForm.price_store)
+                        : null,
+                price_selling:
+                    priceForm.price_selling !== ''
+                        ? parseFloat(priceForm.price_selling)
+                        : null,
+                price_original:
+                    priceForm.price_original !== ''
+                        ? parseFloat(priceForm.price_original)
+                        : null,
+                discount_price:
+                    priceForm.discount_price !== ''
+                        ? parseFloat(priceForm.discount_price)
+                        : null,
+                discount_percentage:
+                    priceForm.discount_percentage !== ''
+                        ? parseFloat(priceForm.discount_percentage)
+                        : null,
                 creator_earning_type: priceForm.creator_earning_type,
-                creator_earning_value: priceForm.creator_earning_value !== '' ? parseFloat(priceForm.creator_earning_value) : null,
-                platform_earning: priceForm.platform_earning !== '' ? parseFloat(priceForm.platform_earning) : null,
+                creator_earning_value:
+                    priceForm.creator_earning_value !== ''
+                        ? parseFloat(priceForm.creator_earning_value)
+                        : null,
+                platform_earning:
+                    priceForm.platform_earning !== ''
+                        ? parseFloat(priceForm.platform_earning)
+                        : null,
                 event_name: priceForm.event_name.trim() || null,
-                event_price: priceForm.event_price !== '' ? parseFloat(priceForm.event_price) : null,
-                event_start_at: priceForm.event_start_at ? new Date(priceForm.event_start_at).toISOString() : null,
-                event_end_at: priceForm.event_end_at ? new Date(priceForm.event_end_at).toISOString() : null,
+                event_price:
+                    priceForm.event_price !== ''
+                        ? parseFloat(priceForm.event_price)
+                        : null,
+                event_start_at: priceForm.event_start_at
+                    ? new Date(priceForm.event_start_at).toISOString()
+                    : null,
+                event_end_at: priceForm.event_end_at
+                    ? new Date(priceForm.event_end_at).toISOString()
+                    : null,
             },
             {
                 preserveScroll: true,
@@ -447,6 +535,80 @@ export default function ListProducts({ products, filters, counts }: Props) {
                 },
             },
         );
+    };
+
+    const getClassificationBadge = (
+        code?: string | null,
+        classificationObj?: ClassificationItem | null,
+    ) => {
+        if (!code) return null;
+        const matched =
+            classificationObj ||
+            classifications.find((item) => item.code === code);
+        const label =
+            matched?.en || matched?.fr || matched?.ar || code.replace(/_/g, ' ');
+
+        switch (code) {
+            case 'first_choice':
+                return (
+                    <Badge className="inline-flex items-center gap-1 border-blue-200 bg-blue-500/15 text-[10px] font-semibold text-blue-700 hover:bg-blue-500/25 dark:border-blue-800 dark:text-blue-300">
+                        <Sparkles className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        {label}
+                    </Badge>
+                );
+            case 'quantity_limited':
+                return (
+                    <Badge className="inline-flex items-center gap-1 border-rose-200 bg-rose-500/15 text-[10px] font-semibold text-rose-700 hover:bg-rose-500/25 dark:border-rose-800 dark:text-rose-300">
+                        <Clock className="h-3 w-3 text-rose-600 dark:text-rose-400" />
+                        {label}
+                    </Badge>
+                );
+            case 'customer_favorite':
+                return (
+                    <Badge className="inline-flex items-center gap-1 border-purple-200 bg-purple-500/15 text-[10px] font-semibold text-purple-700 hover:bg-purple-500/25 dark:border-purple-800 dark:text-purple-300">
+                        <Award className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                        {label}
+                    </Badge>
+                );
+            case 'selling_fast':
+                return (
+                    <Badge className="inline-flex items-center gap-1 border-amber-200 bg-amber-500/15 text-[10px] font-semibold text-amber-700 hover:bg-amber-500/25 dark:border-amber-800 dark:text-amber-300">
+                        <TrendingUp className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                        {label}
+                    </Badge>
+                );
+            case 'best_value':
+                return (
+                    <Badge className="inline-flex items-center gap-1 border-emerald-200 bg-emerald-500/15 text-[10px] font-semibold text-emerald-700 hover:bg-emerald-500/25 dark:border-emerald-800 dark:text-emerald-300">
+                        <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                        {label}
+                    </Badge>
+                );
+            case 'new_arrival':
+                return (
+                    <Badge className="inline-flex items-center gap-1 border-cyan-200 bg-cyan-500/15 text-[10px] font-semibold text-cyan-700 hover:bg-cyan-500/25 dark:border-cyan-800 dark:text-cyan-300">
+                        <Tag className="h-3 w-3 text-cyan-600 dark:text-cyan-400" />
+                        {label}
+                    </Badge>
+                );
+            case 'highly_rated':
+                return (
+                    <Badge className="inline-flex items-center gap-1 border-yellow-200 bg-yellow-500/15 text-[10px] font-semibold text-yellow-700 hover:bg-yellow-500/25 dark:border-yellow-800 dark:text-yellow-300">
+                        <Sparkles className="h-3 w-3 text-yellow-500" />
+                        {label}
+                    </Badge>
+                );
+            default:
+                return (
+                    <Badge
+                        variant="outline"
+                        className="inline-flex items-center gap-1 text-[10px] font-semibold"
+                    >
+                        <Tag className="h-3 w-3" />
+                        {label}
+                    </Badge>
+                );
+        }
     };
 
     const getStatusBadge = (status: string) => {
@@ -768,7 +930,7 @@ export default function ListProducts({ products, filters, counts }: Props) {
                                                                 )}
                                                         </div>
                                                         <div className="flex flex-col">
-                                                            <div className="flex items-center gap-1.5">
+                                                            <div className="flex flex-wrap items-center gap-1.5">
                                                                 <span
                                                                     className="line-clamp-1 max-w-[240px] text-sm font-semibold text-foreground"
                                                                     title={
@@ -783,6 +945,10 @@ export default function ListProducts({ products, filters, counts }: Props) {
                                                                     <Badge className="bg-violet-600 px-1.5 py-0 text-[9px] text-white">
                                                                         Affiliate
                                                                     </Badge>
+                                                                )}
+                                                                {getClassificationBadge(
+                                                                    product.classification_code,
+                                                                    product.classification,
                                                                 )}
                                                             </div>
                                                             <div className="mt-0.5 flex items-center gap-2">
@@ -1285,7 +1451,7 @@ export default function ListProducts({ products, filters, counts }: Props) {
                                 )}
 
                                 {/* Product Attributes Grid */}
-                                <div className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:grid-cols-4">
+                                <div className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:grid-cols-5">
                                     <div className="space-y-0.5">
                                         <span className="block text-[11px] font-medium text-muted-foreground uppercase">
                                             Category
@@ -1318,6 +1484,21 @@ export default function ListProducts({ products, filters, counts }: Props) {
                                     </div>
                                     <div className="space-y-0.5">
                                         <span className="block text-[11px] font-medium text-muted-foreground uppercase">
+                                            Classification
+                                        </span>
+                                        <div>
+                                            {getClassificationBadge(
+                                                selectedProduct.classification_code,
+                                                selectedProduct.classification,
+                                            ) || (
+                                                <span className="text-xs text-muted-foreground">
+                                                    None
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <span className="block text-[11px] font-medium text-muted-foreground uppercase">
                                             Created At
                                         </span>
                                         <span className="text-xs font-semibold text-foreground">
@@ -1337,12 +1518,11 @@ export default function ListProducts({ products, filters, counts }: Props) {
                                         <div>
                                             <h4 className="flex items-center gap-2 text-sm font-bold tracking-tight text-foreground uppercase">
                                                 <DollarSign className="h-4 w-4 text-emerald-600" />{' '}
-                                                Product Pricing Controls
+                                                Product Pricing & Classification Controls
                                             </h4>
                                             <p className="text-xs text-muted-foreground">
-                                                Edit selling prices, margins,
-                                                commissions, discounts, and
-                                                events.
+                                                Edit classification badges, selling prices, margins,
+                                                commissions, discounts, and events.
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -1361,8 +1541,73 @@ export default function ListProducts({ products, filters, counts }: Props) {
                                                 <Save className="h-3.5 w-3.5" />
                                                 {priceSaving
                                                     ? 'Saving...'
-                                                    : 'Save Pricing'}
+                                                    : 'Save Pricing & Badge'}
                                             </Button>
+                                        </div>
+                                    </div>
+
+                                    {/* Product Classification Selector */}
+                                    <div className="space-y-2 rounded-xl border border-border/80 bg-muted/20 p-3.5">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                                                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                                                Product Classification Badge
+                                            </Label>
+                                            {priceForm.classification_code && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setPriceForm({
+                                                            ...priceForm,
+                                                            classification_code:
+                                                                '',
+                                                        })
+                                                    }
+                                                    className="text-[11px] font-medium text-muted-foreground underline hover:text-foreground"
+                                                >
+                                                    Clear / None
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {classifications.map((item) => {
+                                                const isSelected =
+                                                    priceForm.classification_code ===
+                                                    item.code;
+                                                return (
+                                                    <button
+                                                        key={item.code}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setPriceForm({
+                                                                ...priceForm,
+                                                                classification_code:
+                                                                    isSelected
+                                                                        ? ''
+                                                                        : item.code,
+                                                            })
+                                                        }
+                                                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                                                            isSelected
+                                                                ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                                                                : 'border-border bg-background text-muted-foreground hover:border-border/80 hover:bg-muted/40 hover:text-foreground'
+                                                        }`}
+                                                    >
+                                                        <Sparkles
+                                                            className={`h-3 w-3 ${isSelected ? 'text-primary-foreground' : 'text-amber-500'}`}
+                                                        />
+                                                        {item.en ||
+                                                            item.fr ||
+                                                            item.ar ||
+                                                            item.code}
+                                                    </button>
+                                                );
+                                            })}
+                                            {classifications.length === 0 && (
+                                                <span className="text-xs text-muted-foreground italic">
+                                                    No classifications found. Run `php artisan db:seed --class=ProductClassificationSeeder`
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
 

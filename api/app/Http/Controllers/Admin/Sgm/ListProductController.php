@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Sgm;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductClassification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -25,6 +26,7 @@ class ListProductController extends Controller
             'category',
             'gender',
             'quality',
+            'classification',
             'images',
             'variants.size',
             'labels',
@@ -65,8 +67,11 @@ class ListProductController extends Controller
             'archived' => Product::where('product_status', Product::STATUS_ARCHIVED)->count(),
         ];
 
+        $classifications = ProductClassification::all();
+
         return Inertia::render('admin/sgms/list.products', [
             'products' => $products,
+            'classifications' => $classifications,
             'filters' => [
                 'status' => $status,
                 'search' => $search,
@@ -157,6 +162,7 @@ class ListProductController extends Controller
     public function updatePrices(Request $request, Product $product): RedirectResponse
     {
         $validated = $request->validate([
+            'classification_code' => ['nullable', 'string', 'exists:product_classifications,code'],
             'price_store' => ['nullable', 'numeric', 'min:0'],
             'price_selling' => ['nullable', 'numeric', 'min:0'],
             'price_original' => ['nullable', 'numeric', 'min:0'],
@@ -178,7 +184,7 @@ class ListProductController extends Controller
 
         $product->update($validated);
 
-        return back()->with('success', "Pricing for '{$product->name}' updated successfully.");
+        return back()->with('success', "Pricing and classification for '{$product->name}' updated successfully.");
     }
 }
 
