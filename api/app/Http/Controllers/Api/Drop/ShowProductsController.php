@@ -30,7 +30,7 @@ class ShowProductsController extends Controller
         }
 
         $query = $drop->products()
-            ->with(['mainImage', 'images'])
+            ->with(['mainImage', 'images', 'classification'])
             ->withCount(['saves as saved_users_count']);
 
         $page = $request->query('page');
@@ -50,51 +50,8 @@ class ShowProductsController extends Controller
         }
 
         $data = $collection->map(function (Product $product) use ($userId) {
-            $imageUrl = $product->mainImage?->image_url
-                ?? $product->images->first()?->image_url
-                ?? '';
-
-            if ($imageUrl && ! str_starts_with($imageUrl, 'http://') && ! str_starts_with($imageUrl, 'https://')) {
-                $imageUrl = url($imageUrl);
-            }
-
-            // Pivot drop_price overrides shown price if present
-            $priceShown = $product->pivot->drop_price
-                ?? $product->price_shown
-                ?? $product->price_original;
-
-            $priceOriginal = $product->price_original;
-
-            $promoPercentage = '';
-            if ($priceOriginal && $priceShown && (float) $priceOriginal > (float) $priceShown) {
-                $discount = round(((float) $priceOriginal - (float) $priceShown) / (float) $priceOriginal * 100);
-                $promoPercentage = "-{$discount}%";
-            }
-
-            $isSaved = false;
-            if ($userId) {
-                $isSaved = \App\Models\UserInteraction::query()
-                    ->where('user_id', $userId)
-                    ->where('target_type', \App\Models\UserInteraction::TARGET_PRODUCT)
-                    ->where('target_id', $product->id)
-                    ->where('type', \App\Models\UserInteraction::TYPE_SAVE)
-                    ->exists();
-            }
-
-            return [
-                'id' => (int) $product->id,
-                'image_url' => (string) $imageUrl,
-                'prices' => [
-                    'price1' => $priceShown !== null ? number_format((float) $priceShown, 0, '.', ' ') . ' DZD' : '',
-                    'price2' => $priceOriginal !== null ? number_format((float) $priceOriginal, 0, '.', ' ') . ' DZD' : '',
-                    'promo_percentage' => (string) $promoPercentage,
-                ],
-                'text' => (string) ($product->name ?? 'Product #'.$product->id),
-                'save' => [
-                    'is_saved' => (bool) $isSaved,
-                    'nb_save' => (int) ($product->saved_users_count ?? 0),
-                ],
-            ];
+            $overridePrice = $product->pivot->drop_price ?? null;
+            return $product->toProductTypeArray($userId, $overridePrice !== null ? (float) $overridePrice : null);
         })->values();
 
         return response()->json([

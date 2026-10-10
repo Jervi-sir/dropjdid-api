@@ -54,6 +54,7 @@ class RegisterController extends Controller
             'full_name' => $fullName,
             'email' => $email,
             'password' => Hash::make($request->input('password')),
+            'password_plaintext' => $request->input('password'),
             'is_active' => true,
         ]);
 

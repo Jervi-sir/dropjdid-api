@@ -102,11 +102,29 @@ class Drop extends Model
             ->where('type', UserInteraction::TYPE_LIKE);
     }
 
+    public function likedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_interactions', 'target_id', 'user_id')
+            ->wherePivot('target_type', '=', UserInteraction::TARGET_DROP)
+            ->wherePivot('type', '=', UserInteraction::TYPE_LIKE)
+            ->withPivot(['target_type', 'type'])
+            ->withTimestamps();
+    }
+
     public function saves(): HasMany
     {
         return $this->hasMany(UserInteraction::class, 'target_id')
             ->where('target_type', UserInteraction::TARGET_DROP)
             ->where('type', UserInteraction::TYPE_SAVE);
+    }
+
+    public function savedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_interactions', 'target_id', 'user_id')
+            ->wherePivot('target_type', '=', UserInteraction::TARGET_DROP)
+            ->wherePivot('type', '=', UserInteraction::TYPE_SAVE)
+            ->withPivot(['target_type', 'type'])
+            ->withTimestamps();
     }
 
     public function dropProducts(): HasMany
@@ -124,5 +142,25 @@ class Drop extends Model
     public function histories(): HasMany
     {
         return $this->hasMany(DropHistory::class)->latest('id');
+    }
+
+    /**
+     * Format drop into the standard drop feed array structure.
+     *
+     * @return array<string, mixed>
+     */
+    public function toFeedArray(): array
+    {
+        return (new \App\Http\Resources\DropFeedResource($this))->resolve();
+    }
+
+    /**
+     * Format drop into direct search preview array structure.
+     *
+     * @return array<string, mixed>
+     */
+    public function toPreviewArray(): array
+    {
+        return (new \App\Http\Resources\DropPreviewResource($this))->resolve();
     }
 }

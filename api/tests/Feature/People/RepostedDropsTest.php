@@ -50,7 +50,10 @@ test('people reposted drops returns list of reposted drops', function () {
         'user_id' => $viewer->id,
     ]);
 
-    $drop1->likedUsers()->attach($viewer->id);
+    $drop1->likedUsers()->attach($viewer->id, [
+        'target_type' => UserInteraction::TARGET_DROP,
+        'type' => UserInteraction::TYPE_LIKE,
+    ]);
 
     Sanctum::actingAs($viewer);
 

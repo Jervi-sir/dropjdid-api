@@ -322,11 +322,29 @@ class Product extends Model
             ->where('type', UserInteraction::TYPE_LIKE);
     }
 
+    public function likedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_interactions', 'target_id', 'user_id')
+            ->wherePivot('target_type', '=', UserInteraction::TARGET_PRODUCT)
+            ->wherePivot('type', '=', UserInteraction::TYPE_LIKE)
+            ->withPivot(['target_type', 'type'])
+            ->withTimestamps();
+    }
+
     public function saves(): HasMany
     {
         return $this->hasMany(UserInteraction::class, 'target_id')
             ->where('target_type', UserInteraction::TARGET_PRODUCT)
             ->where('type', UserInteraction::TYPE_SAVE);
+    }
+
+    public function savedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_interactions', 'target_id', 'user_id')
+            ->wherePivot('target_type', '=', UserInteraction::TARGET_PRODUCT)
+            ->wherePivot('type', '=', UserInteraction::TYPE_SAVE)
+            ->withPivot(['target_type', 'type'])
+            ->withTimestamps();
     }
 
     public function store(): BelongsTo
@@ -380,5 +398,19 @@ class Product extends Model
     {
         return $this->belongsToMany(Size::class, 'product_variants', 'product_id', 'size_id');
     }
-}
 
+    /**
+     * Format the product into the standard ProductType JSON structure.
+     *
+     * @param int|null $userId Authenticated user ID to check interaction statuses
+     * @param float|null $overridePrice Optional price override (e.g. drop pivot price)
+     * @return array<string, mixed>
+     */
+    public function toProductTypeArray(?int $userId = null, ?float $overridePrice = null): array
+    {
+        return (new \App\Http\Resources\ProductResource($this))
+            ->withUserId($userId)
+            ->withPriceOverride($overridePrice)
+            ->resolve();
+    }
+}

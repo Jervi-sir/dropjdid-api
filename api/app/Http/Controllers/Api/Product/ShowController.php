@@ -22,7 +22,7 @@ class ShowController extends Controller
 
         $product = Product::query()
             ->where('id', $id)
-            ->with(['mainImage', 'images', 'store', 'category', 'labels'])
+            ->with(['mainImage', 'images', 'store', 'category', 'labels', 'classification'])
             ->withCount(['saves as saved_users_count', 'likes as liked_users_count', 'drops'])
             ->first();
 
@@ -129,6 +129,12 @@ class ShowController extends Controller
                 'is_liked' => (bool) $isLiked,
                 'nb_liked' => $nbLiked,
             ],
+            'classification' => $product->classification ? [
+                'code' => (string) $product->classification->code,
+                'en' => (string) $product->classification->en,
+                'fr' => (string) $product->classification->fr,
+                'ar' => (string) $product->classification->ar,
+            ] : null,
         ];
 
         return response()->json([

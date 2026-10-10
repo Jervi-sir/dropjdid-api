@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Gender;
 use App\Models\Keyword;
 use App\Models\Product;
+use App\Models\ProductClassification;
 use App\Models\ProductImage;
 use App\Models\ProductKeyword;
 use App\Models\ProductVariant;
@@ -122,6 +123,7 @@ class ProductSeeder extends Seeder
         $genders = Gender::all();
         $stores = Store::all();
         $keywords = Keyword::all();
+        $classifications = ProductClassification::pluck('code')->all();
 
         $curatedCount = count($productsCatalog);
         $totalTarget = 200;
@@ -227,11 +229,12 @@ class ProductSeeder extends Seeder
             $index++;
         }
 
-        foreach ($finalItems as $data) {
+        foreach ($finalItems as $idx => $data) {
             $category = $categories[$data['cat']] ?? Category::inRandomOrder()->first();
             $gender = $genders->isNotEmpty() ? $genders->random() : Gender::inRandomOrder()->first();
             $quality = $qualities->isNotEmpty() ? $qualities->random() : Quality::inRandomOrder()->first();
             $store = $stores->isNotEmpty() ? $stores->random() : Store::inRandomOrder()->first();
+            $classificationCode = !empty($classifications) ? $classifications[$idx % count($classifications)] : null;
 
             $priceShown = (float) $data['price'];
             $priceOriginal = round($priceShown * 1.25, -2);
@@ -244,6 +247,7 @@ class ProductSeeder extends Seeder
                     'category_id' => $category?->id,
                     'gender_id' => $gender?->id,
                     'quality_id' => $quality?->id,
+                    'classification_code' => $classificationCode,
                     'description' => $data['desc'],
                     'price_original' => $priceOriginal,
                     'price_shown' => $priceShown,

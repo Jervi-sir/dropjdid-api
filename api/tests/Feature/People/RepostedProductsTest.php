@@ -53,7 +53,10 @@ test('people reposted products returns list of reposted products', function () {
     ]);
 
     // Viewer has saved product1
-    $product1->savedUsers()->attach($viewer->id);
+    $product1->savedUsers()->attach($viewer->id, [
+        'target_type' => UserInteraction::TARGET_PRODUCT,
+        'type' => UserInteraction::TYPE_SAVE,
+    ]);
 
     Sanctum::actingAs($viewer);
 

@@ -91,27 +91,7 @@ class DropsFeedController extends Controller
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        $data = $paginator->getCollection()->map(function (Drop $drop) {
-            $imageUrl = $drop->mainImage?->image
-                ?? $drop->images->first()?->image
-                ?? '';
-
-            // If image is a local storage path, format to full URL
-            if ($imageUrl && ! str_starts_with($imageUrl, 'http://') && ! str_starts_with($imageUrl, 'https://')) {
-                $imageUrl = url($imageUrl);
-            }
-
-            $dropName = $drop->title ?: ('#' . $drop->id);
-            $text1 = 'drop:' . $dropName;
-            $text2 = $drop->creator ? '@' . $drop->creator->username : ($drop->description ?? '');
-
-            return [
-                'id' => (int) $drop->id,
-                'image_url' => (string) $imageUrl,
-                'text1' => (string) $text1,
-                'text2' => (string) $text2,
-            ];
-        })->values();
+        $data = \App\Http\Resources\DropFeedResource::collection($paginator->getCollection())->resolve();
 
         $nextPage = $paginator->hasMorePages() ? $paginator->currentPage() + 1 : null;
 

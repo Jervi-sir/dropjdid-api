@@ -94,7 +94,7 @@ class ExploreController extends Controller
             $this->applyProductFilters($productsQuery, $request, $search);
 
             $products = $productsQuery
-                ->with(['mainImage', 'images'])
+                ->with(['mainImage', 'images', 'classification'])
                 ->withCount(['saves as saved_users_count'])
                 ->latest('created_at')
                 ->limit($productsPerSection)
@@ -112,7 +112,7 @@ class ExploreController extends Controller
                         'name' => (string) ($label->category->en ?? $label->category->code),
                     ] : null,
                     'section_type' => 'products',
-                    'products' => $products->map(fn ($p) => $this->formatProduct($p, $userId))->values(),
+                    'products' => $products->map(fn (Product $p) => $p->toProductTypeArray($userId))->values(),
                 ];
             }
         }
@@ -160,7 +160,7 @@ class ExploreController extends Controller
         $this->applyProductFilters($productsQuery, $request, $search);
 
         $paginated = $productsQuery
-            ->with(['mainImage', 'images'])
+            ->with(['mainImage', 'images', 'classification'])
             ->withCount(['saves as saved_users_count'])
             ->latest('created_at')
             ->paginate($perPage);
@@ -176,7 +176,7 @@ class ExploreController extends Controller
                     'name' => (string) ($labelModel->category->en ?? $labelModel->category->code),
                 ] : null,
             ],
-            'data' => collect($paginated->items())->map(fn ($p) => $this->formatProduct($p, $userId))->values(),
+            'data' => collect($paginated->items())->map(fn (Product $p) => $p->toProductTypeArray($userId))->values(),
             'current_page' => $paginated->currentPage(),
             'next_page' => $paginated->hasMorePages() ? $paginated->currentPage() + 1 : null,
             'total' => $paginated->total(),
@@ -354,53 +354,7 @@ class ExploreController extends Controller
         return array_values(array_filter(array_map(fn ($item) => trim((string) $item), $items), fn ($item) => $item !== ''));
     }
 
-    /**
-     * Format a single Product model into ProductType format.
-     */
-    private function formatProduct(Product $product, ?int $userId = null): array
-    {
-        $imageUrl = $product->mainImage?->image_url
-            ?? $product->images->first()?->image_url
-            ?? '';
 
-        if ($imageUrl && ! str_starts_with($imageUrl, 'http://') && ! str_starts_with($imageUrl, 'https://')) {
-            $imageUrl = url($imageUrl);
-        }
-
-        $currentPrice = $product->price_shown ?? $product->price_original ?? 0;
-        $originalPrice = $product->price_original ?? $currentPrice;
-
-        $promoPercentage = '';
-        if ($originalPrice > 0 && $currentPrice < $originalPrice) {
-            $discount = round((($originalPrice - $currentPrice) / $originalPrice) * 100);
-            $promoPercentage = "-{$discount}%";
-        }
-
-        $isSaved = false;
-        if ($userId) {
-            $isSaved = \App\Models\UserInteraction::query()
-                ->where('user_id', $userId)
-                ->where('target_type', \App\Models\UserInteraction::TARGET_PRODUCT)
-                ->where('target_id', $product->id)
-                ->where('type', \App\Models\UserInteraction::TYPE_SAVE)
-                ->exists();
-        }
-
-        return [
-            'id' => (int) $product->id,
-            'image_url' => (string) $imageUrl,
-            'prices' => [
-                'price1' => number_format($currentPrice, 0, '.', ' ').' DZD',
-                'price2' => ($originalPrice > $currentPrice) ? number_format($originalPrice, 0, '.', ' ').' DZD' : '',
-                'promo_percentage' => (string) $promoPercentage,
-            ],
-            'text' => (string) ($product->name ?? 'Product #'.$product->id),
-            'save' => [
-                'is_saved' => (bool) $isSaved,
-                'nb_save' => (int) ($product->saved_users_count ?? 0),
-            ],
-        ];
-    }
 
     /**
      * Format an Advertisement model into AdType format.

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Feeds;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductPreviewResource;
 use App\Models\CreatorFollower;
 use App\Models\Drop;
 use App\Models\Keyword;
@@ -232,26 +233,7 @@ class SearchController extends Controller
             ->limit(6)
             ->get();
 
-        $directProducts = $directProductsRaw->map(function (Product $product) {
-            $imageUrl = $product->mainImage?->image_url
-                ?? $product->images->first()?->image_url
-                ?? '';
-
-            if ($imageUrl && ! str_starts_with($imageUrl, 'http://') && ! str_starts_with($imageUrl, 'https://')) {
-                $imageUrl = url($imageUrl);
-            }
-
-            $price = $product->price_shown ?? $product->price_original ?? 0;
-            $formattedPrice = number_format((float) $price, 0, '.', ' ') . ' DZD';
-
-            return [
-                'id' => (int) $product->id,
-                'title' => (string) ($product->name ?? 'Product #' . $product->id),
-                'price' => $formattedPrice,
-                'store_name' => (string) ($product->store?->name ?? 'Store'),
-                'image_url' => (string) $imageUrl,
-            ];
-        })->values();
+        $directProducts = ProductPreviewResource::collection($directProductsRaw)->resolve();
 
         // C. Direct Drops
         $directDropsRaw = Drop::query()
@@ -272,24 +254,7 @@ class SearchController extends Controller
             ->limit(6)
             ->get();
 
-        $directDrops = $directDropsRaw->map(function (Drop $drop) {
-            $imageUrl = $drop->mainImage?->image
-                ?? $drop->images->first()?->image
-                ?? '';
-
-            if ($imageUrl && ! str_starts_with($imageUrl, 'http://') && ! str_starts_with($imageUrl, 'https://')) {
-                $imageUrl = url($imageUrl);
-            }
-
-            $creatorUsername = $drop->creator ? '@' . ltrim($drop->creator->username, '@') : '';
-
-            return [
-                'id' => (int) $drop->id,
-                'title' => (string) ($drop->title ?? 'Drop #' . $drop->id),
-                'creator' => $creatorUsername,
-                'image_url' => (string) $imageUrl,
-            ];
-        })->values();
+        $directDrops = \App\Http\Resources\DropPreviewResource::collection($directDropsRaw)->resolve();
 
         return response()->json([
             'query' => $query,
